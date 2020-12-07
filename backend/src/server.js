@@ -8,7 +8,7 @@ const app = express();
 // This line is needed for later deployment
 const PORT = process.env.PORT || 8000;
 
-// If we are starting our server as a development environment, then import.
+// If we are starting our server as a development environment, then import our .env 
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config()
 }

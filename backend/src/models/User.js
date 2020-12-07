@@ -5,13 +5,15 @@ const UserSchema = new mongoose.Schema({
     phoneNumber: String,
     email: String,
     password: String,
+    pin: {
+        type: Number,
+        default: 0
+    },
     permissions: {
-        companyId: String,
         type: String,
         default: 'user',
-        enum: ['user', 'manager','owner']
+        enum: ['user', 'employee', 'manager','owner']
     },
-    accessToken: String
 });
 
 module.exports = mongoose.model('User', UserSchema);

@@ -1,0 +1,16 @@
+.register-p {
+    margin-top: 40px;
+}
+
+.mainLogo {
+    max-width: 55%;
+    height: auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 27px;
+}
+
+.content {
+    padding: 46px;
+}

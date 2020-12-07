@@ -1,0 +1,93 @@
+/* Quicksand font */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    outline: 0;
+    box-sizing: border-box;
+}
+
+
+html, body, #root {
+    min-width: 100%;
+}
+
+
+body {
+    background-color: #445469;
+}
+
+body, input, button {
+    font-family: "Quicksand", Arial, Helvetica, sans-serif;
+}
+
+.container {
+    margin: auto;
+    margin-top: 30px;
+    max-width: 450px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.container h1, h2, h3, h4, h5, h6 {
+    color: #445469
+}
+
+.container strong {
+    color: #0a6096
+}
+
+/* white square behind everything */
+.content {
+    width: 100%;
+    opacity: 0.9;
+    background-color: white;
+    margin-bottom: 50px;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+}
+
+.content > p {
+    font-size: 16px;
+}
+
+.container .form-group {
+    min-width: 320px;
+}
+
+.content button.submit-btn {
+    border: 0;
+    border-radius: 6px;
+    height: 42px;
+    padding: 0 20px;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #445469;
+    color: white;
+}
+
+.content button.submit-btn:hover {
+    background-color: #0a6096;
+    transition: .4s;
+}
+
+.content button.secondary-btn {
+    border: 0;
+    border-radius: 6px;
+    height: 42px;
+    padding: 0 20px;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #0a6096;
+    color: white;
+}
+
+.content button.secondary-btn:hover {
+    background: #4199d1;
+    transition: .4s;
+}
+
