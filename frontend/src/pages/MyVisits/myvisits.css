@@ -1,0 +1,12 @@
+.card {
+    min-width: 265px;
+    margin-bottom: 20px;
+}
+
+.submit-btn {
+    margin-right: 10px;
+}
+
+.noVisits {
+    margin-top: 30px;
+}

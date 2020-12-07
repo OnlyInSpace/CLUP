@@ -1,0 +1,13 @@
+.list {
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+.list li {
+    margin-bottom: 10px;
+}
+
+.companyName {
+    font-size: 20px;
+}
