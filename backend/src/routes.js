@@ -42,7 +42,7 @@ routes.get('/myvisits/:user_id', VisitController.getAllVisits);
 // Create a visit
 routes.post('/visit/create', VisitController.createVisit);
 // Delete visit
-routes.delete('/visit/:visitId', VisitController.delete);
+routes.delete('/myvisits/:visitId', VisitController.delete);
 // Send the visit into a chosen Store model
 routes.post('/visit/setVisitStore', VisitController.setVisitStore);
 

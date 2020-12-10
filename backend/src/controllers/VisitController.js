@@ -64,10 +64,10 @@ module.exports = {
             if (updateStore) {
                 return res.status(200).json({message: 'Store was transferred to its company'})
             } else {
-                return res.status(400).jsaon({message: 'Visit was not stored.'})
+                return res.status(400).jsaon({message: 'No store found.'})
             }
         } catch (error) {
-            return res.status(400).json({message: 'Error setting store company'})
+            return res.status(400).json({message: 'Visit ID or Store ID not correct'})
         }
     },
 
@@ -108,6 +108,7 @@ module.exports = {
         // const query_store = store_id ? { store_id } : {};
         // const query_user = user_id ? { user_id } : {};
         // console.log("\nstoreId: " + store_id + "\nuserId: " + user_id);
+
         const { user_id } = req.params;
 
         try {
@@ -118,7 +119,7 @@ module.exports = {
                 return res.json(visits);
             }
         } catch (error) {
-            return res.status(200).json({message: 'No visits are scheduled.'})
+            return res.status(400).json({message: 'No visits are scheduled.'})
         }
     }
 }

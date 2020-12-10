@@ -3,10 +3,11 @@
     margin-bottom: 20px;
 }
 
-.submit-btn {
-    margin-right: 10px;
-}
 
 .noVisits {
     margin-top: 30px;
+}
+
+.content button.delete-btn {
+    margin-right: 13px;
 }
