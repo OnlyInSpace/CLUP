@@ -91,3 +91,50 @@ body, input, button {
     transition: .4s;
 }
 
+.content button.delete-btn {
+    border: 0;
+    border-radius: 6px;
+    height: 42px;
+    padding: 0 20px;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #445469;
+    color: white;
+}
+
+.content button.delete-btn:hover {
+    background-color: #b92828;
+    transition: .4s;
+}
+
+.modal-content button.btn-primary {
+    border: 0;
+    border-radius: 6px;
+    height: 40px;
+    padding: 0px 15px 0px 15px;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #0a6096;
+    color: white;
+}
+
+.modal-content button.btn-primary:hover {
+    background: #b92828;
+    transition: .4s;
+}
+
+.modal-content button.btn-secondary {
+    border: 0;
+    border-radius: 6px;
+    height: 40px;
+    padding: 0px 15px 0px 15px;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #445469;
+    color: white;
+}
+
+.modal-content button.btn-secondary:hover {
+    background: #576c86;
+    transition: .4s;
+}
