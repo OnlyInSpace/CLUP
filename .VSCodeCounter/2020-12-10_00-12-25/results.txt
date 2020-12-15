@@ -1,0 +1,94 @@
+Date : 2020-12-10 00:12:25
+Directory : c:\Users\steve\Documents\webDev\CLUP-2.1
+Total : 47 files,  22080 codes, 293 comments, 241 blanks, all 22614 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| JSON       |          5 |     20,567 |          0 |          5 |     20,572 |
+| JavaScript |         28 |      1,239 |        268 |        156 |      1,663 |
+| CSS        |         10 |        207 |          2 |         44 |        253 |
+| Markdown   |          2 |         40 |          0 |         34 |         74 |
+| HTML       |          1 |         20 |         23 |          1 |         44 |
+| XML        |          1 |          7 |          0 |          1 |          8 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                        | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                           |         47 |     22,080 |        293 |        241 |     22,614 |
+| backend                                                                                     |         14 |      2,516 |        137 |         77 |      2,730 |
+| backend\src                                                                                 |         12 |        432 |        137 |         75 |        644 |
+| backend\src\controllers                                                                     |          6 |        311 |         85 |         40 |        436 |
+| backend\src\models                                                                          |          4 |         64 |         15 |          8 |         87 |
+| frontend                                                                                    |         32 |     19,562 |        156 |        163 |     19,881 |
+| frontend\public                                                                             |          2 |         45 |         23 |          2 |         70 |
+| frontend\src                                                                                |         27 |      1,021 |        133 |        126 |      1,280 |
+| frontend\src\pages                                                                          |         17 |        812 |        126 |         87 |      1,025 |
+| frontend\src\pages\CreateCompany                                                            |          2 |         65 |          6 |          5 |         76 |
+| frontend\src\pages\CreateStore                                                              |          1 |        142 |         14 |          6 |        162 |
+| frontend\src\pages\Dashboard                                                                |          2 |         61 |          4 |          7 |         72 |
+| frontend\src\pages\FindStore                                                                |          2 |         83 |          8 |         11 |        102 |
+| frontend\src\pages\Login                                                                    |          2 |         83 |          9 |          6 |         98 |
+| frontend\src\pages\MyVisits                                                                 |          2 |        136 |         61 |         28 |        225 |
+| frontend\src\pages\Navbar                                                                   |          2 |         43 |          4 |          4 |         51 |
+| frontend\src\pages\Register                                                                 |          2 |         77 |          6 |          4 |         87 |
+| frontend\src\pages\ScheduleVisit                                                            |          2 |        122 |         14 |         16 |        152 |
+| frontend\src\services                                                                       |          1 |          5 |          1 |          2 |          8 |
++---------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                    | language   | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| c:\Users\steve\Documents\webDev\CLUP-2.1\README.md                                          | Markdown   |          2 |          0 |          1 |          3 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\package-lock.json                          | JSON       |      2,059 |          0 |          1 |      2,060 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\package.json                               | JSON       |         25 |          0 |          1 |         26 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\controllers\ChangeCountController.js   | JavaScript |         33 |          5 |          2 |         40 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\controllers\CompanyController.js       | JavaScript |         42 |         16 |          3 |         61 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\controllers\LoginController.js         | JavaScript |         30 |         13 |          7 |         50 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\controllers\StoreController.js         | JavaScript |         68 |         12 |          8 |         88 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\controllers\UserController.js          | JavaScript |         54 |         12 |          5 |         71 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\controllers\VisitController.js         | JavaScript |         84 |         27 |         15 |        126 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\models\Company.js                      | JavaScript |          9 |          4 |          2 |         15 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\models\Store.js                        | JavaScript |         27 |          7 |          2 |         36 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\models\User.js                         | JavaScript |         20 |          1 |          2 |         23 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\models\Visit.js                        | JavaScript |          8 |          3 |          2 |         13 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\routes.js                              | JavaScript |         32 |         32 |         21 |         85 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\backend\src\server.js                              | JavaScript |         25 |          5 |          6 |         36 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\README.md                                 | Markdown   |         38 |          0 |         33 |         71 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\package-lock.json                         | JSON       |     18,404 |          0 |          1 |     18,405 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\package.json                              | JSON       |         54 |          0 |          1 |         55 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\public\index.html                         | HTML       |         20 |         23 |          1 |         44 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\public\manifest.json                      | JSON       |         25 |          0 |          1 |         26 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\App.css                               | CSS        |        116 |          2 |         22 |        140 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\App.js                                | JavaScript |         10 |          0 |          3 |         13 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\App.test.js                           | JavaScript |          7 |          0 |          2 |          9 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\index.css                             | CSS        |         12 |          0 |          2 |         14 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\index.js                              | JavaScript |         10 |          0 |          3 |         13 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\logo.svg                              | XML        |          7 |          0 |          1 |          8 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\CreateCompany\createcompany.css | CSS        |         11 |          0 |          2 |         13 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\CreateCompany\index.js          | JavaScript |         54 |          6 |          3 |         63 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\CreateStore\index.js            | JavaScript |        142 |         14 |          6 |        162 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\Dashboard\dashboard.css         | CSS        |          7 |          0 |          1 |          8 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\Dashboard\index.js              | JavaScript |         54 |          4 |          6 |         64 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\FindStore\findstore.css         | CSS        |          9 |          0 |          4 |         13 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\FindStore\index.js              | JavaScript |         74 |          8 |          7 |         89 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\Login\index.js                  | JavaScript |         69 |          9 |          4 |         82 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\Login\login.css                 | CSS        |         14 |          0 |          2 |         16 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\MyVisits\index.js               | JavaScript |        126 |         61 |         24 |        211 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\MyVisits\myvisits.css           | CSS        |         10 |          0 |          4 |         14 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\Navbar\navbar.css               | CSS        |          6 |          0 |          2 |          8 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\Navbar\navbar.js                | JavaScript |         37 |          4 |          2 |         43 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\Register\index.js               | JavaScript |         73 |          6 |          4 |         83 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\Register\register.css           | CSS        |          4 |          0 |          0 |          4 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\ScheduleVisit\index.js          | JavaScript |        104 |         14 |         11 |        129 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\pages\ScheduleVisit\schedulevisit.css | CSS        |         18 |          0 |          5 |         23 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\reportWebVitals.js                    | JavaScript |         12 |          0 |          2 |         14 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\routes.js                             | JavaScript |         29 |          0 |          1 |         30 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\services\api.js                       | JavaScript |          5 |          1 |          2 |          8 |
+| c:\Users\steve\Documents\webDev\CLUP-2.1\frontend\src\setupTests.js                         | JavaScript |          1 |          4 |          1 |          6 |
+| Total                                                                                       |            |     22,080 |        293 |        241 |     22,614 |
++---------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

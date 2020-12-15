@@ -10,13 +10,14 @@ export default function FindStore({ history }) {
     // Store's id
     const [selectedStore, setSelectedStore] = useState(null);
     const [errorMessage, setErrorMessage] = useState("");
+    const [searchData, setSearchData] = useState([]);
 
-    const searchList = [];
+    console.log(searchData);
     useEffect(() => {
       const fetchData = async () => {
         const storeList = await api.get('/store');
         // populate our search list
-        storeList.data.forEach(function (store) {
+        const formattedData = storeList.data.map(store => {
             const storeName = store.storeName;
             const storeCity = store.location.city;
             const storeState = store.location.state;
@@ -24,12 +25,12 @@ export default function FindStore({ history }) {
             const storeAddress2 = store.location.address2;
             const storeId = store._id;
             const label = storeName + ' - ' + storeCity + ', ' + storeState + ' ' + storeAddress1 + ' ' + storeAddress2;
-            searchList.push({label: label, value: storeId});
+            return {label, value: storeId};
         });
-        console.log("Our options: ", searchList);
+        setSearchData(formattedData);
       }
       fetchData();
-    }, [searchList]);
+    }, []);
 
     // Function that will talk to server api when button is clicked
     const handleSubmit = async evt => {
@@ -38,7 +39,7 @@ export default function FindStore({ history }) {
         setErrorMessage("Please select a store.");
       } else {
         // Get the store's id from our generated search list
-        const getStoreId = searchList.find( ({label}) => label === selectedStore);
+        const getStoreId = searchData.find( ({label}) => label === selectedStore);
         const storeId =  getStoreId.value;
         console.log(getStoreId);
         // set storeId to selected store in local storage
@@ -69,7 +70,7 @@ export default function FindStore({ history }) {
           <Select
             classname="searchBar"
             styles={customStyles}
-            options={searchList}
+            options={searchData}
             onChange = {evt => setSelectedStore(evt.label)}
           />
           <h5>Selected store: <strong>{selectedStore}</strong></h5>

@@ -1,10 +1,10 @@
 # Summary
 
-Date : 2020-12-08 22:24:11
+Date : 2020-12-10 00:12:25
 
 Directory c:\Users\steve\Documents\webDev\CLUP-2.1
 
-Total : 47 files,  22082 codes, 291 comments, 240 blanks, all 22613 lines
+Total : 47 files,  22080 codes, 293 comments, 241 blanks, all 22614 lines
 
 [details](details.md)
 
@@ -12,7 +12,7 @@ Total : 47 files,  22082 codes, 291 comments, 240 blanks, all 22613 lines
 | language | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
 | JSON | 5 | 20,567 | 0 | 5 | 20,572 |
-| JavaScript | 28 | 1,241 | 266 | 155 | 1,662 |
+| JavaScript | 28 | 1,239 | 268 | 156 | 1,663 |
 | CSS | 10 | 207 | 2 | 44 | 253 |
 | Markdown | 2 | 40 | 0 | 34 | 74 |
 | HTML | 1 | 20 | 23 | 1 | 44 |
@@ -21,10 +21,10 @@ Total : 47 files,  22082 codes, 291 comments, 240 blanks, all 22613 lines
 ## Directories
 | path | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| . | 47 | 22,082 | 291 | 240 | 22,613 |
-| backend | 14 | 2,518 | 135 | 76 | 2,729 |
-| backend\src | 12 | 434 | 135 | 74 | 643 |
-| backend\src\controllers | 6 | 313 | 83 | 39 | 435 |
+| . | 47 | 22,080 | 293 | 241 | 22,614 |
+| backend | 14 | 2,516 | 137 | 77 | 2,730 |
+| backend\src | 12 | 432 | 137 | 75 | 644 |
+| backend\src\controllers | 6 | 311 | 85 | 40 | 436 |
 | backend\src\models | 4 | 64 | 15 | 8 | 87 |
 | frontend | 32 | 19,562 | 156 | 163 | 19,881 |
 | frontend\public | 2 | 45 | 23 | 2 | 70 |
