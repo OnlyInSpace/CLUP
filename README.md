@@ -10,7 +10,7 @@ Go to https://whatismyipaddress.com/  to get your IPv4 and send it to me.
 
 1.  Install NodeJS from https://nodejs.org/en/ for you system
 2.  Install git bash from https://gitforwindows.org/ for your system
-3.  Unzip the archive and place the project folder somewhere handy
+3.  Download and unzip the code archive and place the project folder somewhere handy
 4.  Open the project folder in VSCode. To do this, you can click on File in the top left corner then select the "Open folder..." option and choose the project
     folder.
 5.  Open a new terminal by clicking on "Terminal" in the toolbar and selecting "New Terminal"
