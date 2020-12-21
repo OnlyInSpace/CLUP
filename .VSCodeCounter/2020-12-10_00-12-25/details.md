@@ -1,10 +1,10 @@
 # Details
 
-Date : 2020-12-08 22:24:11
+Date : 2020-12-10 00:12:25
 
 Directory c:\Users\steve\Documents\webDev\CLUP-2.1
 
-Total : 47 files,  22082 codes, 291 comments, 240 blanks, all 22613 lines
+Total : 47 files,  22080 codes, 293 comments, 241 blanks, all 22614 lines
 
 [summary](results.md)
 
@@ -19,7 +19,7 @@ Total : 47 files,  22082 codes, 291 comments, 240 blanks, all 22613 lines
 | [backend/src/controllers/LoginController.js](/backend/src/controllers/LoginController.js) | JavaScript | 30 | 13 | 7 | 50 |
 | [backend/src/controllers/StoreController.js](/backend/src/controllers/StoreController.js) | JavaScript | 68 | 12 | 8 | 88 |
 | [backend/src/controllers/UserController.js](/backend/src/controllers/UserController.js) | JavaScript | 54 | 12 | 5 | 71 |
-| [backend/src/controllers/VisitController.js](/backend/src/controllers/VisitController.js) | JavaScript | 86 | 25 | 14 | 125 |
+| [backend/src/controllers/VisitController.js](/backend/src/controllers/VisitController.js) | JavaScript | 84 | 27 | 15 | 126 |
 | [backend/src/models/Company.js](/backend/src/models/Company.js) | JavaScript | 9 | 4 | 2 | 15 |
 | [backend/src/models/Store.js](/backend/src/models/Store.js) | JavaScript | 27 | 7 | 2 | 36 |
 | [backend/src/models/User.js](/backend/src/models/User.js) | JavaScript | 20 | 1 | 2 | 23 |

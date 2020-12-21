@@ -4,12 +4,12 @@ const Store = require('../models/Store');
 const { store } = require('./LoginController');
 
 module.exports = {
-    //TODO: Ensure user does not go over Store.maxPartyAllowed
     // Create an async event
     async createVisit(req, res) {
+        // console.log("\nCONTROLLER\n")
+        // console.log("req.body:", req.body);
+
         // Get all info from body
-        console.log("\nCONTROLLER\n")
-        console.log("req.body:", req.body);
         const { scheduledDate, partyAmount, store_id } = req.body;
         const { user_id } = req.headers;
 
@@ -39,14 +39,6 @@ module.exports = {
                 user: user_id
             });
             console.log("newly created visit:", visit);
-
-            // // populate our visit with its respective store object, only returning the store's location.
-            // await visit
-            //     .populate('store', 'storeName')
-            //     .execPopulate();
-
-            // Send the visit
-            console.log("Visit:", visit);
             return res.json(visit);
         } catch (error) {
             throw Error(`Error creating a new visit : ${error}`)
