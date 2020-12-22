@@ -1,12 +1,25 @@
 /* Quicksand font */
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
 
+.form-control:focus{
+    border-color:#445469;
+    box-shadow: 0 0 0 2px rgba(68, 84, 105, 0.3);
+}
+
+
 * {
     margin: 0;
     padding: 0;
     outline: 0;
     box-sizing: border-box;
 }
+
+
+/* Adjacent sibling selector 
+      This makes it so first and last elements dont have margin */
+/* * + * {
+    margin: 1em 0 0;
+} */
 
 
 html, body, #root {
@@ -18,9 +31,11 @@ body {
     background-color: #445469;
 }
 
+
 body, input, button {
     font-family: "Quicksand", Arial, Helvetica, sans-serif;
 }
+
 
 .container {
     margin: auto;
@@ -32,13 +47,16 @@ body, input, button {
     align-items: center;
 }
 
+
 .container h1, h2, h3, h4, h5, h6 {
     color: #445469
 }
 
+
 .container strong {
     color: #0a6096
 }
+
 
 /* white square behind everything */
 .content {
@@ -51,13 +69,16 @@ body, input, button {
     text-align: center;
 }
 
+
 .content > p {
     font-size: 16px;
 }
 
+
 .container .form-group {
     min-width: 320px;
 }
+
 
 .content button.submit-btn {
     border: 0;
@@ -70,10 +91,12 @@ body, input, button {
     color: white;
 }
 
+
 .content button.submit-btn:hover {
     background-color: #0a6096;
     transition: .4s;
 }
+
 
 .content button.secondary-btn {
     border: 0;
@@ -86,10 +109,12 @@ body, input, button {
     color: white;
 }
 
+
 .content button.secondary-btn:hover {
     background: #4199d1;
     transition: .4s;
 }
+
 
 .content button.delete-btn {
     border: 0;
@@ -102,10 +127,12 @@ body, input, button {
     color: white;
 }
 
+
 .content button.delete-btn:hover {
     background-color: #b92828;
     transition: .4s;
 }
+
 
 .modal-content button.btn-primary {
     border: 0;
@@ -118,10 +145,12 @@ body, input, button {
     color: white;
 }
 
+
 .modal-content button.btn-primary:hover {
     background: #b92828;
     transition: .4s;
 }
+
 
 .modal-content button.btn-secondary {
     border: 0;
@@ -133,6 +162,7 @@ body, input, button {
     background-color: #445469;
     color: white;
 }
+
 
 .modal-content button.btn-secondary:hover {
     background: #576c86;
