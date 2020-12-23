@@ -1,4 +1,4 @@
-const express = require('express')
+const express = require('express');
 // Controllers
 const UserController = require('./controllers/UserController');
 const VisitController = require('./controllers/VisitController');
@@ -12,7 +12,7 @@ const routes = express.Router();
 
 // a verification endpoint
 routes.get('/status', (req, res)=> {
-    res.send({ status: 200})
+  res.send({ status: 200});
 });
 
 
