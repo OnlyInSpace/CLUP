@@ -73,17 +73,17 @@ export default function ScheduleVisit({ history }) {
       <div className="content">
         <h3>Schedule a Visit</h3>
         {store_id && 
-              <VisitContent 
-                handleSubmit={handleSubmit}
-                scheduledDate={scheduledDate}
-                setScheduledDay={setScheduledDay}
-                setScheduledTime={setScheduledTime}
-                setPartyAmount={setPartyAmount}
-                scheduledTime={scheduledTime}
-              />
+          <VisitContent 
+            handleSubmit={handleSubmit}
+            scheduledDate={scheduledDate}
+            setScheduledDay={setScheduledDay}
+            setScheduledTime={setScheduledTime}
+            setPartyAmount={setPartyAmount}
+            scheduledTime={scheduledTime}
+          />
         }
         {!store_id && 
-              <h5 className="noStoreId">To schedule a visit, you need to <strong>Select a store</strong> in the navigation menu</h5>
+          <h5 className="noStoreId">To schedule a visit, you need to <strong>Select a store</strong> in the navigation menu</h5>
         }
         {errorMessage ? (
         /* ^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
