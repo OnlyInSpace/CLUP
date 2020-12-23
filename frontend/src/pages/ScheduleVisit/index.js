@@ -86,7 +86,7 @@ export default function ScheduleVisit({ history }) {
           <h5 className="noStoreId">To schedule a visit, you need to <strong>Select a store</strong> in the navigation menu</h5>
         }
         {errorMessage ? (
-        /* ^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+        /* ^ is a ternary operator: Is party amount > 0? If no, then display the alert */
           <Alert className="alertBox" variant='warning'>
             {errorMessage}
           </Alert>
