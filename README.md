@@ -27,3 +27,14 @@ Go to https://whatismyipaddress.com/  to get your IPv4 and send it to me.
 14. Enter the command "npm run dev" to start the frontend server. If you have a browser open, then the project will automatically open up a new broswer
     window with the application now visible. If the project does not open automatically, then you can simply type localhost:3000/ in your browser's URL to reach
     it.
+
+Branch Workflow:
+- Have a master and develop branch
+- When you want to add something new, branch off of the develop branch and create a new branch named "feature/<nameOfFeature"
+- Once you finish,  create pull request to the develop branch and have the team review, 
+   then merge it in
+- Once you have a list of features done in develop that you want to release, create a 
+   release/v0.x , x being the number however you want to version that will branch off develop
+- PR to master, once again all guys review
+- Then boom merge that bad boy in
+- If you make any changes to the release branch make sure you merge that into develop too
