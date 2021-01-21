@@ -34,7 +34,7 @@ Branch Workflow:
 - Once you finish,  create pull request to the develop branch and have the team review, 
    then merge it in
 - Once you have a list of features done in develop that you want to release, create a 
-   release/v0.x , x being the number however you want to version that will branch off develop
-- PR to master, once again all guys review
+   "release/v0.x" branch, x being the version number
+- Pull request to master, once again all guys review
 - Then boom merge that bad boy in
 - If you make any changes to the release branch make sure you merge that into develop too
