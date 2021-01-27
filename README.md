@@ -3,9 +3,14 @@ CLUP
 
 Steps to run the project in VSCode:
 
-IF YOU WANT TO RUN THIS PROJECT, I WILL FIRST NEED YOUR PUBLIC IPv4 ADDRESS. 
-This is required so you can access the database!
-Go to https://whatismyipaddress.com/  to get your IPv4 and send it to me. 
+IF you want to RUN this project, I will first need the IP address of whatever device you want to run the project on. 
+This is required so your app can access the database!
+Go to https://whatismyipaddress.com/ to get your IPv4 and email it to one of us!   
+
+Contacts:
+jesalomon1@buffs.wtamu.edu
+mkhan2@buffs.wtamu.edu
+hcwilcox1@buffs.wtamu.edu
 
 
 1.  Install NodeJS from https://nodejs.org/en/ for you system
