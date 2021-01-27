@@ -1,6 +1,4 @@
-import React from 'reactstrap';
-import {BrowserRouter, Switch, Route} from 'react-router-dom';
-import Login from './pages/Login/';
+import React from 'react';
 import Dashboard from './pages/Dashboard/';
 import Register from './pages/Register';
 import CreateCompany from './pages/CreateCompany';
@@ -9,21 +7,26 @@ import ScheduleVisit from './pages/ScheduleVisit';
 import FindStore from './pages/FindStore';
 import MyVisits from './pages/MyVisits';
 import Navbar from './pages/Navbar/navbar';
+import {BrowserRouter, Switch, Route} from 'react-router-dom';
+import ProtectedRoute from './ProtectedRoute';
+import Login from './pages/Login/';
 
-export default function Routes() {
+function Routes() {
   return(
     <BrowserRouter>
       <Navbar />
       <Switch>
-        <Route path='/' exact component = {Dashboard} />
-        <Route path='/user/register' exact component = {Register} />
-        <Route path='/login' exact component = {Login} />
-        <Route path='/company/create' exact component = {CreateCompany} />
-        <Route path='/store/create' exact component = {CreateStore} />
-        <Route path='/visit/schedule' exact component = {ScheduleVisit} />
-        <Route path='/myvisits' exact component = {MyVisits} />
-        <Route path='/findstore' component = {FindStore} />
+        <Route exact path='/user/register' component={Register} />
+        <Route exact path='/login' component={Login} />
+        <ProtectedRoute exact path='/dashboard' component={Dashboard} />
+        <ProtectedRoute exact path='/company/create' component={CreateCompany} />
+        <ProtectedRoute exact path='/store/create' component={CreateStore} />
+        <ProtectedRoute exact path='/visit/schedule' component={ScheduleVisit} />
+        <ProtectedRoute exact path='/myvisits' component={MyVisits} />
+        <ProtectedRoute exact path='/findstore' component={FindStore} />
       </Switch>
     </BrowserRouter>
   );
 }
+
+export default Routes;

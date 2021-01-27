@@ -1,33 +1,39 @@
 import React, {useEffect, useState} from 'react';
 import api from '../../services/api';
+import auth from '../../services/auth';
 import {Container, Card, Button, Modal, Alert} from 'react-bootstrap';
 import './myvisits.css';
+import Cookies from 'js-cookie';
+import PropTypes from 'prop-types';
+import { withRouter, useHistory } from 'react-router-dom';
+import jwt from 'jsonwebtoken';
 
-// Dashboard will show a store's current stats
-export default function MyVisits() {
-  // Return userId from localStorage
-  const user_id = localStorage.getItem('user');
+
+// MyVisits will show a user's scheduled visits in cards
+function MyVisits() {
+  let history = useHistory();
   // For showing dialogue box
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  // For backend
+  const [errMessage, setErrMessage] = useState('');
 
   // For deleting a visit
   const [visit_id, setVisit_id] = useState('');
   // Set our visit cards to an empty array state variable
   const [visitCards, setVisitCards] = useState([]);
   const [deleteAlert, setDeleteAlert] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
     
-  // Below can be used for error checking.
+  // Below can be used for error checking if database cards aren't working
   // const customCards = [{
   //     storeName: "Sick Store",
   //     date: "12/05/2015",
   //     time: "10:30 AM"
   // }]
     
-
+  // Get user's visits
   useEffect(() => {
     (async () => {
       const result = await getVisits();
@@ -35,68 +41,175 @@ export default function MyVisits() {
     })();
   }, []);
 
+  // Notice how this log gets printed twice. Once on inital render, and a second time after visitCards have been queried and stored
   console.log('visitCards:', visitCards);
-  console.log('user:', user_id);
+
+
+  // Function to refresh a user's access token if it is unexpired
+  const refresh = async (refreshToken) => {
+    console.log('refreshing token. . .');
+    let response = await auth.get('/refresh', { headers: { refreshToken }});
+    // if refresh token was unlegit or not found, then return false
+    if (response.data.success === false) {
+      console.log('resolving false.');
+      return false;
+    } else { // else we get the new access token, set the cookie, and return it!
+      const newAccessToken = response.data.newAccessToken;
+      Cookies.set('accessToken', newAccessToken, { secure: true });
+      return newAccessToken;
+    }
+  };
+      
+      
+  // returns true or false depending on whether the access token is legit : )
+  const verifyAccess = async (accessToken, refreshToken) => {
+    let response = await auth.get('/verifyAccessToken', { headers: { 'accessToken': accessToken }});
+    if (response.data.success === false) {
+      // If the access token is expired, then go ahead and create a new access token with the refresh token
+      if (response.data.message === 'Access token expired') { 
+        const newAccessToken = await refresh(refreshToken);
+        // Now that we have a new access token, let's verify the user and return the user
+        return await verifyAccess(newAccessToken, refreshToken);
+      }
+      // If token comes back as invalid, return false
+      return false;
+    }
+    // else the token is valid, return the user object with their data
+    return response.data.user.userData;     
+  };
+      
+      
+  // This function returns the user's object data within the token if it's legit, otherwise returns false.
+  // This function also handles refreshing the token if needed
+  const protectPage = async (accessToken, refreshToken) => {
+    // If user doesnt have a refresh token: have user login 
+    if (!refreshToken){
+      console.log('Please log out and log back in.');
+    }
+    // If we have a refresh token but no access token, then go ahead and create a new token
+    if (accessToken === undefined) {
+      // This returns either an access token or false if the refresh token is unlegit
+      accessToken = await refresh(refreshToken);
+    }
+    // If token is legit, return false
+    if (!accessToken) {
+      console.log('Please log out and log back in.');
+    }
+    // If the access or refresh token is unlegit, this returns false, otherwise it returns the user's object data : )
+    return await verifyAccess(accessToken, refreshToken);
+  };
 
 
   // Function to return all visits tied to user
   const getVisits = async () => {
-    const response = await api.get(`/myvisits/${user_id}`);
-    // Create a userVisits array of objects
-    // Here .map means for every object in userVisits
-    const userVisits = response.data;
-    const getCards = await Promise.all( userVisits.map(async function (visit) {
+    try {
+      let accessToken = Cookies.get('accessToken');
+      let refreshToken = Cookies.get('refreshToken');
 
-      // Get the visit's id
-      const visit_id = visit._id;
+      // Decode to get data stored in cookie
+      let user = jwt.decode(accessToken);
+      // When we decode a cookie using jwt.decode, we get an object called userData with the user's data stored inside
+      let user_id = user._id;
+      // Log the user here to see how it looks 
+      // console.log('User:', user);
 
-      // Parse our date 
-      const newDate = new Date(visit.date);
-      const date = newDate.toDateString();
-      const hour = newDate.getHours();
-      let minutes = newDate.getMinutes();
-
-      // Add a 0 to minutes to make it ==> :00 instead of :0
-      if (minutes === 0) {
-        minutes += '0';
+      // get user's visits
+      let response = await api.get(`/myvisits/${user_id}`, { headers: {'accessToken': accessToken }});
+      // If token comes back as expired, refresh the token and make api call again
+      if (response.data.message === 'Access token expired') {
+        user = await protectPage(accessToken, refreshToken);
+        // If the access token or refresh token are unlegit, then return.
+        if (!user) {
+          setErrMessage('Please log in again.');
+          console.log(errMessage);
+          history.push('/login');
+        } else {
+          // overwrite response with the new access token.
+          let newAccessToken = Cookies.get('accessToken');
+          user_id = user._id;
+          response = await api.get(`/myvisits/${user_id}`, { headers: {'accessToken': newAccessToken }});
+        }
       }
 
-      // Format the date now
-      const time = hour + ':' + minutes;
 
-      // Get store name
-      const response = await api.get(`/store/${visit.store}`);
-      const sName = response.data.storeName;
+      // Create a userVisits array of objects
+      // Here .map means for every object in userVisits
+      const userVisits = response.data;
+      const getCards = await Promise.all( userVisits.map( async function (visit) {
+  
+        // Get the visit's id
+        const visit_id = visit._id;
+  
+        // Parse our date 
+        const newDate = new Date(visit.date);
+        const date = newDate.toDateString();
+        const hour = newDate.getHours();
+        let minutes = newDate.getMinutes();
+  
+        // Add a 0 to minutes to make it ==> :00 instead of :0
+        if (minutes === 0) {
+          minutes += '0';
+        }
+  
+        // Format the date now
+        const time = hour + ':' + minutes;
+  
+        // Get store name
+        const response = await api.get(`/store/${visit.store}`, { headers: {'accessToken': accessToken }});
+        const sName = response.data.storeName;
+  
+        // return first object in the array
+        return {
+          visit_id: visit_id,
+          storeName: sName,
+          date: date,
+          time: time,
+          partyAmount: visit.partyAmount
+        };
+      }));
+      return getCards;
+      
+    } catch (error) {
+      history.push('/login');
+      console.log(error);
+    }
 
-      // return first object in the array
-      return {
-        visit_id: visit_id,
-        storeName: sName,
-        date: date,
-        time: time,
-        partyAmount: visit.partyAmount
-      };
-    }));
-    return getCards;
   };
 
   const deleteVisitHandler = async (visit_id) => {
     try {
+      let accessToken = Cookies.get('accessToken');
+      let refreshToken = Cookies.get('refreshToken');
+
       // delete the visit
       // if an error occurs, then catch block will be triggered
-      await api.delete(`/myvisits/${visit_id}`);
+      let response = await api.delete(`/myvisits/${visit_id}`, { headers: {'accessToken': accessToken }});
+      // If token comes back as expired, refresh the token and make api call again
+      if (response.data.message === 'Access token expired') {
+        let user = await protectPage(accessToken, refreshToken);
+        // If the access token or refresh token are unlegit, then return user to log in page.
+        if (!user) {
+          setErrMessage('Please log in again.');
+          console.log(errMessage);
+          history.push('/login');
+        } else {
+          // overwrite response with the new access token.
+          let newAccessToken = Cookies.get('accessToken');
+          response = await api.delete(`/myvisits/${visit_id}`, { headers: {'accessToken': newAccessToken }});
+        }
+      }
+      
+      // Set our delete alert for 5 seconds
       setDeleteAlert('Visit canceled.');
       setTimeout(() => {
         setDeleteAlert('');
       }, 5000);
       setShow(false);
-      const response = await getVisits();
+      response = await getVisits();
       setVisitCards(response);
     } catch (error) {
-      setErrorMessage('Error: Visit was not deleted.');
-      setTimeout(() => {
-        setErrorMessage('');
-      }, 4000);
+      history.push('/login');
+      console.log(error);
     }
   };
 
@@ -151,11 +264,6 @@ export default function MyVisits() {
             Visit successfully canceled!
           </Alert>
         }
-        { errorMessage &&
-          <Alert variant="danger">
-            Error: Visit not canceled
-          </Alert>
-        }
         {/* {visitCards &&
                 visitCards.map((i) => {
                     return <MyCard storeName={i.storeName} date={i.date} time={i.time} store_id={i.store_id} /> 
@@ -168,43 +276,9 @@ export default function MyVisits() {
     </Container>
   );
 }
+export default withRouter(MyVisits);
 
-// Old way of doing cards globally
-
-// const MyCard = ({ storeName, date, time, visit_id }) => {
-//     // Here i can define any state variables i need that only this component will use
-//     return (
-//         <Card>
-//             <Card.Body>
-//                 <Card.Title>{storeName}</Card.Title>
-//                 <Card.Title>{date}</Card.Title>
-//                 <Card.Text>{time}</Card.Text>
-//             </Card.Body>
-//             <Card.Footer>
-//                 {/* passing arguments format: () */}
-//                 <small className="text-muted">
-//                     <Button onClick={() => deleteVisitHandler(visit_id)}
-//                     className="submit-btn" >
-//                         Delete
-//                     </Button>
-//                     Cancel this visit?
-//                 </small>
-//             </Card.Footer>
-//         </Card>
-//     )
-// }
-
-
-// const deleteVisitHandler = async (visit_id) => {
-//     try {
-//         // delete the visit
-//         // if an error occurs, then catch block will be triggered
-//         await api.delete(`/visit/${visit_id}`);
-//         deleteAlert = "Visit canceled";
-//         setTimeout(() => {
-//             setdeleteAlert("");
-//         }, 3000)
-//     } catch (error) {
-//         setErrorMessage("Error: Visit was not deleted.");
-//     }
-// }
+// In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
+MyVisits.propTypes = {
+  history: PropTypes.object.isRequired
+};
