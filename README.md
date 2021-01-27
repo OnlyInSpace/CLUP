@@ -13,6 +13,7 @@ Contacts:
 - hcwilcox1@buffs.wtamu.edu
 
 
+________________________________________________________________________________________________________________________________________________________________
 
 STEPS TO RUN PROJECT:
 
@@ -37,7 +38,7 @@ STEPS TO RUN PROJECT:
     window with the application now visible. If the project does not open automatically, then you can simply type localhost:3000/ in your browser's URL to reach
     it.
 
-
+________________________________________________________________________________________________________________________________________________________________
 
 
 
