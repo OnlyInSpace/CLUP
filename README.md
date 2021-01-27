@@ -18,7 +18,7 @@ ________________________________________________________________________________
 STEPS TO RUN PROJECT:
 
 1.  Install NodeJS from https://nodejs.org/en/ for you system
-2.  Install git bash from https://gitforwindows.org/ for your system
+2.  Install git bash from https://gitforwindows.org/ for your system (If on a Mac, then using the default ZSH terminal works too!)
 3.  Download and unzip the code archive and place the project folder somewhere handy
 4.  Open the project folder in VSCode. To do this, you can click on File in the top left corner then select the "Open folder..." option and choose the project
     folder.
