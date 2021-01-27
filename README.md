@@ -21,12 +21,11 @@ Go to https://whatismyipaddress.com/  to get your IPv4 and send it to me.
 9.  Then enter the command "npm install" to install package dependencies for the project.
 10. Afterward, to start the backend server, enter the command "npm run dev". The backend server will start and the terminal will remain busy/open from now on.
 11.  In the second terminal, enter "cd backend" to go to the backend directory.
-12.  Then enter the command "npm install" to install package dependencies for the project.
-13. Afterward, to start the backend authentication server, enter the command "npm run authServer". The backend server will start and the terminal will remain busy/open from now on.
-14. While leaving the other two terminals open, switch to the third terminal.
-15. In the third terminal, enter "cd frontend" to go to the frontend directory.
-16. Enter the command "npm install" to install package dependencies for the project.
-17. Enter the command "npm run dev" to start the frontend server. If you have a browser open, then the project will automatically open up a new broswer
+12. To start the backend authentication server, enter the command "npm run authServer". The backend server will start and the terminal will remain busy/open from now on.
+13. While leaving the other two terminals open, switch to the third terminal.
+14. In the third terminal, enter "cd frontend" to go to the frontend directory.
+15. Enter the command "npm install" to install package dependencies for the project.
+16. Enter the command "npm run dev" to start the frontend server. If you have a browser open, then the project will automatically open up a new broswer
     window with the application now visible. If the project does not open automatically, then you can simply type localhost:3000/ in your browser's URL to reach
     it.
 
