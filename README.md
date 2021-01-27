@@ -1,9 +1,9 @@
 # CLUP2.0
 CLUP
 
-Steps to run the project in VSCode:
+!IMPORTANT!
 
-IF you want to RUN this project, I will first need the IP address of whatever device you want to run the project on. 
+IF you want to RUN this project, I will first need the IP address for whichever computer you're using. 
 This is required so your app can access the database!
 Go to https://whatismyipaddress.com/ to get your IPv4 and email it to one of us!   
 
