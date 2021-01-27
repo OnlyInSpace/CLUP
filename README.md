@@ -16,7 +16,7 @@ Go to https://whatismyipaddress.com/  to get your IPv4 and send it to me.
 5.  Open a new terminal by clicking on "Terminal" in the toolbar and selecting "New Terminal"
 6.  In your terminal window, click on the dropdown box and click "Select default shell". This will cause another dropdown in the VSCode editor to appear. Click on     
     "Git bash" which should open a new git bash terminal.
-7.  Split the terminal by clicking on the split terminal icon in the top right corner of the terminal window. It's right next to the trash can icon. This should split   
+7.  Split the terminal 3 times by clicking on the split terminal icon in the top right corner of the terminal window two times. It's right next to the trash can icon. This should split   
     your terminal window into 2 terminals.
 8.  In the first terminal, enter "cd backend" to go to the backend directory.
 9.  Then enter the command "npm install" to install package dependencies for the project.
