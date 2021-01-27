@@ -13,6 +13,9 @@ Contacts:
 - hcwilcox1@buffs.wtamu.edu
 
 
+
+STEPS TO RUN PROJECT:
+
 1.  Install NodeJS from https://nodejs.org/en/ for you system
 2.  Install git bash from https://gitforwindows.org/ for your system
 3.  Download and unzip the code archive and place the project folder somewhere handy
@@ -33,6 +36,10 @@ Contacts:
 16. Enter the command "npm run dev" to start the frontend server. If you have a browser open, then the project will automatically open up a new broswer
     window with the application now visible. If the project does not open automatically, then you can simply type localhost:3000/ in your browser's URL to reach
     it.
+
+
+
+
 
 Branch Workflow:
 - Have a master and develop branch
