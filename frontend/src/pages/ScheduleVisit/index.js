@@ -1,30 +1,116 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
+import auth from '../../services/auth';
 import {Container, Button, Form, Alert} from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import TimeKeeper from 'react-timekeeper';
 import './schedulevisit.css';
 import PropTypes from 'prop-types';
+import Cookies from 'js-cookie';
+import jwt from 'jsonwebtoken';
+import { useHistory, withRouter } from 'react-router-dom';
 
-
-export default function ScheduleVisit({ history }) {
-  // Get storeId from browser local storage
-  const store_id = localStorage.getItem('store');
+function ScheduleVisit() {
+  let history = useHistory();
   const [maxPartyAmount, setMaxPartyAmount] = useState(0);
   const [scheduledDate, setScheduledDay] = useState(new Date());
   // 24 hour format
   const [scheduledTime, setScheduledTime] = useState('12:00');
   const [partyAmount, setPartyAmount] = useState(0);
   const [errorMessage, setErrorMessage] = useState(false);
+  // For backend
+  const [errMessage, setErrMessage] = useState('');
+  // get store_id
+  let store_id = Cookies.get('store');
+
+
   console.log('party of', partyAmount, 'at', scheduledTime, 'day:', scheduledDate);
   console.log(partyAmount);
+
+  // Function to refresh a user's access token if it is unexpired
+  const refresh = async (refreshToken) => {
+    console.log('refreshing token. . .');
+    let response = await auth.get('/refresh', { headers: { refreshToken }});
+    // if refresh token was unlegit or not found, then return false
+    if (response.data.success === false) {
+      console.log('resolving false.');
+      return false;
+    } else { // else we get the new access token, set the cookie, and return it!
+      const newAccessToken = response.data.newAccessToken;
+      Cookies.set('accessToken', newAccessToken, { secure: true });
+      return newAccessToken;
+    }
+  };
+      
+      
+  // returns true or false depending on whether the access token is legit : )
+  const verifyAccess = async (accessToken, refreshToken) => {
+    let response = await auth.get('/verifyAccessToken', { headers: { 'accessToken': accessToken }});
+    if (response.data.success === false) {
+      // If the access token is expired, then go ahead and create a new access token with the refresh token
+      if (response.data.message === 'Access token expired') { 
+        const newAccessToken = await refresh(refreshToken);
+        // Now that we have a new access token, let's verify the user and return the user
+        return await verifyAccess(newAccessToken, refreshToken);
+      }
+      // If token comes back as invalid, return false
+      return false;
+    }
+    // else the token is valid, return the user object with their data
+    return response.data.user.userData;     
+  };
+      
+      
+  // This function returns the user's object data within the token if it's legit, otherwise returns false.
+  // This function also handles refreshing the token if needed
+  const protectPage = async (accessToken, refreshToken) => {
+    // If user doesnt have a refresh token: have user login 
+    if (!refreshToken){
+      console.log('Please log out and log back in.');
+    }
+    // If we have a refresh token but no access token, then go ahead and create a new token
+    if (accessToken === undefined) {
+      // This returns either an access token or false if the refresh token is unlegit
+      accessToken = await refresh(refreshToken);
+    }
+    // If token is legit, return false
+    if (!accessToken) {
+      console.log('Please log out and log back in.');
+    }
+    // If the access or refresh token is unlegit, this returns false, otherwise it returns the user's object data : )
+    return await verifyAccess(accessToken, refreshToken);
+  };
 
 
   useEffect(() => {
     (async () => {
-      const response = await api.get(`/store/${store_id}`);
-      setMaxPartyAmount(response.data.maxPartyAllowed);
+      try {
+        let accessToken = Cookies.get('accessToken');
+        let refreshToken = Cookies.get('refreshToken');
+
+        let response = await api.get(`/store/${store_id}`, { headers: {'accessToken': accessToken }});
+
+        // If token comes back as expired, refresh the token and make api call again
+        if (response.data.message === 'Access token expired') {
+          const user = await protectPage(accessToken, refreshToken);
+          // If the access token or refresh token are unlegit, then return.
+          if (!user) {
+            setErrMessage('Please log in again.');
+            console.log(errMessage);
+            history.push('/login');
+          } else {
+            // overwrite response with the new access token.
+            let newAccessToken = Cookies.get('accessToken');
+            response = await api.get(`/store/${store_id}`, { headers: {'accessToken': newAccessToken }});
+          }
+        }
+
+        setMaxPartyAmount(response.data.maxPartyAllowed);    
+      } catch (error) {
+        console.log(error);
+        history.push('/login');
+      }
     })();
   }, []);
 
@@ -39,9 +125,14 @@ export default function ScheduleVisit({ history }) {
     scheduledDate.setHours(parseInt(hoursMinutes[0]));
     scheduledDate.setMinutes(parseInt(hoursMinutes[1]));
     console.log('Scheduled Day:', scheduledDate);
-    // Get userId from browser local storage
-    const user_id = localStorage.getItem('user');
 
+    let refreshToken = Cookies.get('refreshToken');
+    let accessToken = Cookies.get('accessToken');
+    // Get userId from token stored in cookie
+    let user = jwt.decode(accessToken);
+    let user_id = user._id;
+    console.log('user:', user);
+    //TODO: user_id is not being set correctly here, ensure we reset user_id after refresh call
     try {
       if (partyAmount <= 0) {
         setErrorMessage('Please enter the number of members in your visiting party.');
@@ -49,21 +140,37 @@ export default function ScheduleVisit({ history }) {
         setErrorMessage('The maximum allowed members in a party is ' + maxPartyAmount);
       } else {
         // Create the visit
-        const response = await api.post('/visit/create', {scheduledDate, partyAmount, store_id}, { headers: {user_id} });
+        let response = await api.post('/visit/create', {user_id, scheduledDate, partyAmount, store_id}, { headers: {'accessToken': accessToken} });
+
+        // If token comes back as expired, refresh the token and make api call again
+        if (response.data.message === 'Access token expired') {
+          const user = await protectPage(accessToken, refreshToken);
+          // If the access token or refresh token are unlegit, then return.
+          if (!user) {
+            setErrMessage('Please log in again.');
+            console.log(errMessage);
+            history.push('/login');
+          } else {
+            // overwrite response with the new access token.
+            let newAccessToken = Cookies.get('accessToken');
+            user_id = user._id;
+            console.log('user_id:', user_id);
+            response = await api.post('/visit/create', {user_id, scheduledDate, partyAmount, store_id}, { headers: {'accessToken': newAccessToken }});
+          }
+        }
+
         const visit_id = response.data._id || false;
         console.log(response.data);
-        // Send the visit in Store model if the visit was made
+        // If visit was created, then send user back to dashboard
         if (visit_id) {
-          await api.post('/visit/setVisitStore', {visit_id, store_id});
-          history.push('/');
+          history.push('/myvisits');
         } else {
-          setErrorMessage('You already scheduled this visit. Go to \'My Visits\' to view your visits.');
+          setErrorMessage(response.data.message);
         }
       }
-      //history.push('/dashboard');
     } catch (error) {
-      Promise.reject(error);
       console.log(error);
+      history.push('/login');
     }
   };
 
@@ -95,6 +202,8 @@ export default function ScheduleVisit({ history }) {
     </Container>
   );
 }
+export default withRouter(ScheduleVisit);
+
 
 
 function VisitContent({handleSubmit, scheduledDate, setScheduledTime, scheduledTime, setPartyAmount, setScheduledDay}) {
@@ -120,7 +229,7 @@ function VisitContent({handleSubmit, scheduledDate, setScheduledTime, scheduledT
         <p>Time chosen: <strong>{scheduledTime}</strong></p>
       </div>
       <Form.Group controlId="formPartyNumber">
-        <Form.Label>Number of members in your party (including you)</Form.Label>
+        <Form.Label>Number of members in your party <strong>(including you)</strong></Form.Label>
         <Form.Control type="number" placeholder="" onChange = {evt => setPartyAmount(evt.target.value)}/>
       </Form.Group>
       <Button className="submit-btn" variant="secondary" type="submit" onClick={handleSubmit}>Schedule Visit</Button>
@@ -128,7 +237,7 @@ function VisitContent({handleSubmit, scheduledDate, setScheduledTime, scheduledT
   );
 }
 
-
+// The following is required for ESLINT standards
 // In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
 ScheduleVisit.propTypes = {
   history: PropTypes.object.isRequired

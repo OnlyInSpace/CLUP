@@ -1,5 +1,4 @@
 const Store = require('../models/Store');
-const Company= require('../models/Company');
 
 module.exports = {
 
@@ -7,7 +6,7 @@ module.exports = {
   async createStore(req, res) {
     try {
       // console.log(req.body)
-      const {storeName, location, maxOccupants, maxPartyAllowed} = req.body;
+      const {owner_id, storeName, location, maxOccupants, maxPartyAllowed} = req.body;
       if (!storeName || !location || !maxOccupants || !maxPartyAllowed) {
         return res.status(200).json({
           message: 'Required information is missing.'
@@ -18,6 +17,7 @@ module.exports = {
       if (!existingStore) {
         // Create a new store with await
         const store = await Store.create({
+          owner_id,
           storeName,
           location,
           maxOccupants,
@@ -28,36 +28,16 @@ module.exports = {
       }
       // Else if store exists, display message.
       return res.status(200).json({
-        message: 'This store already exists.'
+        message: 'This store already exists in our system.'
       });
     } catch (error) {
       throw Error(`Error while registering a new store : ${error}`);
     }
   },
 
-    
-  async setStoreCompany(req, res) {
-    try {
-      const { storeId, owner_id } = req.body;
-      // Push a store inside the company's stores: [] property
-      const updateCompany = await Company.updateOne(
-        { owner: owner_id},
-        { $push: {stores: storeId}}
-      );
-      if (updateCompany) {
-        return res.status(200).json({message: 'Store was transferred to its company'});
-      } else {
-        return res.status(400).json({message: 'Store was NOT transferred to its company'});
-      }
-    } catch (error) {
-      return res.status(400).json({message: 'Error setting store company'});
-    }
-  },
-
   // Get a store by ID!
   async getStoreById(req, res) {
     // Get store ID from URL
-    console.log('CONTROLLER: Params =', req.params);
     const { store_id } = req.params;
     try {
       const store = await Store.findById(store_id);
@@ -66,7 +46,7 @@ module.exports = {
         return res.json(store);
       }
     } catch (error) {
-      return res.status(400).json({message: 'Store Id does not exist!'});
+      return res.status(200).json({message: 'No Store Selected Yet, so no data is being displayed.'});
     }
   },
 

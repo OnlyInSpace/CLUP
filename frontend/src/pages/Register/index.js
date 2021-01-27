@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
-import api from '../../services/api';
+import Cookies from 'js-cookie';
 import { Container, Button, Form, Alert } from 'react-bootstrap';
 import './register.css';
 import PropTypes from 'prop-types';
+import { useHistory, withRouter } from 'react-router-dom';
+import auth from '../../services/auth';
 
-export default function Register({ history }) {
+
+function Register() {
+  let history = useHistory();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  
 
   // Function that will talk to server api
   const handleSubmit = async evt => {
@@ -16,7 +22,7 @@ export default function Register({ history }) {
     evt.preventDefault();
 
     try {
-      // else if the user was not able to register,
+      // Missing information checks
       if (!phoneNumber && email && password) {
         setErrorMessage('Phone number field is empty.');
         return;
@@ -26,18 +32,40 @@ export default function Register({ history }) {
       } else if (phoneNumber && email && !password) {
         setErrorMessage('Password field is empty.');
         return;
-      } else if (!phoneNumber || !email || !password) {
+      } else if (!phoneNumber || !email || !password || !confirmPassword) {
         setErrorMessage('Required information is missing.');
         return;
       }
-      const response = await api.post('/user/register', {phoneNumber, email, password});
-      const userId = response.data._id || false;
-      // If the user was able to register then let's store their _id inside their browser's local storage
-      if (userId) {
-        localStorage.setItem('user', userId);
-        history.push('/login');
-      } else {
-        setErrorMessage('This account already exists.');
+      // Ensure phone number is valid
+      if (phoneNumber.length !== 10 ) {
+        setErrorMessage('Invalid phone number');
+        return;
+      }
+      // Ensure passwords match
+      if (password !== confirmPassword) {
+        setErrorMessage('Passwords don\'t match');
+        return;
+      }
+      // Ensure password restrictions
+      if (!password.match(/^(?=.*?[A-Za-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/)) {
+        setErrorMessage('Password must contain at least 8 characters, 1 letter, 1 number, and 1 symbol.');
+        return;
+      }
+
+      // If every input is valid, go ahead and register the user!
+      const response = await auth.post('/user/register', {phoneNumber, email, password});
+      const accessToken = response.data.accessToken;
+      const refreshToken = response.data.refreshToken;
+
+      // If the user was able to register then send them to dashboard and store their data in Cookies
+      if (accessToken) {
+        // Store user refresh and access token in a Cookie with secure option set, meaning this cookie is only readable on HTTPS.
+        Cookies.remove('store');
+        Cookies.set('accessToken', accessToken, { secure: true });
+        Cookies.set('refreshToken', refreshToken, { secure: true });
+        history.push('/dashboard');
+      } else { // Else if 
+        setErrorMessage(response.data.message);
       }
     } catch (error) {
       Promise.reject(error);
@@ -64,9 +92,13 @@ export default function Register({ history }) {
             <Form.Label>Password</Form.Label>
             <Form.Control type="password" placeholder="Your password" onChange = {evt => setPassword(evt.target.value)}/>
           </Form.Group>
+          <Form.Group controlId="formPassword">
+            <Form.Label>Confirm password</Form.Label>
+            <Form.Control type="password" placeholder="Your password" onChange = {evt => setConfirmPassword(evt.target.value)}/>
+          </Form.Group>
           <Button className="submit-btn" variant="secondary" type="submit">Signup</Button>
           {errorMessage ? (
-          /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+          /* ^^^^^^^^^^^^^^^^ is a ternary operator: is errorMessage undefined? If no, then display the alert*/
             <Alert className="alertBox" variant='warning'>
               {errorMessage}
             </Alert>
@@ -82,6 +114,7 @@ export default function Register({ history }) {
     </Container>
   );
 }
+export default withRouter(Register);
 
 // In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
 Register.propTypes = {

@@ -1,4 +1,7 @@
 {
+  // I (Steven) already put this file in the project for ESLINT
+  // which means you can skip the final step in the following tutorial:
+  // https://www.digitalocean.com/community/tutorials/workflow-auto-eslinting
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": true
     },

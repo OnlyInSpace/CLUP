@@ -9,15 +9,20 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  pin: {
-    type: Number,
-    default: 0
+  employee_store_id: {
+    type: String,
+    default: ''
   },
-  permissions: {
+  role: {
     type: String,
     default: 'user',
     enum: ['user', 'employee', 'manager','owner']
   },
+  pin: {
+    type: Number,
+    default: 0
+  },
+  refreshToken: String
 });
 
 module.exports = mongoose.model('User', UserSchema);

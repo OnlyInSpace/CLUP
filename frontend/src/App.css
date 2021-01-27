@@ -2,8 +2,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
 
 .form-control:focus{
-    border-color:#445469;
+    border-color: var(--darkBlue);
     box-shadow: 0 0 0 2px rgba(68, 84, 105, 0.3);
+}
+
+
+:root {
+    font-size: 17px;
+    --darkBlue: #445469;
+    --lightBlue: #0a6096;
 }
 
 
@@ -28,7 +35,7 @@ html, body, #root {
 
 
 body {
-    background-color: #445469;
+    background-color: var(--darkBlue);
 }
 
 
@@ -49,12 +56,12 @@ body, input, button {
 
 
 .container h1, h2, h3, h4, h5, h6 {
-    color: #445469
+    color: var(--darkBlue);
 }
 
 
 .container strong {
-    color: #0a6096
+    color: #616161;
 }
 
 
@@ -63,15 +70,15 @@ body, input, button {
     width: 100%;
     opacity: 0.9;
     background-color: white;
-    margin-bottom: 50px;
+    margin-bottom: 2em;
     border-radius: 10px;
-    padding: 30px;
+    padding: 1em;
     text-align: center;
 }
 
 
 .content > p {
-    font-size: 16px;
+    font-size: 1.25em;
 }
 
 
@@ -83,17 +90,16 @@ body, input, button {
 .content button.submit-btn {
     border: 0;
     border-radius: 6px;
-    height: 42px;
-    padding: 0 20px;
-    font-size: 16px;
+    height: 2.5em;
+    padding: 0 1em;
     font-weight: 600;
-    background-color: #445469;
+    background-color: var(--darkBlue);
     color: white;
 }
 
 
 .content button.submit-btn:hover {
-    background-color: #0a6096;
+    background-color: var(--lightBlue);
     transition: .4s;
 }
 
@@ -101,9 +107,8 @@ body, input, button {
 .content button.secondary-btn {
     border: 0;
     border-radius: 6px;
-    height: 42px;
-    padding: 0 20px;
-    font-size: 16px;
+    height: 2.5em;
+    padding: 0 1em;
     font-weight: 600;
     background-color: #0a6096;
     color: white;
@@ -111,7 +116,7 @@ body, input, button {
 
 
 .content button.secondary-btn:hover {
-    background: #4199d1;
+    background: #2c7aaa;
     transition: .4s;
 }
 
@@ -119,11 +124,10 @@ body, input, button {
 .content button.delete-btn {
     border: 0;
     border-radius: 6px;
-    height: 42px;
-    padding: 0 20px;
-    font-size: 16px;
+    height: 2.5em;
+    padding: 0 1em;
     font-weight: 600;
-    background-color: #445469;
+    background-color: var(--darkBlue);
     color: white;
 }
 
@@ -137,17 +141,16 @@ body, input, button {
 .modal-content button.btn-primary {
     border: 0;
     border-radius: 6px;
-    height: 40px;
-    padding: 0px 15px 0px 15px;
-    font-size: 16px;
+    height: 2.5em;
+    padding: 0px 1em 0px 1em;
     font-weight: 600;
-    background-color: #0a6096;
+    background-color: var(--lightBlue);
     color: white;
 }
 
 
 .modal-content button.btn-primary:hover {
-    background: #b92828;
+    background: #2c7aaa;
     transition: .4s;
 }
 
@@ -155,11 +158,10 @@ body, input, button {
 .modal-content button.btn-secondary {
     border: 0;
     border-radius: 6px;
-    height: 40px;
-    padding: 0px 15px 0px 15px;
-    font-size: 16px;
+    height: 2.5em;
+    padding: 0px 1em 0px 1em;
     font-weight: 600;
-    background-color: #445469;
+    background-color: var(--darkBlue);
     color: white;
 }
 
