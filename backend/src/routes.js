@@ -1,63 +1,75 @@
+// import express
 const express = require('express');
-// Controllers
+// import controllers
 const UserController = require('./controllers/UserController');
 const VisitController = require('./controllers/VisitController');
 const StoreController = require('./controllers/StoreController');
 const CompanyController = require('./controllers/CompanyController');
-const LoginController = require('./controllers/LoginController');
 const ChangeCountController = require('./controllers/ChangeCountController');
-
+// import jwt
+const jwt = require('jsonwebtoken');
+// import access token secret, refresh token secret, mongoDB ssl  
+require('dotenv').config();
 // Assign the router
 const routes = express.Router();
 
-// a verification endpoint
-routes.get('/status', (req, res)=> {
-  res.send({ status: 200});
-});
 
+// This is a middleware function which verifies every API database query made by users
+//  - Parameters: 
+//  - Return: it returns a req.user back to the frontend which contains  
 
-//******PAGE DATA****** */
+function verifyToken(req, res, next) {
+  // Get token from headers.authorization
+  const token = req.header('accessToken');
+  if (token) {
+    // Verify the token is legit! and if so, set req.user to user and call next()
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (user) {
+        // If token is legit, set req.accessToken = user, so now we can call req.accessToken if we wanted to
+        req.accessToken = user;
+        // next() is required so the program can continue and now run the controller's api call
+        next();  
+      } else if (err.message === 'jwt expired') { // else if jwt is expired, notify our frontend so we can refresh it
+        return res.json({
+          success: false,
+          message: 'Access token expired'
+        });
+      } else { // else token doesnt exist or could be unlegit, return 403 forbidden status back to frontend and have user login again
+        console.log(err);
+        return res.status(403).json({ err, message: 'User not authenticated' });
+      }
+    }); 
+  } else {
+    return res.sendStatus(401);
+  }
+}
 
-// Create user
-routes.post('/user/register', UserController.createUser);
 
 // Create a company
-routes.post('/company/create', CompanyController.createCompany);
+// Notice how verifyToken is placed before the api call, which means it will run before the api call.
+routes.post('/company/create', verifyToken, CompanyController.createCompany);
 
 // Create a store
-routes.post('/store/create', StoreController.createStore);
+routes.post('/store/create', verifyToken, StoreController.createStore);
 
-// User Login
-routes.post('/login', LoginController.store);
 
-// Customer Count Page
+/* Customer count functions */
 // Increase Customer Count
-routes.post('/count/increase/:storeId', ChangeCountController.increaseCount);
+routes.post('/count/increase/:storeId', verifyToken, ChangeCountController.increaseCount);
 // Decrease Customer Count
-routes.post('/count/decrease/:storeId', ChangeCountController.decreaseCount);
+routes.post('/count/decrease/:storeId', verifyToken, ChangeCountController.decreaseCount);
 
-// Visits
+/* Visits */
 // Return all visits specific to currently logged in user
-routes.get('/myvisits/:user_id', VisitController.getAllVisits);
+routes.get('/myvisits/:user_id', verifyToken, VisitController.getAllVisits);
 // Create a visit
-routes.post('/visit/create', VisitController.createVisit);
+routes.post('/visit/create', verifyToken, VisitController.createVisit);
 // Delete visit
-routes.delete('/myvisits/:visitId', VisitController.delete);
-// Send the visit into a chosen Store model
-routes.post('/visit/setVisitStore', VisitController.setVisitStore);
+routes.delete('/myvisits/:visitId', verifyToken, VisitController.delete);
 
-// Dashboard
-// Return current store statistics
-routes.get('/dashboard', StoreController.getStoreById);
-
-// FindStore
-// Return all stores 
-routes.get('/findstore', StoreController.getAllStores);
-
-// Store a retail store into it's respective company
-routes.post('/store/setStoreCompany', StoreController.setStoreCompany);
-
-//***********QUERIES FOR API TESTING****************** */
+// FindStore -  returns all stores 
+routes.get('/findstore', verifyToken, StoreController.getAllStores);
+//***********QUERIES FOR GETTING DATA****************** */
 
 // Visit
 // Get visit by id
@@ -76,9 +88,11 @@ routes.get('/company/:companyId', CompanyController.getCompanyById);
 
 // Store
 // Return all stores
-routes.get('/store', StoreController.getAllStores);
+routes.get('/store', verifyToken, StoreController.getAllStores);
+
 // Get store by id
-routes.get('/store/:store_id', StoreController.getStoreById);
+// Used by Dashboard - returns current store occupancy
+routes.get('/store/:store_id', verifyToken, StoreController.getStoreById);
 
 
 

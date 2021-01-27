@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 // Setup a store object via mongoose schema
 // All stores are stored under a Company schema
 const StoreSchema = new mongoose.Schema({
+  owner_id: String,
   storeName: String,
   // Queue will hold array of userid's
   queue: [{
@@ -24,13 +25,7 @@ const StoreSchema = new mongoose.Schema({
     default: 0
   },
   maxOccupants: Number,
-  maxPartyAllowed: Number,
-  visitsScheduled: [{
-    type: String
-  }],
-  employees: [{
-    type: String
-  }]
+  maxPartyAllowed: Number
 });
 
 module.exports = mongoose.model('Store', StoreSchema);

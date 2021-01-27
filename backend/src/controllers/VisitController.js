@@ -1,6 +1,5 @@
 const Visit = require('../models/Visit');
 const User = require('../models/User');
-const Store = require('../models/Store');
 
 module.exports = {
   // Create an async event
@@ -9,8 +8,7 @@ module.exports = {
     // console.log("req.body:", req.body);
 
     // Get all info from body
-    const { scheduledDate, partyAmount, store_id } = req.body;
-    const { user_id } = req.headers;
+    const { user_id, scheduledDate, partyAmount, store_id } = req.body;
 
     try {
       if (partyAmount <= 0) {
@@ -27,7 +25,7 @@ module.exports = {
       const visitExists = await Visit.findOne({'date': scheduledDate, 'store': store_id, 'user': user_id});
       if (visitExists) {
         console.log('visit Exists!', visitExists);
-        return res.status(200).json({message: 'Visit already exists'});
+        return res.status(200).json({message: 'This visit already exists. Got to \'My Visits\' to view your visits.'});
       }
       // Else: 
       // Create the visit
@@ -37,38 +35,20 @@ module.exports = {
         store: store_id,
         user: user_id
       });
-      console.log('newly created visit:', visit);
       return res.json(visit);
     } catch (error) {
       throw Error(`Error creating a new visit : ${error}`);
     }
   },
 
-  async setVisitStore(req, res) {
-    try {
-      const { visit_id, store_id } = req.body;
-      // Push a visit inside the store visitsScheduled: [] property
-      const updateStore = await Store.updateOne(
-        { _id: store_id},
-        { $push: {visitsScheduled: visit_id}}
-      );
-      if (updateStore) {
-        return res.status(200).json({message: 'Store was transferred to its company'});
-      } else {
-        return res.status(400).jsaon({message: 'No store found.'});
-      }
-    } catch (error) {
-      return res.status(400).json({message: 'Visit ID or Store ID not correct'});
-    }
-  },
-
+  
   // Delete a visit
   async delete(req, res) {
     const { visitId } = req.params;
     try {
       await Visit.findByIdAndDelete(visitId);
       // 204 code: server succesfully fulfilled the request Delete
-      return res.status(204).send();
+      return res.sendStatus(204);
             
     } catch (error) {
       return res.status(400).json({message: 'No visit found with that ID'});
@@ -94,12 +74,7 @@ module.exports = {
 
   // Get all visits specific to only the user
   async getAllVisits(req, res) {
-
-    // // Do i have a user_id or store_id? No, then return all visits
-    // const query_store = store_id ? { store_id } : {};
-    // const query_user = user_id ? { user_id } : {};
-    // console.log("\nstoreId: " + store_id + "\nuserId: " + user_id);
-
+    // get user_id
     const { user_id } = req.params;
 
     try {

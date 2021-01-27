@@ -12,6 +12,7 @@
     "chart.js": "^2.9.4",
     "downshift": "^6.0.6",
     "history": "^4.10.1",
+    "js-cookie": "^2.2.1",
     "jsonwebtoken": "^8.5.1",
     "mdbreact": "^5.0.0",
     "react": "^17.0.1",

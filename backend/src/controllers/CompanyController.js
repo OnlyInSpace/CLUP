@@ -17,11 +17,7 @@ module.exports = {
         companyName,
         ownerId
       });
-      // Now we populate the Company with an Owner object
-      // await company
-      //     .populate('owner')
-      //     .execPopulate();
-      // Respond by sending the company back
+
       return res.json(company);
     } catch (error) {
       throw Error(`Error while registering a new company : ${error}`);
