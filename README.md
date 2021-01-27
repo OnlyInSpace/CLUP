@@ -8,9 +8,9 @@ This is required so your app can access the database!
 Go to https://whatismyipaddress.com/ to get your IPv4 and email it to one of us!   
 
 Contacts:
-jesalomon1@buffs.wtamu.edu
-mkhan2@buffs.wtamu.edu
-hcwilcox1@buffs.wtamu.edu
+- jesalomon1@buffs.wtamu.edu
+- mkhan2@buffs.wtamu.edu
+- hcwilcox1@buffs.wtamu.edu
 
 
 1.  Install NodeJS from https://nodejs.org/en/ for you system
