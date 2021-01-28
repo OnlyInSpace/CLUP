@@ -1,12 +1,6 @@
 # CLUP2.0
 CLUP
 
-!IMPORTANT!
-
-IF you want to RUN this project, I will first need the IP address for whichever computer you're using. 
-This is required so your app can access the database!
-Go to https://whatismyipaddress.com/ to get your IPv4 and email it to one of us!   
-
 Contacts:
 - jesalomon1@buffs.wtamu.edu
 - mkhan2@buffs.wtamu.edu
