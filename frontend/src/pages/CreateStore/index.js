@@ -62,7 +62,7 @@ function CreateStore() {
       return false;
     }
     // else the token is valid, return the user object with their data
-    return response.data.user.userData;     
+    return response.data.user;     
   };
       
       
