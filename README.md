@@ -32,8 +32,8 @@ STEPS TO RUN PROJECT:
 13. While leaving the other two terminals open, switch to the third terminal.
 14. In the third terminal, enter "cd frontend" to go to the frontend directory.
 15. Enter the command "npm install" to install package dependencies for the project.
-16. Enter the command "npm run dev" to start the frontend server. If you have a browser open, then the project will automatically open up a new broswer
-    window with the application now visible. If the project does not open automatically, then you can simply type localhost:3000/ in your browser's URL to reach
+16. Enter the command "npm run dev" to start the frontend server. If you have Firefox open, then the project will automatically open up a new 
+    window with the application now visible. If the project does not open automatically, then you can simply type localhost:3000/ in Firefox's URL to reach
     it.
 
 ________________________________________________________________________________________________________________________________________________________________
