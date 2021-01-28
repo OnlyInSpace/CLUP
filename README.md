@@ -1,6 +1,10 @@
 # CLUP2.0
 CLUP
 
+! IMPORTANT !
+Please make sure you use Firefox to run this project.
+Javascript Cookies do not work with Chrome or Safari in a development environment.
+
 Contacts:
 - jesalomon1@buffs.wtamu.edu
 - mkhan2@buffs.wtamu.edu
