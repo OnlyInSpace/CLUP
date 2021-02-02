@@ -7,7 +7,8 @@ const VisitSchema = new mongoose.Schema({
   // Store id tied to visit
   store: String,
   // User id tied to the visit
-  user: String
+  user: String,
+  reserved: Boolean
 });
 
 module.exports = mongoose.model('Visit', VisitSchema);

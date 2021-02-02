@@ -10,12 +10,14 @@ import Navbar from './pages/Navbar/navbar';
 import {BrowserRouter, Switch, Route} from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import Login from './pages/Login/';
+import LandingPage from './pages/LandingPage';
 
 function Routes() {
   return(
     <BrowserRouter>
       <Navbar />
       <Switch>
+        <Route exact path='/' component={LandingPage} />
         <Route exact path='/user/register' component={Register} />
         <Route exact path='/login' component={Login} />
         <ProtectedRoute exact path='/dashboard' component={Dashboard} />

@@ -181,6 +181,16 @@ function MyVisits() {
       let accessToken = Cookies.get('accessToken');
       let refreshToken = Cookies.get('refreshToken');
 
+      // get visit to check if party amount is reserved
+      let getVisit = await api.get(`/visit/${visit_id}`, { headers: {'accessToken': accessToken }});
+      console.log(getVisit.data);
+      // If reserved, then unreserve party amount in store occupancy
+      if (getVisit.data.reserved) {
+        let storeId = getVisit.data.store;
+        let amount = getVisit.data.partyAmount;
+        await api.post('/count/decrease', { storeId, amount }, { headers: {'accessToken': accessToken }});
+      }
+      
       // delete the visit
       // if an error occurs, then catch block will be triggered
       let response = await api.delete(`/myvisits/${visit_id}`, { headers: {'accessToken': accessToken }});

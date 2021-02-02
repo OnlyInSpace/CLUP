@@ -2,9 +2,11 @@
     font-size: 30px;
   }
 
+  
 .bg-dark {
     background-color: #23272c !important;
 }
+
 
 button.logout-btn:hover {
   background-color: #0a6096;

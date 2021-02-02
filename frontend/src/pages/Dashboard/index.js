@@ -3,7 +3,7 @@ import api from '../../services/api';
 import Cookies from 'js-cookie';
 import auth from '../../services/auth';
 import { Doughnut } from 'react-chartjs-2';
-import { Container } from 'react-bootstrap';
+import { Container, Button } from 'react-bootstrap';
 import './dashboard.css';
 import PropTypes from 'prop-types';
 import { withRouter, useHistory } from 'react-router-dom';
@@ -146,6 +146,9 @@ function Dashboard() {
         }
         { storeData.storeName &&
           <Doughnut data = {donutData} />
+        }
+        { storeData.storeName && 
+          <Button className="refresh-btn" onClick={() => window.location.reload(false)}>Refresh</Button>
         }
       </div>
     </Container>
