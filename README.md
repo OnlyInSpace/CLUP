@@ -5,7 +5,6 @@ CLUP
 Please make sure you use Firefox to run this project.
 Javascript Cookies do not work with Chrome or Safari in a development environment.
 
-!!! Make sure you checkout the DEVELOP branch before running. !!!
 
 Contacts:
 - jesalomon1@buffs.wtamu.edu
