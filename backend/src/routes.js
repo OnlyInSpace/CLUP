@@ -55,13 +55,13 @@ routes.post('/store/create', verifyToken, StoreController.createStore);
 
 /* Customer count functions */
 // Increase Customer Count
-routes.post('/count/increase/:storeId', verifyToken, ChangeCountController.increaseCount);
+routes.post('/count/increase', verifyToken, ChangeCountController.increaseCount);
 // Decrease Customer Count
-routes.post('/count/decrease/:storeId', verifyToken, ChangeCountController.decreaseCount);
+routes.post('/count/decrease', verifyToken, ChangeCountController.decreaseCount);
 
 /* Visits */
 // Return all visits specific to currently logged in user
-routes.get('/myvisits/:user_id', verifyToken, VisitController.getAllVisits);
+routes.get('/myvisits/:user_id', verifyToken, VisitController.getUserVisits);
 // Create a visit
 routes.post('/visit/create', verifyToken, VisitController.createVisit);
 // Delete visit

@@ -88,7 +88,7 @@ function ScheduleVisit() {
       try {
         let accessToken = Cookies.get('accessToken');
         let refreshToken = Cookies.get('refreshToken');
-
+        // Get user's current selected store so we can set the maxPartyAmount
         let response = await api.get(`/store/${store_id}`, { headers: {'accessToken': accessToken }});
 
         // If token comes back as expired, refresh the token and make api call again
@@ -105,7 +105,7 @@ function ScheduleVisit() {
             response = await api.get(`/store/${store_id}`, { headers: {'accessToken': newAccessToken }});
           }
         }
-
+        // Set the max party allowed from current selected store
         setMaxPartyAmount(response.data.maxPartyAllowed);    
       } catch (error) {
         console.log(error);

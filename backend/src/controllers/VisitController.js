@@ -73,13 +73,29 @@ module.exports = {
   },
 
   // Get all visits specific to only the user
-  async getAllVisits(req, res) {
+  async getUserVisits(req, res) {
     // get user_id
     const { user_id } = req.params;
 
     try {
       // Return all visits tied to user at that store
       const visits = await Visit.find({'user': user_id});
+      // If visits exist, send the visits
+      if (visits) {
+        return res.json(visits);
+      }
+    } catch (error) {
+      return res.status(400).json({message: 'No visits are scheduled.'});
+    }
+  },
+
+
+  // Get all visits specific to only the user
+  async getAllVisits(req, res) {
+    // get user_id  
+    try {
+      // Return all visits tied to user at that store
+      const visits = await Visit.find({});
       // If visits exist, send the visits
       if (visits) {
         return res.json(visits);
