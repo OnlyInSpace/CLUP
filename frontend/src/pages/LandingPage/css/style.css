@@ -18,11 +18,14 @@
     font-size: 1.2rem;
 }
 
-.landingPage h1, h2, h3 {
+.landingPage h1,
+.landingPage h2,
+.landingPage h3 {
     line-height: 1;
 }
 
-.landingPage h2, h3 {
+.landingPage h2,
+.landingPage h3 {
     color: #fff;
 }
 
