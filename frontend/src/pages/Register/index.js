@@ -94,7 +94,7 @@ function Register() {
           </Form.Group>
           <Form.Group controlId="formPassword">
             <Form.Label>Confirm password</Form.Label>
-            <Form.Control type="password" placeholder="Your password" onChange = {evt => setConfirmPassword(evt.target.value)}/>
+            <Form.Control type="password" placeholder="Confirm password" onChange = {evt => setConfirmPassword(evt.target.value)}/>
           </Form.Group>
           <Button className="submit-btn" variant="secondary" type="submit">Signup</Button>
           {errorMessage ? (

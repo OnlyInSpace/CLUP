@@ -1,13 +1,13 @@
-.list {
+.createComplist {
     text-align: center;
     margin-top: 15px;
     margin-bottom: 20px;
 }
 
-.list li {
+.createComplist li {
     margin-bottom: 10px;
 }
 
-.companyName {
+.createCompanyName {
     font-size: 20px;
 }

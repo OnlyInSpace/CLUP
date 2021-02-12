@@ -43,7 +43,6 @@ cron.schedule('*/1 * * * *', async () => {
   try {
     // get current time and convert to minutes
     let currentTime = Math.floor(Date.now() / 60000);
-    console.log('currentTime:', currentTime);
     // Return all visits
     const visits = await Visit.find({});
     visits.forEach(visit => updateVisits(visit, currentTime));

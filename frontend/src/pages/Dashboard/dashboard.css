@@ -21,3 +21,11 @@
     background: #2c7aaa;
     transition: .4s;
 }
+
+.dashboardOpen strong {
+    color: #209129;
+}
+
+.dashboardClosed strong {
+    color: var(--darkRed);
+}

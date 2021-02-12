@@ -11,6 +11,7 @@
     font-size: 17px;
     --darkBlue: #445469;
     --lightBlue: #0a6096;
+    --darkRed: #b92828;
 }
 
 
@@ -133,7 +134,7 @@ body, input, button {
 
 
 .content button.delete-btn:hover {
-    background-color: #b92828;
+    background-color: var(--darkRed);
     transition: .4s;
 }
 

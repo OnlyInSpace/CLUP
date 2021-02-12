@@ -128,14 +128,14 @@ function CreateCompany() {
     <Container>
       <div className="content">
         <h3>Company Creation</h3>
-        <ul className="list">
+        <ul className="createComplist">
           <li>Give your <strong>company</strong> name.</li>
           <li>Your company can own multiple stores. We will create your first store on the next page.</li>
           <li> Both your company and store name(s) can be the same.</li>
         </ul>
         <Form onSubmit = {handleSubmit}>
           <Form.Group controlId="formCompanyName">
-            <Form.Label className="companyName">Company name</Form.Label>
+            <Form.Label className="createCompanyName">Company name</Form.Label>
             <Form.Control type="text" placeholder="Your company's name" onChange = {evt => setCompanyName(evt.target.value)} />
           </Form.Group>
           <Button className="submit-btn" variant="secondary" type="submit">Create</Button>

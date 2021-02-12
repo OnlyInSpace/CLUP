@@ -16,6 +16,7 @@ function Dashboard() {
   const [donutData, setDonutData] = useState({});
   const [storeData, setStoreData] = useState({});
   const [errMessage, setErrMessage] = useState('');
+  const [openCloseStatus, setOpenCloseStatus] = useState('open');
 
 
   // Function to refresh a user's access token if it is unexpired
@@ -100,7 +101,72 @@ function Dashboard() {
       }
 
       // Else we know at this point, the user's token is verified
+      // Set our store data to be displayed
       setStoreData(response.data);  
+
+
+
+
+      // Set our open or close status to be displayed 
+      // Convert business hours to an array of objects
+      const businessHours = Object.keys(response.data.businessHours).map(key => {
+        return response.data.businessHours[key];
+      });
+
+      const currentTime = new Date();
+      const today = currentTime.getDay();
+      const businessDay = businessHours[today];
+      let currentHour = parseInt(currentTime.getHours());
+      let currentMins = parseInt(currentTime.getMinutes());
+      let businessHoursMins = businessDay.open.split(':');
+      let businessOpenHours = parseInt(businessHoursMins[0]);
+      let businessOpenMins = parseInt(businessHoursMins[1]);
+      businessHoursMins = businessDay.close.split(':');
+      let businessCloseHours = parseInt(businessHoursMins[0]);
+      let businessCloseMins = parseInt(businessHoursMins[1]);
+
+      // When a business opens during the day and closes after midnight add 23 hours to closeHours
+      if (businessOpenHours > businessCloseHours) {
+        if ( (currentHour >= 0) && (currentHour <= businessCloseHours) ) {
+          currentHour += 23;
+        }
+        businessCloseHours += 23;
+      }
+
+      // If currentHour is within the CLOSING hour, ensure current time is not too LATE
+      if (currentHour === businessCloseHours) {
+        if (currentMins > businessCloseMins) {
+          setOpenCloseStatus('closed');
+        }
+      }
+      
+      // If currentHour is within the OPENING hour, ensure current time is not too EARLY
+      if (currentHour === businessOpenHours) {
+        if (currentMins < businessOpenMins) {
+          setOpenCloseStatus('closed');
+        }
+      }
+      
+      // Ensure current time is not too early
+      if ( (currentHour !== 0) && (currentHour < businessOpenHours)) {
+        setOpenCloseStatus('closed');
+      }
+            
+      // Ensure current time is not too late
+      if ( (businessCloseHours !== 0) && (currentHour > businessCloseHours) ) {
+        setOpenCloseStatus('closed');
+      }
+
+      // Ensure the store is open
+      if (!businessDay.open) {
+        setOpenCloseStatus('closed');
+      }  
+
+      if (response.data.open24hours) {
+        setOpenCloseStatus('open');
+      }
+
+      // Set our donut chart data
       const vacantSpots = response.data.maxOccupants - response.data.currentCount;
       const donutOptions = {
         datasets: [{
@@ -117,7 +183,6 @@ function Dashboard() {
         
     } catch (error) {
       console.log('error:', error);
-      history.push('/login');
     }
   }, []);
       
@@ -129,6 +194,9 @@ function Dashboard() {
         {errMessage}
         { storeData.storeName &&
           <h2>{storeData.storeName}</h2>
+        }
+        { storeData.storeName &&
+          <p className={openCloseStatus === 'open' ? 'dashboardOpen' : 'dashboardClosed'}>Currently <strong>{openCloseStatus}</strong></p>
         }
         { storeData.location && 
           <p>

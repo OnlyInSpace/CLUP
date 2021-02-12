@@ -6,12 +6,8 @@ module.exports = {
   async createStore(req, res) {
     try {
       // console.log(req.body)
-      const {owner_id, storeName, location, maxOccupants, maxPartyAllowed} = req.body;
-      if (!storeName || !location || !maxOccupants || !maxPartyAllowed) {
-        return res.status(200).json({
-          message: 'Required information is missing.'
-        });
-      }
+      const {owner_id, storeName, location, maxOccupants, maxPartyAllowed, avgVisitLength, open24hours, businessHours} = req.body;
+
       // Check if store exists
       const existingStore = await Store.findOne({storeName: storeName, 'location.address1': location.address1, 'location.city': location.city});
       if (!existingStore) {
@@ -21,7 +17,10 @@ module.exports = {
           storeName,
           location,
           maxOccupants,
-          maxPartyAllowed
+          maxPartyAllowed,
+          avgVisitLength,
+          open24hours,
+          businessHours
         });
         // Respond by sending the store back
         return res.json(store);
