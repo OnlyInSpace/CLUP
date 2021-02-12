@@ -3,7 +3,6 @@ import api from '../../services/api';
 import auth from '../../services/auth';
 import {Container, Card, Button, Modal, Alert} from 'react-bootstrap';
 import './myvisits.css';
-import Cookies from 'js-cookie';
 import PropTypes from 'prop-types';
 import { withRouter, useHistory } from 'react-router-dom';
 import jwt from 'jsonwebtoken';
@@ -55,7 +54,7 @@ function MyVisits() {
       return false;
     } else { // else we get the new access token, set the cookie, and return it!
       const newAccessToken = response.data.newAccessToken;
-      Cookies.set('accessToken', newAccessToken, { secure: true });
+      localStorage.setItem('accessToken', newAccessToken, { secure: true });
       return newAccessToken;
     }
   };
@@ -103,8 +102,8 @@ function MyVisits() {
   // Function to return all visits tied to user
   const getVisits = async () => {
     try {
-      let accessToken = Cookies.get('accessToken');
-      let refreshToken = Cookies.get('refreshToken');
+      let accessToken = localStorage.getItem('accessToken');
+      let refreshToken = localStorage.getItem('refreshToken');
 
       // Decode to get data stored in cookie
       let user = jwt.decode(accessToken);
@@ -125,7 +124,7 @@ function MyVisits() {
           history.push('/login');
         } else {
           // overwrite response with the new access token.
-          let newAccessToken = Cookies.get('accessToken');
+          let newAccessToken = localStorage.getItem('accessToken');
           user_id = user._id;
           response = await api.get(`/myvisits/${user_id}`, { headers: {'accessToken': newAccessToken }});
         }
@@ -179,8 +178,8 @@ function MyVisits() {
 
   const deleteVisitHandler = async (visit_id) => {
     try {
-      let accessToken = Cookies.get('accessToken');
-      let refreshToken = Cookies.get('refreshToken');
+      let accessToken = localStorage.getItem('accessToken');
+      let refreshToken = localStorage.getItem('refreshToken');
 
       // get visit to check if party amount is reserved
       let getVisit = await api.get(`/visit/${visit_id}`, { headers: {'accessToken': accessToken }});
@@ -205,7 +204,7 @@ function MyVisits() {
           history.push('/login');
         } else {
           // overwrite response with the new access token.
-          let newAccessToken = Cookies.get('accessToken');
+          let newAccessToken = localStorage.getItem('accessToken');
           response = await api.delete(`/myvisits/${visit_id}`, { headers: {'accessToken': newAccessToken }});
         }
       }

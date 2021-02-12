@@ -2,7 +2,6 @@ import React from 'react';
 import { useLocation } from 'react-router';
 import { Navbar, NavDropdown, Nav, Button, Form } from 'react-bootstrap';
 import './navbar.css';
-import Cookies from 'js-cookie';
 import { useHistory, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import jwt from 'jsonwebtoken';
@@ -10,7 +9,7 @@ import auth from '../../services/auth';
 
 
 function NavigationBar() {
-  let refreshToken = Cookies.get('refreshToken');
+  let refreshToken = localStorage.getItem('refreshToken');
   // Verify user has a refresh token
   const decodeRefresh = jwt.decode(refreshToken);
   // Prevent navbar from rendering if no tokens
@@ -39,7 +38,7 @@ function NavigationBar() {
       return false;
     } else { // else we get the new access token, set the cookie, and return it!
       const newAccessToken = response.data.newAccessToken;
-      Cookies.set('accessToken', newAccessToken, { secure: true });
+      localStorage.setItem('accessToken', newAccessToken, { secure: true });
       return newAccessToken;
     }
   };
@@ -88,8 +87,8 @@ function NavigationBar() {
   const logoutHandler = async (evt) => {
     try {
       evt.preventDefault();
-      let accessToken = Cookies.get('accessToken');
-      let refreshToken = Cookies.get('refreshToken');
+      let accessToken = localStorage.getItem('accessToken');
+      let refreshToken = localStorage.getItem('refreshToken');
       // Verify user token, refresh if have to, and get their data
       let user = await protectPage(accessToken, refreshToken);
 
@@ -101,9 +100,9 @@ function NavigationBar() {
         // Users are fully protected when logged out
         await auth.post('/logout', { user });
       }
-      // Remove cookies
-      Cookies.remove('accessToken');
-      Cookies.remove('refreshToken');
+      // Remove localStorage
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       history.push('/login');
     } catch (error) {
       console.log(error);

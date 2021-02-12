@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import Cookies from 'js-cookie';
 import auth from '../../services/auth';
 import { Doughnut } from 'react-chartjs-2';
 import { Container, Button } from 'react-bootstrap';
@@ -29,7 +28,7 @@ function Dashboard() {
       return false;
     } else { // else we get the new access token, set the cookie, and return it!
       const newAccessToken = response.data.newAccessToken;
-      Cookies.set('accessToken', newAccessToken, { secure: true });
+      localStorage.setItem('accessToken', newAccessToken, { secure: true });
       return newAccessToken;
     }
   };
@@ -77,9 +76,10 @@ function Dashboard() {
   useEffect(async () => {
     try {
       // Ensure user has a store id
-      const store_id = Cookies.get('store');
-      let accessToken = Cookies.get('accessToken');
-      let refreshToken = Cookies.get('refreshToken');
+      const store_id = localStorage.getItem('store');
+      console.log(store_id);
+      let accessToken = localStorage.getItem('accessToken');
+      let refreshToken = localStorage.getItem('refreshToken');
       if (!store_id) return;
 
       // Get store object and verify the user's accessToken
@@ -95,7 +95,7 @@ function Dashboard() {
           history.push('/login');
         } else {
           // overwrite response with the new access token.
-          let newAccessToken = Cookies.get('accessToken');
+          let newAccessToken = localStorage.getItem('accessToken');
           response = await api.get(`/store/${store_id}`, { headers: {'accessToken': newAccessToken }});
         }
       }

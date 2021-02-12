@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import api from '../../services/api';
 import auth from '../../services/auth';
 import { Container, Button, Form, Row, Col, Alert } from 'react-bootstrap';
-import Cookies from 'js-cookie';
 import { Checkbox } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
 import jwt from 'jsonwebtoken';
@@ -70,7 +69,7 @@ function CreateStore() {
       return false;
     } else { // else we get the new access token, set the cookie, and return it!
       const newAccessToken = response.data.newAccessToken;
-      Cookies.set('accessToken', newAccessToken, { secure: true });
+      localStorage.setItem('accessToken', newAccessToken, { secure: true });
       return newAccessToken;
     }
   };
@@ -154,8 +153,8 @@ function CreateStore() {
       if (!storeName || !maxOccupants || !maxPartyAllowed || !city || !state || !address1 || !postalCode || !avgVisitLength) {
         setErrorMessage('Missing required information.');
       } else {
-        let accessToken = Cookies.get('accessToken');
-        let refreshToken = Cookies.get('refreshToken');
+        let accessToken = localStorage.getItem('accessToken');
+        let refreshToken = localStorage.getItem('refreshToken');
 
         // Decode to get data stored in cookie
         let ownerData = jwt.decode(accessToken);
@@ -213,7 +212,7 @@ function CreateStore() {
             history.push('/login');
           } else {
             // overwrite response with the new access token.
-            let newAccessToken = Cookies.get('accessToken');
+            let newAccessToken = localStorage.getItem('accessToken');
             owner_id = user._id;
             response = await api.post('/store/create', { owner_id, storeName, location, maxOccupants, maxPartyAllowed }, { headers: {'accessToken': newAccessToken }});
           }

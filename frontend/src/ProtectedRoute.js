@@ -1,13 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Cookies from 'js-cookie';
 import { Route, Redirect } from 'react-router-dom';
 import jwt from 'jsonwebtoken';
 
 // This protects all pages to ensure users have legit tokens that refresh every 15 minutes!
 function ProtectedRoute({ component: Component, ...rest }) {
   // Verify user has a refresh token
-  const refreshToken = Cookies.get('refreshToken');
+  const refreshToken = localStorage.getItem('refreshToken');
   const decodeRefresh = jwt.decode(refreshToken);
   let isAuth = true;
   if (decodeRefresh) {

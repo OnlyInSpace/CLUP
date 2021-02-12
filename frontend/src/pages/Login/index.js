@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Cookies from 'js-cookie';
 import {Container, Button, Form, Alert} from 'react-bootstrap';
 import './login.css';
 import logo from './logo.png';
@@ -33,10 +32,10 @@ function Login() {
         const accessToken = response.data.accessToken;
         const refreshToken = response.data.refreshToken;
 
-        // If the user was able to login then let's store their tokens inside cookies
+        // If the user was able to login then let's store their tokens inside localStorage
         if (accessToken) {
-          Cookies.set('accessToken', accessToken, { secure: true });
-          Cookies.set('refreshToken', refreshToken, { secure: true });
+          localStorage.setItem('accessToken', accessToken, { secure: true });
+          localStorage.setItem('refreshToken', refreshToken, { secure: true });
           console.log('accessToken:', accessToken);
           history.push('/dashboard'); // go to dashboard
         } else {
