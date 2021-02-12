@@ -7,22 +7,51 @@
     z-index: 0;
 }
 
-
-.alertBox {
-    margin-top: 10px;
+.css-1qk1skk-TimeDropdown {
+    z-index: -500 !important;
 }
 
+.visitAlertBox {
+    margin-top: 10px;
+}
 
 .visitContent {
     text-align: center;
 }
 
-
 .inputDate {
     text-align: center;
 }
 
-
 .noStoreId {
     margin-top: 30px;
+}
+
+.scheduleVisitClosed {
+    display: inline;
+}
+
+.hoursList {
+    text-align: left;
+    font-size: 1.1em;
+}
+
+.hoursList strong {
+    color: var(--lightBlue);
+}
+
+.scheduleListBorder {
+    width: 20em;
+    border: 1px solid var(--darkBlue);
+    border-radius: 4px;
+    list-style-position: outside;
+    margin-bottom: 2.5em;
+}
+
+.scheduleListBorder li {
+    margin: .3em 1em .3em 3.25em;
+}
+
+#visitRedText {
+    color: var(--darkRed) !important;
 }

@@ -9,23 +9,61 @@ const StoreSchema = new mongoose.Schema({
   queue: [{
     type: String
   }],
-  // hours: {                
-  //     "openTimes": [],    // openTimes:  [1200, 1400, 1400, 1400, 1400, 1400, 1400]
-  //     "closeTimes": []    // closeTimes: [2000, 2200, 2200, 2200, 2200, 2200, 2200]
-  // },
   location: {
-    'city': String,
-    'state': String,
-    'address1': String,
-    'address2': String,
-    'postalCode': String
+    city: String,
+    state: String,
+    address1: String,
+    address2: String,
+    postalCode: String
   },
   currentCount: {
     type: Number,
     default: 0
   },
   maxOccupants: Number,
-  maxPartyAllowed: Number
+  maxPartyAllowed: Number,
+  avgVisitLength: Number,
+  open24hours: {
+    type: Boolean,
+    default: false
+  },
+  businessHours: { 
+    sunday: {
+      day: String, 
+      open: String,
+      close: String
+    },
+    monday: {
+      day: String, 
+      open: String,
+      close: String
+    },
+    tuesday: {
+      day: String, 
+      open: String,
+      close: String
+    },
+    wednesday: {
+      day: String, 
+      open: String,
+      close: String
+    },
+    thursday: {
+      day: String, 
+      open: String,
+      close: String
+    },
+    friday: {
+      day: String, 
+      open: String,
+      close: String
+    },
+    saturday: {
+      day: String, 
+      open: String,
+      close: String
+    }           
+  }
 });
 
 module.exports = mongoose.model('Store', StoreSchema);

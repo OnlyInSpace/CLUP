@@ -135,6 +135,7 @@ function MyVisits() {
       // Create a userVisits array of objects
       // Here .map means for every object in userVisits
       const userVisits = response.data;
+      console.log('userVisits!!!!!!!!!!:', userVisits);
       const getCards = await Promise.all( userVisits.map( async function (visit) {
   
         // Get the visit's id
@@ -274,11 +275,9 @@ function MyVisits() {
             Visit successfully canceled!
           </Alert>
         }
-        {/* {visitCards &&
-                visitCards.map((i) => {
-                    return <MyCard storeName={i.storeName} date={i.date} time={i.time} store_id={i.store_id} /> 
-            })} */}
+
         { visitCards && visitCards.map(renderCards) }
+        
         {!visitCards.length &&
           <h5 className="noVisits">Go to &quot;Schedule a visit&quot; in the navigation menu to schedule a visit.</h5>
         }
