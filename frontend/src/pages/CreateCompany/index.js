@@ -3,7 +3,6 @@ import auth from '../../services/auth';
 import api from '../../services/api';
 import { Container, Button, Form, Alert } from 'react-bootstrap';
 import './createcompany.css';
-import Cookies from 'js-cookie';
 import { useHistory } from 'react-router-dom';
 import jwt from 'jsonwebtoken';
 
@@ -27,7 +26,7 @@ function CreateCompany() {
       return false;
     } else { // else we get the new access token, set the cookie, and return it!
       const newAccessToken = response.data.newAccessToken;
-      Cookies.set('accessToken', newAccessToken, { secure: true });
+      localStorage.setItem('accessToken', newAccessToken, { secure: true });
       return newAccessToken;
     }
   };
@@ -80,8 +79,8 @@ function CreateCompany() {
       if (!companyName) {
         setErrorMessage('Please enter your company\'s name.');
       } else {
-        let accessToken = Cookies.get('accessToken');
-        let refreshToken = Cookies.get('refreshToken');
+        let accessToken = localStorage.getItem('accessToken');
+        let refreshToken = localStorage.getItem('refreshToken');
 
         // Decode to get data stored in cookie
         let owner = jwt.decode(accessToken);
@@ -101,7 +100,7 @@ function CreateCompany() {
             history.push('/login');
           } else {
           // overwrite response with the new access token.
-            let newAccessToken = Cookies.get('accessToken');
+            let newAccessToken = localStorage.getItem('accessToken');
             ownerId = user._id;
             response = await api.post('/company/create', { companyName, ownerId}, { headers: {'accessToken': newAccessToken }});
           }

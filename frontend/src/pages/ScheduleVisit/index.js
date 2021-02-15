@@ -8,7 +8,6 @@ import 'react-datepicker/dist/react-datepicker.css';
 import TimeKeeper from 'react-timekeeper';
 import './schedulevisit.css';
 import PropTypes from 'prop-types';
-import Cookies from 'js-cookie';
 import jwt from 'jsonwebtoken';
 import { useHistory, withRouter } from 'react-router-dom';
 
@@ -31,7 +30,7 @@ function ScheduleVisit() {
   // If store is open 24/7
   const [open24hours, setOpen24Hours] = useState(false);
   // get store_id
-  let store_id = Cookies.get('store');
+  let store_id = localStorage.getItem('store');
 
 
 
@@ -47,7 +46,7 @@ function ScheduleVisit() {
       return false;
     } else { // else we get the new access token, set the cookie, and return it!
       const newAccessToken = response.data.newAccessToken;
-      Cookies.set('accessToken', newAccessToken, { secure: true });
+      localStorage.setItem('accessToken', newAccessToken, { secure: true });
       return newAccessToken;
     }
   };
@@ -95,8 +94,8 @@ function ScheduleVisit() {
   useEffect(() => {
     (async () => {
       try {
-        let accessToken = Cookies.get('accessToken');
-        let refreshToken = Cookies.get('refreshToken');
+        let accessToken = localStorage.getItem('accessToken');
+        let refreshToken = localStorage.getItem('refreshToken');
         // Get user's current selected store so we can set the maxPartyAmount
         let response = await api.get(`/store/${store_id}`, { headers: {'accessToken': accessToken }});
 
@@ -109,7 +108,7 @@ function ScheduleVisit() {
             history.push('/login');
           } else {
             // overwrite response with the new access token.
-            let newAccessToken = Cookies.get('accessToken');
+            let newAccessToken = localStorage.getItem('accessToken');
             response = await api.get(`/store/${store_id}`, { headers: {'accessToken': newAccessToken }});
           }
         }
@@ -258,8 +257,8 @@ function ScheduleVisit() {
       scheduledDate.setHours(parseInt(hoursMinutes[0]));
       scheduledDate.setMinutes(parseInt(hoursMinutes[1]));
 
-      let refreshToken = Cookies.get('refreshToken');
-      let accessToken = Cookies.get('accessToken');
+      let refreshToken = localStorage.getItem('refreshToken');
+      let accessToken = localStorage.getItem('accessToken');
       // Get userId from token stored in cookie
       let user = jwt.decode(accessToken);
       let user_id = user._id;
@@ -411,7 +410,7 @@ function ScheduleVisit() {
             history.push('/login');
           } else {
             // overwrite response with the new access token.
-            let newAccessToken = Cookies.get('accessToken');
+            let newAccessToken = localStorage.getItem('accessToken');
             user_id = user._id;
             console.log('user_id:', user_id);
             response = await api.post('/visit/create', {user_id, scheduledDate, partyAmount, store_id}, { headers: {'accessToken': newAccessToken }});

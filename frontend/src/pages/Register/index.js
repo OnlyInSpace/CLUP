@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Cookies from 'js-cookie';
 import { Container, Button, Form, Alert } from 'react-bootstrap';
 import './register.css';
 import PropTypes from 'prop-types';
@@ -60,9 +59,9 @@ function Register() {
       // If the user was able to register then send them to dashboard and store their data in Cookies
       if (accessToken) {
         // Store user refresh and access token in a Cookie with secure option set, meaning this cookie is only readable on HTTPS.
-        Cookies.remove('store');
-        Cookies.set('accessToken', accessToken, { secure: true });
-        Cookies.set('refreshToken', refreshToken, { secure: true });
+        localStorage.removeItem('store');
+        localStorage.setItem('accessToken', accessToken, { secure: true });
+        localStorage.setItem('refreshToken', refreshToken, { secure: true });
         history.push('/dashboard');
       } else { // Else if 
         setErrorMessage(response.data.message);

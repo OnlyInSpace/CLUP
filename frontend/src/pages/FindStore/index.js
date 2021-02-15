@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import auth from '../../services/auth';
-import Cookies from 'js-cookie';
 import {Container, Button, Alert} from 'react-bootstrap';
 import Select from 'react-select';
 import PropTypes from 'prop-types';
@@ -23,8 +22,8 @@ function FindStore() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const accessToken = Cookies.get('accessToken');
-        let refreshToken = Cookies.get('refreshToken');
+        const accessToken = localStorage.getItem('accessToken');
+        let refreshToken = localStorage.getItem('refreshToken');
 
         let storeList = await api.get('/store', { headers: {'accessToken': accessToken }});
 
@@ -38,7 +37,7 @@ function FindStore() {
             history.push('/login');
           } else {
             // overwrite storeList with the new access token.
-            let newAccessToken = Cookies.get('accessToken');
+            let newAccessToken = localStorage.getItem('accessToken');
             storeList = await api.get('/store', { headers: {'accessToken': newAccessToken }});
           }
         }
@@ -74,7 +73,7 @@ function FindStore() {
       return false;
     } else { // else we get the new access token, set the cookie, and return it!
       const newAccessToken = response.data.newAccessToken;
-      Cookies.set('accessToken', newAccessToken, { secure: true });
+      localStorage.setItem('accessToken', newAccessToken, { secure: true });
       return newAccessToken;
     }
   };
@@ -130,7 +129,7 @@ function FindStore() {
       const storeId = getStoreId.value;
       console.log(getStoreId);
       // set storeId to selected store in a cookie with secure option set. meaning this cookie is only readable on HTTPS
-      Cookies.set('store', storeId, { secure: true });
+      localStorage.setItem('store', storeId, { secure: true });
       history.push('/dashboard');
     }
   };
