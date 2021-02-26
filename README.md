@@ -1,5 +1,5 @@
 # CLUP2.0
-CLUP
+CLUP - Senior Design project for West Texas A&M University
 
 #What is CLUP? (Customer Lineup)
 Full product description: https://docs.google.com/document/d/1ly9NTnhpajnhPrgtFI8vu0EJ9nhfC0wtdk1QYEIhB5U/edit
