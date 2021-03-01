@@ -8,7 +8,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import TimeKeeper from 'react-timekeeper';
 import './schedulevisit.css';
 import PropTypes from 'prop-types';
-import jwt from 'jsonwebtoken';
+// import jwt from 'jsonwebtoken';
 import { useHistory, withRouter } from 'react-router-dom';
 
 function ScheduleVisit() {
@@ -33,9 +33,9 @@ function ScheduleVisit() {
   let store_id = localStorage.getItem('store');
 
 
+  //TODO: Ensure users cannot schedule visits at the same time as other users.
 
-
-
+  
   // Function to refresh a user's access token if it is unexpired
   const refresh = async (refreshToken) => {
     console.log('refreshing token. . .');
@@ -96,6 +96,7 @@ function ScheduleVisit() {
       try {
         let accessToken = localStorage.getItem('accessToken');
         let refreshToken = localStorage.getItem('refreshToken');
+
         // Get user's current selected store so we can set the maxPartyAmount
         let response = await api.get(`/store/${store_id}`, { headers: {'accessToken': accessToken }});
 
@@ -112,9 +113,10 @@ function ScheduleVisit() {
             response = await api.get(`/store/${store_id}`, { headers: {'accessToken': newAccessToken }});
           }
         }
+        
         if (!response.data) {
           return;
-        }
+        } 
 
         // Set the max party allowed from current selected store
         setMaxPartyAmount(response.data.maxPartyAllowed);    
@@ -124,8 +126,12 @@ function ScheduleVisit() {
 
         if (response.data.open24hours) {
           return;
+        } else if (!response.data.businessHours) {
+          return;
         }
 
+
+        
         // Convert business hours to an array of objects so we can .map
         let hours = Object.keys(response.data.businessHours).map(key => {
           return response.data.businessHours[key];
@@ -172,7 +178,70 @@ function ScheduleVisit() {
   }, []);
 
 
-  const renderBusinessHours = (day, index) => {
+  // // Function to return all visits tied to user and specific store
+  // async function getUserVisits(accessToken, refreshToken) {
+  //   try {  
+  //     // Decode to get data stored in cookie
+  //     let user = jwt.decode(accessToken);
+  //     // When we decode a cookie using jwt.decode, we get an object called userData with the user's data stored inside
+  //     let user_id = user._id;
+  //     // Log the user here to see how it looks 
+  //     // console.log('User:', user);
+
+  //     let response = await api.get(`/myvisits/${store_id}/${user_id}`, { headers: {'accessToken': accessToken }});
+  //     // If token comes back as expired, refresh the token and make api call again
+  //     if (response.data.message === 'Access token expired') {
+  //       user = await protectPage(accessToken, refreshToken);
+  //       // If the access token or refresh token are unlegit, then return.
+  //       if (!user) {
+  //         setErrorMessage('Please log in again.');
+  //         console.log('Please log in again.');
+  //         history.push('/login');
+  //       } else {
+  //         // overwrite response with the new access token.
+  //         let newAccessToken = localStorage.getItem('accessToken');
+  //         user_id = user._id;
+  //         response = await api.get(`/myvisits/${store_id}/${user_id}`, { headers: {'accessToken': newAccessToken }});
+  //       }
+  //     }
+  
+  //     // Create a userVisits array of objects
+  //     // Here .map means for every object in userVisits
+  //     const userVisits = response.data;
+
+  //     return userVisits;
+        
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // }
+
+
+  async function getStoreVisits(accessToken, refreshToken) {
+    // Fetch a store's visits
+
+
+    let storeVisits = await api.get(`/visits/${store_id}`, { headers: {'accessToken': accessToken }});
+
+    // If token comes back as expired, refresh the token and make api call again
+    if (storeVisits.data.message === 'Access token expired') {
+      const user = await protectPage(accessToken, refreshToken);
+      // If the access token or refresh token are unlegit, then return.
+      if (!user) {
+        console.log('no user!');
+        history.push('/login');
+      } else {
+        // overwrite storeList with the new access token.
+        let newAccessToken = localStorage.getItem('accessToken');
+        storeVisits = await api.get(`/visits/${store_id}`, { headers: {'accessToken': newAccessToken }});
+      }
+    }
+    
+    return storeVisits.data;
+  }
+
+
+  function renderBusinessHours(day, index) {
     if (open24hours) {
       return (
         <div>
@@ -207,7 +276,7 @@ function ScheduleVisit() {
         </Col>
       </Row>
     );
-  };
+  }
 
 
   // This function handles whenever user selects a time in TimeKeeper
@@ -229,9 +298,7 @@ function ScheduleVisit() {
     if (hours >= 12) {
       hours -= 12;
       dd = 'PM';
-    }
-
-    if (hours == 0) {
+    } else if (hours == 0) {
       hours = 12;
     }
   
@@ -247,7 +314,7 @@ function ScheduleVisit() {
 
 
   // Function that will talk to server api once button is clicked
-  const handleSubmit = async evt => {
+  async function handleSubmit(evt) {
     // Prevent default event when button is clicked
     evt.preventDefault();
     try {
@@ -260,8 +327,9 @@ function ScheduleVisit() {
       let refreshToken = localStorage.getItem('refreshToken');
       let accessToken = localStorage.getItem('accessToken');
       // Get userId from token stored in cookie
-      let user = jwt.decode(accessToken);
+      let user = await protectPage(accessToken, refreshToken);
       let user_id = user._id;
+      let phoneNumber = user.phoneNumber;
 
       // Validating the scheduled visit is scheduled within AT LEAST avgVisitLength + 15 mins
       let currentMins = Math.floor(Date.now() / 60000);
@@ -271,68 +339,96 @@ function ScheduleVisit() {
       let scheduledMins = Math.floor(Date.parse(scheduledDate) / 60000);
 
 
-      // VALIDATION CHECKS
-      let validated = true;
+      // VALIDATION CHECKS 
       let errorAlert = '';
 
       // Last validation checks of party size
       if (partyAmount <= 0) {
         errorAlert = 'Please enter the number of members in your visiting party.';
-        validated = false;
-      } 
-      if (partyAmount > maxPartyAmount) {
+      } else if (partyAmount > maxPartyAmount) {
         errorAlert = 'The maximum allowed members in a party is ' + maxPartyAmount;
-        validated = false;
-      } 
-
-      // If the scheduled time is not ahead of current time + avgVisitLength + 15 mins
-      if (scheduledMins < currentMins) {
+      } else if (scheduledMins < currentMins) { // If the scheduled time is not ahead of current time + avgVisitLength + 15 mins
         errorAlert = 'Visits must be scheduled at least ' + (avgVisitLength + 15) + ' minutes from now';
-        validated = false;
       }
       
+      const scheduledDay = scheduledDate.getDay();
+      let scheduledHours, businessDay, businessHoursMins, businessOpenHours, businessOpenMins, businessCloseHours, businessCloseMins;
       // Validating scheduled time falls within business hours.
+      if (!open24hours) {
+        // Get day of visit. Returns value 0-6 (Sun - Sat)
+        // Get scheduled hours and scheduled mins
+        scheduledHours = parseInt(hoursMinutes[0]);
+        scheduledMins = parseInt(hoursMinutes[1]);     
+        // Get business day and times 
+        businessDay = businessHours[scheduledDay];
+        businessHoursMins = businessDay.open.split(':');
+        console.log('OpenTimes:', businessHoursMins);
+        businessOpenHours = parseInt(businessHoursMins[0]);
+        businessOpenMins = parseInt(businessHoursMins[1]);
+        businessHoursMins = businessDay.close.split(':');
+        console.log('CloseTimes:', businessHoursMins);
+        businessCloseHours = parseInt(businessHoursMins[0]);
+        businessCloseMins = parseInt(businessHoursMins[1]);
+  
+        console.log('businessCloseHours:', businessCloseHours);
+        console.log('businessOpenHours:', businessOpenHours);
+        console.log('avgVisitLength', avgVisitLength);
+      }
 
-      //TODO: Check if visit falls within business hours : )
+      //************ Ensuring that the scheduled visit doesnt already exist for the same day, month, and year  ******************/
+      // Here we ensure that visits can only be scheduled once for each day of the week.
+      const storeVisits = await getStoreVisits(accessToken, refreshToken);
 
-      // Get day of visit. Returns value 0-6 (Sun - Sat)
-      let scheduledDay = scheduledDate.getDay();
-      // Get scheduled hours and scheduled mins
-      let scheduledHours = parseInt(hoursMinutes[0]);
-      scheduledMins = parseInt(hoursMinutes[1]);     
-      // Get business day and times 
-      let businessDay = businessHours[scheduledDay];
-      let businessHoursMins = businessDay.open.split(':');
-      console.log('OpenTimes:', businessHoursMins);
-      let businessOpenHours = parseInt(businessHoursMins[0]);
-      let businessOpenMins = parseInt(businessHoursMins[1]);
-      businessHoursMins = businessDay.close.split(':');
-      console.log('CloseTimes:', businessHoursMins);
-      let businessCloseHours = parseInt(businessHoursMins[0]);
-      let businessCloseMins = parseInt(businessHoursMins[1]);
+      console.log('store visits:', storeVisits);
 
-      console.log('businessCloseHours:', businessCloseHours);
-      console.log('businessOpenHours:', businessOpenHours);
-      console.log('avgVisitLength', avgVisitLength);
+      if (storeVisits) {
+        const scheduledYear = scheduledDate.getFullYear();
+        const scheduledMonth = scheduledDate.getMonth();
+        const scheduledHours = scheduledDate.getHours();
+        const scheduledMins = scheduledDate.getMinutes();
+          
+        let visit, visitDate, visitUser;
+        let visitYear, visitMonth, visitDay, visitHours, visitMins;
 
+        for (let i = 0; i < storeVisits.length; i++) {
+          visit = storeVisits[i];
+          visitUser = visit.user;
+          visitDate = new Date(visit.date);
+          visitYear = visitDate.getFullYear();
+          visitMonth = visitDate.getMonth();
+          visitDay = visitDate.getDay();
+          visitHours = visitDate.getHours();
+          visitMins = visitDate.getMinutes();
+
+          
+          // Check if someone else has already scheduled for that exact time
+          if (visitYear === scheduledYear && visitMonth === scheduledMonth && visitDay === scheduledDay && visitHours === scheduledHours && visitMins === scheduledMins ) {
+            errorAlert = 'Sorry, but someone else has already scheduled for this slot.';
+          }
+          // Check if user has already scheduled for the same day
+          if (visitUser === user_id && visitYear === scheduledYear && visitMonth === scheduledMonth && visitDay === scheduledDay) {
+            errorAlert = 'Sorry, but you can only schedule a visit once per day. You can cancel your visit in \'My visits\'';
+          }
+        }
+      }
+      //*************End of same day check*********************/
 
       // ****SETTING OUR ACTUAL BUSINESS CLOSE TIMES WITH RESPECT TO THE AVERAGE VISIT LENGTH****
       // Check if store is open for that day
-      if (!businessDay.open) {
+      if (!open24hours && !businessDay.open) {
         errorAlert = storeName + ' is closed for the day you\'re trying to schedule';
-        validated = false;
       }  
 
 
       // If store closes at midnight, ensure the actual closing hour is set properly with respect to avgVisitLength
-      if ( (businessCloseHours-1) < 0 ) {
+      if ( !open24hours && (businessCloseHours-1) < 0 ) {
         if ( (businessCloseMins - avgVisitLength) < 0 ) {
           businessCloseHours = 23;
         }
       } 
       
       // Set our actual business close mins with respect to avgVisitLength
-      if ( (businessCloseMins-avgVisitLength) < 0 ) {
+      if ( !open24hours && (businessCloseMins-avgVisitLength) < 0 ) {
         businessCloseHours -= 1;
         businessCloseMins = 60 - (avgVisitLength - businessCloseMins);
       } else { // We can just subtract avgVisitLength to get actual closing mins with respect to visit length
@@ -349,61 +445,44 @@ function ScheduleVisit() {
 
 
       // When a business opens during the day and closes after midnight add 23 hours to closeHours
-      if (businessOpenHours > businessCloseHours) {
+      if ( !open24hours && businessOpenHours > businessCloseHours) {
         if ( (scheduledHours >= 0) && (scheduledHours <= businessCloseHours) ) {
           scheduledHours += 23;
         }
         businessCloseHours += 23;
-      }
-
-
-
       // If user is trying to schedule a visit within the CLOSING hour, ensure they aren't too LATE
-      if (scheduledHours === businessCloseHours) {
+      } else if ( !open24hours && scheduledHours === businessCloseHours) { 
         if (scheduledMins > businessCloseMins) {
           errorAlert = 'Sorry, you can\'t schedule near closing time.';
-          validated = false;
         }
-      }
-
-      // If user is trying to schedule a visit within the OPENING hour, ensure they aren't too EARLY
-      if (scheduledHours === businessOpenHours) {
+      // If user is trying to schedule a visit within the OPENING hour, ensure they aren't too EARLY  
+      } else if ( !open24hours && scheduledHours === businessOpenHours) {
         if (scheduledMins < businessOpenMins) {
           errorAlert = storeName + ' is closed for the time you\'re trying to schedule';
-          validated = false;
         }
-      }
-
-      // Ensure scheduled time is not too early
-      if ( (scheduledHours !== 0) && (scheduledHours < businessOpenHours)) {
+      // Ensure scheduled time is not too early  
+      } else if ( !open24hours && (scheduledHours !== 0) && (scheduledHours < businessOpenHours)) { 
         errorAlert = storeName + ' is closed for the time you\'re trying to schedule';
-        validated = false;
-      }
-      
-      // Ensure scheduled time is not too late
-      if ( (businessCloseHours !== 0) && (scheduledHours > businessCloseHours) ) {
+      // Ensure scheduled time is not too late  
+      } else if ( !open24hours && (businessCloseHours !== 0) && (scheduledHours > businessCloseHours) ) { 
         errorAlert = 'Sorry, you can\'t schedule near closing time or after business hours.';
-        validated = false;
       }
-
 
       console.log('businessCloseMins:', businessCloseMins);
       console.log('day:', scheduledDay, 'scheduledHours:', scheduledHours, 'scheduledMins:', scheduledMins);
 
-      if (open24hours) {
-        validated = true;
-      }
       
-      if (!validated) {
+      if (errorAlert) {
         setErrorMessage(errorAlert);
         return;
       } else {
         // Create the visit
-        let response = await api.post('/visit/create', {user_id, scheduledDate, partyAmount, store_id}, { headers: {'accessToken': accessToken} });
+        let response = await api.post('/visit/create', {phoneNumber, user_id, scheduledDate, partyAmount, store_id}, { headers: {'accessToken': accessToken} });
 
         // If token comes back as expired, refresh the token and make api call again
         if (response.data.message === 'Access token expired') {
           const user = await protectPage(accessToken, refreshToken);
+          console.log('user:', user);
           // If the access token or refresh token are unlegit, then return.
           if (!user) {
             console.log('Please log in again.');
@@ -412,10 +491,12 @@ function ScheduleVisit() {
             // overwrite response with the new access token.
             let newAccessToken = localStorage.getItem('accessToken');
             user_id = user._id;
-            console.log('user_id:', user_id);
-            response = await api.post('/visit/create', {user_id, scheduledDate, partyAmount, store_id}, { headers: {'accessToken': newAccessToken }});
+            phoneNumber = user.phoneNumber;
+            response = await api.post('/visit/create', {phoneNumber, user_id, scheduledDate, partyAmount, store_id}, { headers: {'accessToken': newAccessToken }});
           }
         }
+
+        console.log('phone:', phoneNumber);
 
         const visit_id = response.data._id || false;
         console.log(response.data);
@@ -429,7 +510,7 @@ function ScheduleVisit() {
     } catch (error) {
       console.log(error);
     }
-  };
+  }
 
 
   return (
@@ -461,7 +542,7 @@ function ScheduleVisit() {
         }
         {errorMessage ? (
         /* ^ is a ternary operator: Is party amount > 0? If no, then display the alert */
-          <Alert className="visitAlertBox" variant='warning'>
+          <Alert className="alertBox" variant='warning'>
             {errorMessage}
           </Alert>
         ): ''}
@@ -473,7 +554,14 @@ export default withRouter(ScheduleVisit);
 
 
 
-function VisitContent({handleSubmit, scheduledDate, setScheduledDate, handleTimeChange, setPartyAmount, scheduledTime, formattedTime }) {
+function VisitContent({
+  handleSubmit, 
+  scheduledDate, 
+  setScheduledDate, 
+  handleTimeChange, 
+  setPartyAmount, 
+  scheduledTime, 
+  formattedTime }) {
   // Here we can define state variables that will only be used by this component
   return (
     <Form className= "visitContent" onSubmit = {handleSubmit}>
@@ -498,7 +586,7 @@ function VisitContent({handleSubmit, scheduledDate, setScheduledDate, handleTime
       </div>
       <Form.Group controlId="formPartyNumber">
         <Form.Label>Number of members in your party <strong>(including you)</strong></Form.Label>
-        <Form.Control type="number" placeholder="" onChange = {evt => setPartyAmount(evt.target.value)}/>
+        <Form.Control type="number" placeholder="" onChange = {evt => setPartyAmount(parseInt(evt.target.value))}/>
       </Form.Group>
       <Button className="submit-btn" variant="secondary" type="submit" onClick={handleSubmit}>Schedule Visit</Button>
     </Form>

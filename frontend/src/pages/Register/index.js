@@ -34,19 +34,13 @@ function Register() {
       } else if (!phoneNumber || !email || !password || !confirmPassword) {
         setErrorMessage('Required information is missing.');
         return;
-      }
-      // Ensure phone number is valid
-      if (phoneNumber.length !== 10 ) {
+      } else if (phoneNumber.length !== 10 ) { // Ensure phone number is valid
         setErrorMessage('Invalid phone number');
         return;
-      }
-      // Ensure passwords match
-      if (password !== confirmPassword) {
+      } else if (password !== confirmPassword) { // Ensure passwords match
         setErrorMessage('Passwords don\'t match');
         return;
-      }
-      // Ensure password restrictions
-      if (!password.match(/^(?=.*?[A-Za-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/)) {
+      } else if (!password.match(/^(?=.*?[A-Za-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/)) { // Ensure password restrictions
         setErrorMessage('Password must contain at least 8 characters, 1 letter, 1 number, and 1 symbol.');
         return;
       }
@@ -72,6 +66,7 @@ function Register() {
     }
   };
     
+
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
     <Container>
@@ -79,8 +74,12 @@ function Register() {
         <h3>Signup</h3>
         <p>Register your <strong>new account</strong> below</p>
         <Form onSubmit = {handleSubmit}>
+          <ul className='registerList'>
+            <li>You will be able to <strong>schedule visits</strong> and join a <strong>customer queue</strong> all from your device.</li>
+            <li>Business owners can <strong>create, manage,</strong> and <strong>assign</strong> employee accounts to their own stores.</li>
+          </ul>
           <Form.Group controlId="formPhoneNum">
-            <Form.Label className="phoneDescription">Phone number <br></br> (For sending you <strong>specific alerts</strong>)</Form.Label>
+            <Form.Label className="phoneDescription">Phone number <br></br> (For sending you <strong>alerts</strong> related to your scheduled visits)</Form.Label>
             <Form.Control type="number" placeholder="Your phone number" onChange = {evt => setPhoneNumber(evt.target.value)} />
           </Form.Group>
           <Form.Group controlId="formEmail">

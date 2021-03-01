@@ -1,8 +1,7 @@
 .currentCapacity {
-    margin-top: 37px;
-    margin-bottom: 6px;
+    margin-top: 1.5em;
+    margin-bottom: 0.25em;
 }
-
 
 .content button.refresh-btn {
     margin-top: 1.5em;
@@ -16,16 +15,65 @@
     color: white;
 }
 
-
 .content button.refresh-btn:hover {
     background: #2c7aaa;
     transition: .4s;
 }
 
+
 .dashboardOpen strong {
-    color: #209129;
+    color: var(--green);
 }
 
 .dashboardClosed strong {
     color: var(--darkRed);
+}
+
+.clockIn-btn {
+    position: absolute;
+    top: 7em;
+    left: 50%;
+    margin: 0 auto;
+    transform: translate(-50%, -50%);
+    border: 2px solid var(--darkRed);
+    border-radius: 6px;
+    height: 2.5em;
+    padding: 0 1em;
+    font-weight: 600;
+    color: white;
+    background: #23272c;
+}
+
+.clockIn-btn:hover {
+    background: var(--darkRed);
+    border: 1px solid var(--darkRed);
+    transition: 0.3s;
+}
+
+.clockOut-btn {
+    position: relative;
+    top: -32em;
+    transform: translateY(-50%);
+    border: 2px solid var(--darkRed);
+    border-radius: 6px;
+    height: 2.5em;
+    padding: 0 1em;
+    font-weight: 600;
+    color: white;
+    background: var(--darkRed);
+    
+}
+
+.clockOut-btn:hover {
+    background: #23272c;
+    border: 1px solid var(--darkRed);
+    transition: 0.3s;
+}
+
+.selectedVisit {
+    font-size: 1.1em;
+}
+
+.dashboardAddress {
+    font-size: 1.2em;
 }

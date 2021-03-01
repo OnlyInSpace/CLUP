@@ -14,52 +14,47 @@ function FindStore() {
   const [selectedStore, setSelectedStore] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [searchData, setSearchData] = useState([]);
-  // For backend
-  const [errMessage, setErrMessage] = useState('');
   
-
   console.log(searchData);
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const accessToken = localStorage.getItem('accessToken');
-        let refreshToken = localStorage.getItem('refreshToken');
 
-        let storeList = await api.get('/store', { headers: {'accessToken': accessToken }});
+  
+  useEffect(async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      let refreshToken = localStorage.getItem('refreshToken');
 
-        // If token comes back as expired, refresh the token and make api call again
-        if (storeList.data.message === 'Access token expired') {
-          const user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            setErrMessage('Please log in again.');
-            console.log(errMessage);
-            history.push('/login');
-          } else {
-            // overwrite storeList with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            storeList = await api.get('/store', { headers: {'accessToken': newAccessToken }});
-          }
+      let storeList = await api.get('/store', { headers: {'accessToken': accessToken }});
+
+      // If token comes back as expired, refresh the token and make api call again
+      if (storeList.data.message === 'Access token expired') {
+        const user = await protectPage(accessToken, refreshToken);
+        // If the access token or refresh token are unlegit, then return.
+        if (!user) {
+          setErrorMessage('Please log in again.');
+          console.log('no user!');
+          history.push('/login');
+        } else {
+          // overwrite storeList with the new access token.
+          let newAccessToken = localStorage.getItem('accessToken');
+          storeList = await api.get('/store', { headers: {'accessToken': newAccessToken }});
         }
-        // populate our search list
-        const formattedData = storeList.data.map(store => {
-          const storeName = store.storeName;
-          const storeCity = store.location.city;
-          const storeState = store.location.state;
-          const storeAddress1 = store.location.address1;
-          const storeAddress2 = store.location.address2;
-          const storeId = store._id;
-          const label = storeName + ' - ' + storeCity + ', ' + storeState + ' ' + storeAddress1 + ' ' + storeAddress2;
-          return {label, value: storeId};
-        });
-        setSearchData(formattedData);
-        
-      } catch (error) {
-        console.log(error);
-        history.push('/login');
       }
-    };
-    fetchData();
+      // populate our search list
+      const formattedData = storeList.data.map(store => {
+        const storeName = store.storeName;
+        const storeCity = store.location.city;
+        const storeState = store.location.state;
+        const storeAddress1 = store.location.address1;
+        const storeAddress2 = store.location.address2;
+        const storeId = store._id;
+        const label = storeName + ' - ' + storeCity + ', ' + storeState + ' ' + storeAddress1 + ' ' + storeAddress2;
+        return {label, value: storeId};
+      });
+      setSearchData(formattedData);
+        
+    } catch (error) {
+      console.log(error);
+    }
   }, []);
 
 
@@ -134,6 +129,7 @@ function FindStore() {
     }
   };
 
+  
   // Custom stylin for our searchbar
   const customStyles = {
     option: (provided, state) => ({
@@ -163,13 +159,14 @@ function FindStore() {
         <p><br></br>You can search via the store&apos;s name or its address like so: <strong>101 Zoey St</strong> 
           <br></br><br></br>You can also view all supported stores in your city like so: <strong> MyCityName, TX</strong>
         </p>
-        <Button className="submit-btn" onClick = {handleSubmit} variant="secondary" type="submit">Select Store</Button>
-        {errorMessage ? (
+        <Button className="submit-btn" onClick={handleSubmit} variant="secondary" type="submit">Select Store</Button>
+        {errorMessage ?
         /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
           <Alert className="alertBox" variant='warning'>
             {errorMessage}
           </Alert>
-        ): ''}
+          : ''
+        }
       </div>
     </Container>
   );

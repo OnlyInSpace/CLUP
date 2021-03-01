@@ -25,15 +25,18 @@ module.exports = {
   },
 
   // Get a company by ID!
-  async getCompanyById(req, res) {
+  async getCompanyByUserId(req, res) {
     // Get company ID
-    const { company_id } = req.params;
+    const { user_id } = req.params;
     try {
-      const company = await Company.findById(company_id);
+      const company = await Company.findOne({ ownerId: user_id });
       // If visit exists, send the visit
-      if (company) {
-        return res.json(company);
+      if (!company) {
+        return res.status(200).json({
+          message: 'User_id is missing in controller.'
+        });      
       }
+      return res.json(company);
     } catch (error) {
       return res.status(400).json({message: 'Company Id does not exist!'});
     }

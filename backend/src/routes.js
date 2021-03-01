@@ -6,8 +6,10 @@ const VisitController = require('./controllers/VisitController');
 const StoreController = require('./controllers/StoreController');
 const CompanyController = require('./controllers/CompanyController');
 const ChangeCountController = require('./controllers/ChangeCountController');
+const SetRoleController = require('./controllers/SetRoleController');
 // import jwt
 const jwt = require('jsonwebtoken');
+const { setClockIn } = require('./controllers/UserController');
 // import access token secret, refresh token secret, mongoDB ssl  
 require('dotenv').config();
 // Assign the router
@@ -21,6 +23,7 @@ const routes = express.Router();
 function verifyToken(req, res, next) {
   // Get token from headers.authorization
   const token = req.header('accessToken');
+
   if (token) {
     // Verify the token is legit! and if so, set req.user to user and call next()
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
@@ -44,6 +47,20 @@ function verifyToken(req, res, next) {
   }
 }
 
+/* Setting roles */
+// Set Owner role
+routes.post('/role/owner', verifyToken, SetRoleController.setOwnerRole);
+// Set Manager role
+routes.post('/role/manager', verifyToken, SetRoleController.setManagerRole);
+// Set Employee role
+routes.post('/role/employee', verifyToken, SetRoleController.setEmployeeRole);
+// Set business_id
+routes.post('/business_id', verifyToken, SetRoleController.setBusiness_id);
+// Clock user IN
+routes.post('/clockIn', verifyToken, UserController.setClockIn);
+// Clock user OUT
+routes.post('/clockOut', verifyToken, UserController.setClockOut);
+
 
 // Create a company
 // Notice how verifyToken is placed before the api call, which means it will run before the api call.
@@ -51,7 +68,6 @@ routes.post('/company/create', verifyToken, CompanyController.createCompany);
 
 // Create a store
 routes.post('/store/create', verifyToken, StoreController.createStore);
-
 
 /* Customer count functions */
 // Increase Customer Count
@@ -62,13 +78,20 @@ routes.post('/count/decrease', verifyToken, ChangeCountController.decreaseCount)
 /* Visits */
 // Return all visits specific to currently logged in user
 routes.get('/myvisits/:user_id', verifyToken, VisitController.getUserVisits);
+// Get all visits tied to specific store
+routes.get('/visits/:store_id', verifyToken, VisitController.getStoreVisits);
+// Get all visits tied to user and specific store
+routes.get('/myvisits/:store_id/:user_id', verifyToken, VisitController.getUserStoreVisits);
 // Create a visit
 routes.post('/visit/create', verifyToken, VisitController.createVisit);
 // Delete visit
 routes.delete('/myvisits/:visitId', verifyToken, VisitController.delete);
 
+
 // FindStore -  returns all stores 
 routes.get('/findstore', verifyToken, StoreController.getAllStores);
+
+
 //***********QUERIES FOR GETTING DATA****************** */
 
 // Visit
@@ -76,22 +99,23 @@ routes.get('/findstore', verifyToken, StoreController.getAllStores);
 routes.get('/visit/:visitId', VisitController.getVisitById);
 
 // Get user by id
-routes.get('/user/:userId', UserController.getUserById);
+routes.get('/user/:user_id', verifyToken, UserController.getUserById);
 // Get all users
-routes.get('/user', UserController.getAllUsers);
+routes.get('/getusers', UserController.getAllUsers);
 
 // Company
 // Return all companies
 routes.get('/company', CompanyController.getAllCompanies);
-// Get company by id
-routes.get('/company/:companyId', CompanyController.getCompanyById);
+// Get company by user id
+routes.get('/company/:user_id', verifyToken, CompanyController.getCompanyByUserId);
 
 // Store
 // Return all stores
 routes.get('/store', verifyToken, StoreController.getAllStores);
+// Return store by company_id
 
 // Get store by id
-// Used by Dashboard - returns current store occupancy
+// Used by Dashboard - returns current store
 routes.get('/store/:store_id', verifyToken, StoreController.getStoreById);
 
 

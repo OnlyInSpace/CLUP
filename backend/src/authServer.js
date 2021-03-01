@@ -45,8 +45,17 @@ app.post('/user/register', async function (req, res) {
       });
     }
     // Check if user exists
-    const existingUser = await User.findOne({email});
-    if (!existingUser) {
+    let message = '';
+    const existingEmail = await User.findOne({email});
+    const existingPhoneNumber = await User.findOne({phoneNumber});
+    if (existingEmail) {
+      message = 'This email already exists. Try logging in below?';
+    }
+    if (existingPhoneNumber) {
+      message = 'This phone number already exists. Try logging in below?';
+    }
+
+    if (!existingEmail && !existingPhoneNumber) {
       // Hash the password with bcrypt module
       // 13 option is how much salt we give the password which is a decent amount 
       const hashedPassword = await bcrypt.hash(password, 13);
@@ -60,7 +69,12 @@ app.post('/user/register', async function (req, res) {
       const userData = {
         _id: user._id,
         email: user.email,
+        phoneNumber: user.phoneNumber,
+        business_id: user.business_id,
+        role: user.role,
+        clockedIn: user.clockedIn
       };
+
       // Sign both access and refresh token with different secrets
       const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '720s' });
       const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '365d' });
@@ -75,9 +89,7 @@ app.post('/user/register', async function (req, res) {
 
     }
     // Else if user exists, display message.
-    return res.status(200).json({
-      message: 'This email already exists. Try logging in?'
-    });
+    return res.status(200).json({ message });
   } catch (error) {
     throw Error(`Error while registering a new user : ${error}`);
   }
@@ -107,9 +119,14 @@ app.post('/login', async function (req, res) {
       const userData = {
         _id: user._id,
         email: user.email,
+        phoneNumber: user.phoneNumber,
+        business_id: user.business_id,
+        role: user.role,
+        clockedIn: user.clockedIn
       };
+
       const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '720s'});
-      const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '365d'});
+      const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '800d'});
       // Update refreshToken in MongoDB for user
       await User.findOneAndUpdate({email: user.email}, {refreshToken: refreshToken});
 
@@ -179,17 +196,21 @@ app.get('/verifyAccessToken', async function (req, res) {
 app.get('/refresh', async function (req, res) {
   const refreshToken = req.header('refreshToken');
   // Check if refreshToken is in MongoDB
-  const checkRefToken = await User.findOne({ refreshToken: refreshToken }); 
-  if (!refreshToken || !checkRefToken) {
+  const user = await User.findOne({ refreshToken: refreshToken }); 
+  if (!refreshToken || !user) {
     return res.json({ message: 'Refresh token not found!' });
   }
   // If the refresh token is valid, create a new accessToken and return it.
-  jwt.verify(refreshToken, process.env.JWT_REFRESH, (err, user) => {
+  jwt.verify(refreshToken, process.env.JWT_REFRESH, (err, refresh) => {
     if (!err) {
       // Set our userData
       const userData = {
         _id: user._id,
-        email: user.email
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        business_id: user.business_id,
+        role: user.role,
+        clockedIn: user.clockedIn
       };
       // Create new access token
       const newAccessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '720s' });
