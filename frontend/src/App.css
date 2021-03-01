@@ -11,6 +11,8 @@
     font-size: 17px;
     --darkBlue: #445469;
     --lightBlue: #0a6096;
+    --darkRed: #b92828;
+    --green: #209129;
 }
 
 
@@ -54,6 +56,9 @@ body, input, button {
     align-items: center;
 }
 
+.alert {
+    margin-top: 1em;
+}
 
 .container h1, h2, h3, h4, h5, h6 {
     color: var(--darkBlue);
@@ -133,7 +138,7 @@ body, input, button {
 
 
 .content button.delete-btn:hover {
-    background-color: #b92828;
+    background-color: var(--darkRed);
     transition: .4s;
 }
 

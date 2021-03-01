@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import Cookies from 'js-cookie';
 import {Container, Button, Form, Alert} from 'react-bootstrap';
 import './login.css';
 import logo from './logo.png';
 import { useHistory } from 'react-router-dom';
 import auth from '../../services/auth';
+import jwt from 'jsonwebtoken';
 
 
 function Login() {
@@ -33,10 +33,10 @@ function Login() {
         const accessToken = response.data.accessToken;
         const refreshToken = response.data.refreshToken;
 
-        // If the user was able to login then let's store their tokens inside cookies
+        // If the user was able to login then let's store their tokens inside localStorage
         if (accessToken) {
-          Cookies.set('accessToken', accessToken, { secure: true });
-          Cookies.set('refreshToken', refreshToken, { secure: true });
+          localStorage.setItem('accessToken', accessToken, { secure: true });
+          localStorage.setItem('refreshToken', refreshToken, { secure: true });
           console.log('accessToken:', accessToken);
           history.push('/dashboard'); // go to dashboard
         } else {
@@ -50,11 +50,17 @@ function Login() {
     }
   };
 
+  let refreshData = jwt.decode(localStorage.getItem('refreshToken'));
+
+  if (refreshData) {
+    history.push('/dashboard');
+  }
+
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
     <Container>
       <div className="content">
-        <img src={logo} className="mainLogo" alt="Logo" /> 
+        <img src={logo} className="loginLogo" alt="Logo" /> 
         <h3>Login</h3>
         <p>Login to your <strong>account</strong> below</p>
         <Form onSubmit = {handleSubmit}>
@@ -70,7 +76,7 @@ function Login() {
             <Button className="submit-btn" variant="secondary" type="submit">Login</Button>
             {errorMessage ? (
               /* ^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
-              <Alert className="alertBox" variant='warning'>
+              <Alert className="loginAlertBox" variant='warning'>
                 {errorMessage}
               </Alert>
             ): ''}

@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router';
 import { Navbar, NavDropdown, Nav, Button, Form } from 'react-bootstrap';
 import './navbar.css';
-import Cookies from 'js-cookie';
 import { useHistory, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import jwt from 'jsonwebtoken';
@@ -10,23 +9,33 @@ import auth from '../../services/auth';
 
 
 function NavigationBar() {
-  let refreshToken = Cookies.get('refreshToken');
-  // Verify user has a refresh token
-  const decodeRefresh = jwt.decode(refreshToken);
-  // Prevent navbar from rendering if no tokens
-  if (!decodeRefresh) {
-    return null;
-  }
+  const [ userRole, setUserRole ] = useState(''); 
 
+    
+  useEffect(async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      let accessToken = localStorage.getItem('accessToken');
 
-  // Need to import history this way because Navbar is outside of <Switch> in routes.js which is what imports history for every other component/page
-  let history = useHistory();
-  //returns the current url minus the domain name
-  const pathname = useLocation().pathname; 
-  // Dont show our navbar at the landing, login, and register page.
-  if (pathname === '/login' || pathname === '/user/register' || pathname === '/') {
-    return null;
-  }  
+      if (!accessToken || !refreshToken) {
+        history.push('/login');
+        return;
+      }
+
+      // Get user data and refresh token if needed.
+      const user = await protectPage(accessToken, refreshToken);
+      
+      if (!user) {
+        console.log('Please log in again.');
+        // history.push('/login');
+      }   
+
+      setUserRole(user.role);
+
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
 
 
   // Function to refresh a user's access token if it is unexpired
@@ -39,12 +48,12 @@ function NavigationBar() {
       return false;
     } else { // else we get the new access token, set the cookie, and return it!
       const newAccessToken = response.data.newAccessToken;
-      Cookies.set('accessToken', newAccessToken, { secure: true });
+      localStorage.setItem('accessToken', newAccessToken, { secure: true });
       return newAccessToken;
     }
   };
-    
-    
+        
+        
   // returns true or false depending on whether the access token is legit : )
   const verifyAccess = async (accessToken, refreshToken) => {
     let response = await auth.get('/verifyAccessToken', { headers: { 'accessToken': accessToken }});
@@ -59,10 +68,10 @@ function NavigationBar() {
       return false;
     }
     // else the token is valid, return the user object with their data
-    return response.data.user.userData;     
+    return response.data.user;     
   };
-    
-    
+        
+        
   // This function returns the user's object data within the token if it's legit, otherwise returns false.
   // This function also handles refreshing the token if needed
   const protectPage = async (accessToken, refreshToken) => {
@@ -82,14 +91,33 @@ function NavigationBar() {
     // If the access or refresh token is unlegit, this returns false, otherwise it returns the user's object data : )
     return await verifyAccess(accessToken, refreshToken);
   };
+    
+  
+  // Need to import history this way because Navbar is outside of <Switch> in routes.js which is what imports history for every other component/page
+  let history = useHistory();
+  //returns the current url minus the domain name
+  const pathname = useLocation().pathname; 
+  // Dont show our navbar at the landing, login, and register page.
+  if (pathname === '/login' || pathname === '/user/register' || pathname === '/') {
+    return null;
+  }  
+  
+  let refToken = localStorage.getItem('refreshToken');
+  // Verify user has a refresh token
+  const decodeRefresh = jwt.decode(refToken);
+  // Prevent navbar from rendering if no tokens
+  if (!decodeRefresh) {
+    return null;
+  }
 
 
   // Handle logout
   const logoutHandler = async (evt) => {
     try {
       evt.preventDefault();
-      let accessToken = Cookies.get('accessToken');
-      let refreshToken = Cookies.get('refreshToken');
+      let accessToken = localStorage.getItem('accessToken');
+      let refreshToken = localStorage.getItem('refreshToken');
+
       // Verify user token, refresh if have to, and get their data
       let user = await protectPage(accessToken, refreshToken);
 
@@ -101,15 +129,15 @@ function NavigationBar() {
         // Users are fully protected when logged out
         await auth.post('/logout', { user });
       }
-      // Remove cookies
-      Cookies.remove('accessToken');
-      Cookies.remove('refreshToken');
-      history.push('/login');
+      // Remove localStorage
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      history.push('/');
     } catch (error) {
       console.log(error);
     }
   };
-
+                
   
   return (
     <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
@@ -123,22 +151,27 @@ function NavigationBar() {
           <Nav.Link href="/visit/schedule">Schedule a visit</Nav.Link>
           <Nav.Link href="/findstore">Select a store</Nav.Link>
           <NavDropdown title="Account" id="collasible-nav-dropdown">
-            <NavDropdown.Item href="/store/create">Create a new store</NavDropdown.Item>
-            <NavDropdown.Item href="#action/3.2">Manage stores</NavDropdown.Item>
-            <NavDropdown.Item href="#action/3.3">Company</NavDropdown.Item>
+            {userRole === 'owner' ? 
+              <NavDropdown.Item href="/store/create">Create your own store?</NavDropdown.Item>
+              : 
+              <NavDropdown.Item href="/company/create">Create your own store?</NavDropdown.Item>
+            }
+            {userRole === 'owner' ? 
+              <NavDropdown.Item href="employees">Employees</NavDropdown.Item>
+              :
+              '' 
+            }
             <NavDropdown.Divider />
             <NavDropdown.Item href="#action/3.4">Settings</NavDropdown.Item>
           </NavDropdown>
         </Nav>
+        {/* <Nav>
+          <Nav.Link href="/employees">More stuff</Nav.Link>
+          <Nav.Link eventKey={2} href="#memes"> hello </Nav.Link>
+        </Nav> */}
         <Form inline>
           <Button onClick={logoutHandler} className='logout-btn' variant="secondary">Logout</Button>
         </Form>
-        {/* <Nav>
-                <Nav.Link href="#deets">More deets</Nav.Link>
-                <Nav.Link eventKey={2} href="#memes">
-                    Dank memes
-                </Nav.Link>
-                </Nav> */}
       </Navbar.Collapse>
     </Navbar>
   );

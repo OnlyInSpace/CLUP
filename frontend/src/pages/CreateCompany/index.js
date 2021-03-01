@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import auth from '../../services/auth';
 import api from '../../services/api';
 import { Container, Button, Form, Alert } from 'react-bootstrap';
 import './createcompany.css';
-import Cookies from 'js-cookie';
 import { useHistory } from 'react-router-dom';
 import jwt from 'jsonwebtoken';
 
@@ -13,8 +12,27 @@ function CreateCompany() {
   const [companyName, setCompanyName] = useState('');
   // For alert
   const [errorMessage, setErrorMessage] = useState('');
-  // For backend
-  const [errMessage, setErrMessage] = useState('');
+
+  // Check user's role. If they are already an owner, then send them to the create store page
+  useEffect(async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      let accessToken = localStorage.getItem('accessToken');
+      // Get user data and refresh token if needed.
+      let user = await protectPage(accessToken, refreshToken);
+      if (!user) {
+        console.log('Please log in again.');
+        history.push('/login');
+      }     
+
+      if (user.role === 'owner') {
+        history.push('/store/create');
+      }
+
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
 
 
   // Function to refresh a user's access token if it is unexpired
@@ -27,7 +45,7 @@ function CreateCompany() {
       return false;
     } else { // else we get the new access token, set the cookie, and return it!
       const newAccessToken = response.data.newAccessToken;
-      Cookies.set('accessToken', newAccessToken, { secure: true });
+      localStorage.setItem('accessToken', newAccessToken, { secure: true });
       return newAccessToken;
     }
   };
@@ -55,7 +73,7 @@ function CreateCompany() {
   // This function also handles refreshing the token if needed
   const protectPage = async (accessToken, refreshToken) => {
     // If user doesnt have a refresh token: have user login 
-    if (!refreshToken){
+    if (!refreshToken) {
       console.log('Please log out and log back in.');
     }
     // If we have a refresh token but no access token, then go ahead and create a new token
@@ -80,37 +98,74 @@ function CreateCompany() {
       if (!companyName) {
         setErrorMessage('Please enter your company\'s name.');
       } else {
-        let accessToken = Cookies.get('accessToken');
-        let refreshToken = Cookies.get('refreshToken');
+        let accessToken = localStorage.getItem('accessToken');
+        const refreshToken = localStorage.getItem('refreshToken');
 
         // Decode to get data stored in cookie
-        let owner = jwt.decode(accessToken);
+        let user = jwt.decode(accessToken);
         // When we decode a cookie using jwt.decode, we get an object called userData with the user's data stored inside
-        let ownerId = owner._id;
+        let ownerId = user._id;
 
         // Make api call to create the new company 
         let response = await api.post('/company/create', { companyName, ownerId }, { headers: {'accessToken': accessToken }});
+        // If token comes back as expired, refresh the token and make api call again
+        if (response.data.message === 'Access token expired') {
+          user = await protectPage(accessToken, refreshToken);
+          // If the access token or refresh token are unlegit, then return.
+          if (!user) {
+            console.log('Please log in again.');
+            history.push('/login');
+          } else {
+          // overwrite response with the new access token.
+            let newAccessToken = localStorage.getItem('accessToken');
+            ownerId = user._id;
+            response = await api.post('/company/create', { companyName, ownerId }, { headers: {'accessToken': newAccessToken }});
+          }
+        }
 
+
+        const comapnyId = response.data._id || false;
+
+        // Set user's role to owner so that they are able to now create stores.
+        response = await api.post('/role/owner', { user_id: ownerId }, { headers: {'accessToken': accessToken }});
         // If token comes back as expired, refresh the token and make api call again
         if (response.data.message === 'Access token expired') {
           const user = await protectPage(accessToken, refreshToken);
           // If the access token or refresh token are unlegit, then return.
           if (!user) {
-            setErrMessage('Please log in again.');
-            console.log(errMessage);
+            console.log('Please log in again.');
             history.push('/login');
           } else {
-          // overwrite response with the new access token.
-            let newAccessToken = Cookies.get('accessToken');
+            // overwrite response with the new access token.
+            let newAccessToken = localStorage.getItem('accessToken');
             ownerId = user._id;
-            response = await api.post('/company/create', { companyName, ownerId}, { headers: {'accessToken': newAccessToken }});
+            response = await api.post('/role/owner', { user_id: ownerId }, { headers: {'accessToken': newAccessToken }});
           }
         }
-      
-        // Our response is a JSON object that holds the newly created company and it's properties {_id, companyName, ownerId }
-        const comapnyId = response.data._id || false;
-        if (comapnyId) {
-          console.log('companyID:',comapnyId);
+
+        
+        // Set user's business_id to the company's id
+        response = await api.post('/business_id', { user_id: ownerId, business_id: comapnyId }, { headers: {'accessToken': accessToken }});
+        // If token comes back as expired, refresh the token and make api call again
+        if (response.data.message === 'Access token expired') {
+          const user = await protectPage(accessToken, refreshToken);
+          // If the access token or refresh token are unlegit, then return.
+          if (!user) {
+            console.log('Please log in again.');
+            history.push('/login');
+          } else {
+            // overwrite response with the new access token.
+            let newAccessToken = localStorage.getItem('accessToken');
+            ownerId = user._id;
+            response = await api.post('/business_id', { user_id: ownerId, business_id: comapnyId }, { headers: {'accessToken': newAccessToken }});
+          }
+        }
+
+        // Refresh our user's token so that their role and business id are updated in localstorage
+        await refresh(refreshToken);
+
+        if (comapnyId && response.data.role === 'owner') {
+          console.log('companyID:', comapnyId);
           history.push('/store/create');
         } else {
           setErrorMessage(response.data.message);
@@ -118,7 +173,6 @@ function CreateCompany() {
       }
     } catch (error) {
       console.log(error);
-      history.push('/login');
     }
   };
 
@@ -128,14 +182,15 @@ function CreateCompany() {
     <Container>
       <div className="content">
         <h3>Company Creation</h3>
-        <ul className="list">
-          <li>Give your <strong>company</strong> name.</li>
-          <li>Your company can own multiple stores. We will create your first store on the next page.</li>
+        <p>Let&apos;s first create your company</p>
+        <ul className="createComplist">
+          <li>Enter your <strong>company</strong> name.</li>
+          <li>Your company can own multiple stores. We will create your <strong>first store</strong> on the next page.</li>
           <li> Both your company and store name(s) can be the same.</li>
         </ul>
         <Form onSubmit = {handleSubmit}>
           <Form.Group controlId="formCompanyName">
-            <Form.Label className="companyName">Company name</Form.Label>
+            <Form.Label className="createCompanyName">Company name</Form.Label>
             <Form.Control type="text" placeholder="Your company's name" onChange = {evt => setCompanyName(evt.target.value)} />
           </Form.Group>
           <Button className="submit-btn" variant="secondary" type="submit">Create</Button>

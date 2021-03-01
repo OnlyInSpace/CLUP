@@ -43,9 +43,9 @@ cron.schedule('*/1 * * * *', async () => {
   try {
     // get current time and convert to minutes
     let currentTime = Math.floor(Date.now() / 60000);
-    console.log('currentTime:', currentTime);
     // Return all visits
     const visits = await Visit.find({});
+    // For each visit, check if visit is late and delete if so
     visits.forEach(visit => updateVisits(visit, currentTime));
 
     console.log('running a task every minute');
@@ -60,15 +60,32 @@ async function updateVisits(visit, currentTime) {
   let timeOfVisit = Math.floor(Date.parse(visit.date) / 60000);
   // Calculate time difference
   let timeDifference = timeOfVisit - currentTime;
-  console.log(timeDifference);
+  console.log('TimeDifference:', timeDifference);
 
-  // if time of visit is within 45 minutes, then reserve user's party by incrementing current count by partyAmount
-  if (timeDifference <= 45 && !visit.reserved ) {
+  // Get store's average visit length
+  const store = await Store.findById(visit.store);
+
+  // this offset is needed to ensure a user's party gets reserved in the system before their visit 
+  let visitLengthOffset = store.avgVisitLength;
+  if (store.avgVisitLength <= 10) {
+    visitLengthOffset += 5;
+  } else if (store.avgVisitLength <= 20) {
+    visitLengthOffset += 10;
+  } else if (store.avgVisitLength <= 30) {
+    visitLengthOffset += 15;
+  } else if (store.avgVisitLength <= 60) {
+    visitLengthOffset += 20;
+  } else {
+    visitLengthOffset += 30;
+  } 
+
+  // if time of visit is within avg visit length plus 15 minutes, then reserve user's party by incrementing current count by partyAmount
+  if (timeDifference <= visitLengthOffset && !visit.reserved ) {
     await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'currentCount': visit.partyAmount}});
     await Visit.findOneAndUpdate({_id: visit._id}, {'reserved': true});
   }
 
-  // If timeOfVisit is 15 minutes or more late, then delete visit in database and unreserve the party
+  // If timeOfVisit is -15 minutes or more late, then delete visit in database and unreserve the party
   if (timeDifference <= -15) {
     await Visit.findByIdAndDelete(visit._id);
     await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'currentCount': -visit.partyAmount}});
