@@ -5,11 +5,20 @@ const UserSchema = new mongoose.Schema({
   phoneNumber: String,
   email: String,
   password: String,
+  refreshToken: String,
+  queuePin: {
+    type: Number,
+    default: 0
+  },
   timesSkipped: {
     type: Number,
     default: 0
   },
-  employee_store_id: {
+  clockedIn: {
+    type: Boolean,
+    default: false
+  },
+  business_id: {
     type: String,
     default: ''
   },
@@ -17,12 +26,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: 'user',
     enum: ['user', 'employee', 'manager','owner']
-  },
-  pin: {
-    type: Number,
-    default: 0
-  },
-  refreshToken: String
+  }
 });
 
 module.exports = mongoose.model('User', UserSchema);

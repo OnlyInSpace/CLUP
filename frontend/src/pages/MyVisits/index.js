@@ -40,10 +40,7 @@ function MyVisits() {
     })();
   }, []);
 
-  // Notice how this log gets printed twice. Once on inital render, and a second time after visitCards have been queried and stored
-  console.log('visitCards:', visitCards);
-
-
+  
   // Function to refresh a user's access token if it is unexpired
   const refresh = async (refreshToken) => {
     console.log('refreshing token. . .');
@@ -99,6 +96,33 @@ function MyVisits() {
   };
 
 
+  // Function to format 24 hour time to 12 hour
+  function formatTime(time) {
+    const hoursMinutes = time.split(':');
+  
+    let hours = parseInt(hoursMinutes[0]);
+    let mins = hoursMinutes[1];
+    let dd = 'AM';
+  
+    if (hours >= 12) {
+      hours -= 12;
+      dd = 'PM';
+    }
+  
+    if (hours == 0) {
+      hours = 12;
+    }
+    
+    let formattedTime = hours + ':' + mins + ' ' + dd;
+  
+    if (!time) {
+      formattedTime = '';
+    }
+      
+    return formattedTime;
+  }
+
+
   // Function to return all visits tied to user
   const getVisits = async () => {
     try {
@@ -134,7 +158,6 @@ function MyVisits() {
       // Create a userVisits array of objects
       // Here .map means for every object in userVisits
       const userVisits = response.data;
-      console.log('userVisits!!!!!!!!!!:', userVisits);
       const getCards = await Promise.all( userVisits.map( async function (visit) {
   
         // Get the visit's id
@@ -142,7 +165,9 @@ function MyVisits() {
   
         // Parse our date 
         const newDate = new Date(visit.date);
-        const date = newDate.toDateString();
+        let date = newDate.toDateString().split(' ');
+        date = date[0] + ' ' + date[1] + ' ' + date[2] + ', ' + date[3];
+
         const hour = newDate.getHours();
         let minutes = newDate.getMinutes();
   
@@ -152,13 +177,13 @@ function MyVisits() {
         }
   
         // Format the date now
-        const time = hour + ':' + minutes;
+        const time = formatTime(hour + ':' + minutes);
   
         // Get store name
         const response = await api.get(`/store/${visit.store}`, { headers: {'accessToken': accessToken }});
         const sName = response.data.storeName;
   
-        // return first object in the array
+        // append object to the getCards array
         return {
           visit_id: visit_id,
           storeName: sName,
@@ -167,13 +192,12 @@ function MyVisits() {
           partyAmount: visit.partyAmount
         };
       }));
+
       return getCards;
       
     } catch (error) {
-      history.push('/login');
       console.log(error);
     }
-
   };
 
   const deleteVisitHandler = async (visit_id) => {
@@ -183,7 +207,6 @@ function MyVisits() {
 
       // get visit to check if party amount is reserved
       let getVisit = await api.get(`/visit/${visit_id}`, { headers: {'accessToken': accessToken }});
-      console.log(getVisit.data);
       // If reserved, then unreserve party amount in store occupancy
       if (getVisit.data.reserved) {
         let storeId = getVisit.data.store;
@@ -199,8 +222,7 @@ function MyVisits() {
         let user = await protectPage(accessToken, refreshToken);
         // If the access token or refresh token are unlegit, then return user to log in page.
         if (!user) {
-          setErrMessage('Please log in again.');
-          console.log(errMessage);
+          console.log('Please log in again.');
           history.push('/login');
         } else {
           // overwrite response with the new access token.
@@ -230,7 +252,7 @@ function MyVisits() {
         <Card.Body>
           <Card.Title>{card.storeName}</Card.Title>
           <Card.Title>{card.date}</Card.Title>
-          <Card.Text>{card.time}</Card.Text>
+          <Card.Text>Party of {card.partyAmount} at {card.time}</Card.Text>
         </Card.Body>
         <Card.Footer>
           {/* passing arguments format: () */}
@@ -253,7 +275,7 @@ function MyVisits() {
   return (
     <Container>
       {/*  */}
-      <Modal show={show} onHide={() => handleClose()} centered>
+      <Modal show={show} onHide={handleClose} centered>
         <Modal.Header closeButton>
           <Modal.Title>Cancel visit?</Modal.Title>
         </Modal.Header>
@@ -262,7 +284,7 @@ function MyVisits() {
           <Button variant="primary" onClick={() => deleteVisitHandler(visit_id)}>
             Yes
           </Button>
-          <Button variant="secondary" onClick={() => handleClose()}>
+          <Button variant="secondary" onClick={handleClose}>
             No
           </Button>
         </Modal.Footer>

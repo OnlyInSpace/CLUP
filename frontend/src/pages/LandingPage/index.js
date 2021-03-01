@@ -26,7 +26,7 @@ function Landingpage() {
   return (
     <SimpleReactLightbox>
       <SRLWrapper>
-        <body className="landingPage">
+        <div className="landingPage">
           <meta charSet="UTF-8" />
           {/* <meta name="viewport" content="width=device-width, initial-sclae=1.0" /> */}
           <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
@@ -70,7 +70,7 @@ function Landingpage() {
           <footer className="section-footer">
             <p>Copyright © 2021 Customer Line Up</p>
           </footer>
-        </body>
+        </div>
       </SRLWrapper>
     </SimpleReactLightbox>
     

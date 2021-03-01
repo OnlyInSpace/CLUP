@@ -5,19 +5,20 @@ require('dotenv').config();
 module.exports = {
   async getUserById(req, res) {
     // Get user ID
-    const { userId } = req.params;
-        
+    const { user_id } = req.params;
+
+    console.log(user_id);
     try {
       // Find user via mongoDB object ID using the model
-      const user = await User.findById(userId);
+      const user = await User.findById(user_id);
       return res.json(user);
     } catch (error) {
       return res.status(400).json({
         message: 'User ID does not exist, register instead?'
       });
     }
-
   },
+
 
   // Get all users
   async getAllUsers(req, res) {
@@ -31,6 +32,36 @@ module.exports = {
       }
     } catch (error) {
       return res.status(400).json({message: 'No users found.'});
+    }
+  },
+
+
+  // Get all users
+  async setClockIn(req, res) {
+    try {
+      const { user_id } = req.body;
+      const user = await User.findByIdAndUpdate(user_id, {clockedIn: true});
+
+      if (user) {
+        return res.json(user);
+      }
+    } catch (error) {
+      return res.status(400).json({message: 'User controller error, clockIn.'});
+    }
+  },
+
+
+  // Get all users
+  async setClockOut(req, res) {
+    try {
+      const { user_id } = req.body;
+      const user = await User.findByIdAndUpdate(user_id, {clockedIn: false});
+  
+      if (user) {
+        return res.json(user);
+      }
+    } catch (error) {
+      return res.status(400).json({message: 'User controller error, clockIn.'});
     }
   }
 };

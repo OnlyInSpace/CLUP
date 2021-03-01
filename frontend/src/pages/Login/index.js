@@ -4,6 +4,7 @@ import './login.css';
 import logo from './logo.png';
 import { useHistory } from 'react-router-dom';
 import auth from '../../services/auth';
+import jwt from 'jsonwebtoken';
 
 
 function Login() {
@@ -49,6 +50,12 @@ function Login() {
     }
   };
 
+  let refreshData = jwt.decode(localStorage.getItem('refreshToken'));
+
+  if (refreshData) {
+    history.push('/dashboard');
+  }
+
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
     <Container>
@@ -69,7 +76,7 @@ function Login() {
             <Button className="submit-btn" variant="secondary" type="submit">Login</Button>
             {errorMessage ? (
               /* ^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
-              <Alert className="alertBox" variant='warning'>
+              <Alert className="loginAlertBox" variant='warning'>
                 {errorMessage}
               </Alert>
             ): ''}

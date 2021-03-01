@@ -8,7 +8,8 @@ module.exports = {
     // console.log("req.body:", req.body);
 
     // Get all info from body
-    const { user_id, scheduledDate, partyAmount, store_id } = req.body;
+    const { phoneNumber, user_id, scheduledDate, partyAmount, store_id } = req.body;
+    console.log(scheduledDate);
 
     try {
       if (partyAmount <= 0) {
@@ -21,15 +22,9 @@ module.exports = {
       if (!user) {
         return res.status(200).json({message: 'User or store does not exist!'});
       }
-      // Check if visit already exists
-      const visitExists = await Visit.findOne({'date': scheduledDate, 'store': store_id, 'user': user_id});
-      if (visitExists) {
-        console.log('visit Exists!', visitExists);
-        return res.status(200).json({message: 'This visit already exists. Got to \'My Visits\' to view your visits.'});
-      }
-      // Else: 
       // Create the visit
       const visit = await Visit.create({
+        phoneNumber,
         date: scheduledDate,
         partyAmount,
         store: store_id,
@@ -72,6 +67,7 @@ module.exports = {
     }
   },
 
+
   // Get all visits specific to only the user
   async getUserVisits(req, res) {
     // get user_id
@@ -80,6 +76,43 @@ module.exports = {
     try {
       // Return all visits tied to user at that store
       const visits = await Visit.find({'user': user_id});
+      // If visits exist, send the visits
+      if (visits) {
+        return res.json(visits);
+      }
+    } catch (error) {
+      return res.status(400).json({message: 'No visits are scheduled.'});
+    }
+  },
+
+
+  // Get all visits specific to only the user and a store
+  async getUserStoreVisits(req, res) {
+    // get user_id
+    console.log(req.params);
+    const { store_id, user_id } = req.params;
+
+    try {
+      // Return all visits tied to user at that store
+      const visits = await Visit.find({'user': user_id, 'store': store_id});
+      // If visits exist, send the visits
+      if (visits) {
+        return res.json(visits);
+      }
+    } catch (error) {
+      return res.status(400).json({message: 'No visits are scheduled.'});
+    }
+  },
+
+
+  // Get all visits specific to only the user
+  async getStoreVisits(req, res) {
+    // get user_id
+    const { store_id } = req.params;
+  
+    try {
+      // Return all visits tied to user at that store
+      const visits = await Visit.find({ 'store': store_id });
       // If visits exist, send the visits
       if (visits) {
         return res.json(visits);
