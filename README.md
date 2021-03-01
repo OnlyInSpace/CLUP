@@ -7,10 +7,6 @@ Full product description: https://docs.google.com/document/d/1ly9NTnhpajnhPrgtFI
 CLUP is a virtual queue manager created for store owners that will allow customers to schedule visits and join a customer queue all from their own device.
 Customers can also view the current occupancy of the store as well as other metrics such as business hours.
 
-! IMPORTANT !
-Please make sure you use Firefox to run this project.
-Javascript Cookies do not work with Chrome or Safari in a development environment.
-
 
 Contacts:
 - jesalomon1@buffs.wtamu.edu
