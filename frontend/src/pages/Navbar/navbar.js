@@ -11,6 +11,33 @@ import auth from '../../services/auth';
 function NavigationBar() {
   const [ userRole, setUserRole ] = useState(''); 
 
+  let isAuth = true;
+  
+  useEffect(async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      let accessToken = localStorage.getItem('accessToken');
+
+      if (!accessToken || !refreshToken) {
+        isAuth = false;
+        return;
+      }
+
+      // Get user data and refresh token if needed.
+      const user = await protectPage(accessToken, refreshToken);
+      
+      if (!user) {
+        console.log('Please log in again.');
+      }   
+
+      setUserRole(user.role);
+
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+
   //returns the current url minus the domain name
   const pathname = useLocation().pathname; 
   // Dont show our navbar at the landing, login, and register page.
@@ -18,6 +45,10 @@ function NavigationBar() {
     return null;
   }
 
+  // If user does not have access or refresh token, then return nothing!
+  if (!isAuth) {
+    return null;
+  }
 
   // Need to import history this way because Navbar is outside of <Switch> in routes.js which is what imports history for every other component/page
   let history = useHistory();
@@ -30,33 +61,6 @@ function NavigationBar() {
   if (!decodeRefresh) {
     return null;
   }
-  
-  
-  useEffect(async () => {
-    try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      let accessToken = localStorage.getItem('accessToken');
-
-      if (!accessToken || !refreshToken) {
-        history.push('/login');
-        return;
-      }
-
-      // Get user data and refresh token if needed.
-      const user = await protectPage(accessToken, refreshToken);
-      
-      if (!user) {
-        console.log('Please log in again.');
-        // history.push('/login');
-      }   
-
-      setUserRole(user.role);
-
-    } catch (error) {
-      console.log(error);
-    }
-  }, []);
-
 
   // Function to refresh a user's access token if it is unexpired
   const refresh = async (refreshToken) => {
