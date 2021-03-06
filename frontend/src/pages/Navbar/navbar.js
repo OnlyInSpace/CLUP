@@ -11,7 +11,27 @@ import auth from '../../services/auth';
 function NavigationBar() {
   const [ userRole, setUserRole ] = useState(''); 
 
-    
+  //returns the current url minus the domain name
+  const pathname = useLocation().pathname; 
+  // Dont show our navbar at the landing, login, and register page.
+  if (pathname === '/login' || pathname === '/user/register' || pathname === '/') {
+    return null;
+  }
+
+
+  // Need to import history this way because Navbar is outside of <Switch> in routes.js which is what imports history for every other component/page
+  let history = useHistory();
+
+
+  let refToken = localStorage.getItem('refreshToken');
+  // Verify user has a refresh token
+  const decodeRefresh = jwt.decode(refToken);
+  // Prevent navbar from rendering if no tokens
+  if (!decodeRefresh) {
+    return null;
+  }
+  
+  
   useEffect(async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
@@ -92,24 +112,6 @@ function NavigationBar() {
     return await verifyAccess(accessToken, refreshToken);
   };
     
-  
-  // Need to import history this way because Navbar is outside of <Switch> in routes.js which is what imports history for every other component/page
-  let history = useHistory();
-  //returns the current url minus the domain name
-  const pathname = useLocation().pathname; 
-  // Dont show our navbar at the landing, login, and register page.
-  if (pathname === '/login' || pathname === '/user/register' || pathname === '/') {
-    return null;
-  }  
-  
-  let refToken = localStorage.getItem('refreshToken');
-  // Verify user has a refresh token
-  const decodeRefresh = jwt.decode(refToken);
-  // Prevent navbar from rendering if no tokens
-  if (!decodeRefresh) {
-    return null;
-  }
-
 
   // Handle logout
   const logoutHandler = async (evt) => {
@@ -157,7 +159,7 @@ function NavigationBar() {
               <NavDropdown.Item href="/company/create">Create your own store?</NavDropdown.Item>
             }
             {userRole === 'owner' ? 
-              <NavDropdown.Item href="employees">Employees</NavDropdown.Item>
+              <NavDropdown.Item href="/employees">Employees</NavDropdown.Item>
               :
               '' 
             }

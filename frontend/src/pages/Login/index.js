@@ -60,7 +60,9 @@ function Login() {
   return (
     <Container>
       <div className="content">
-        <img src={logo} className="loginLogo" alt="Logo" /> 
+        <a href='/'>
+          <img src={logo} className="loginLogo" alt="Logo" /> 
+        </a>
         <h3>Login</h3>
         <p>Login to your <strong>account</strong> below</p>
         <Form onSubmit = {handleSubmit}>
