@@ -12,7 +12,8 @@ function NavigationBar() {
   const [ userRole, setUserRole ] = useState(''); 
 
   let isAuth = true;
-  
+
+
   useEffect(async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
@@ -37,30 +38,6 @@ function NavigationBar() {
     }
   }, []);
 
-
-  //returns the current url minus the domain name
-  const pathname = useLocation().pathname; 
-  // Dont show our navbar at the landing, login, and register page.
-  if (pathname === '/login' || pathname === '/user/register' || pathname === '/') {
-    return null;
-  }
-
-  // If user does not have access or refresh token, then return nothing!
-  if (!isAuth) {
-    return null;
-  }
-
-  // Need to import history this way because Navbar is outside of <Switch> in routes.js which is what imports history for every other component/page
-  let history = useHistory();
-
-
-  let refToken = localStorage.getItem('refreshToken');
-  // Verify user has a refresh token
-  const decodeRefresh = jwt.decode(refToken);
-  // Prevent navbar from rendering if no tokens
-  if (!decodeRefresh) {
-    return null;
-  }
 
   // Function to refresh a user's access token if it is unexpired
   const refresh = async (refreshToken) => {
@@ -115,7 +92,32 @@ function NavigationBar() {
     // If the access or refresh token is unlegit, this returns false, otherwise it returns the user's object data : )
     return await verifyAccess(accessToken, refreshToken);
   };
-    
+        
+  // Need to import history this way because Navbar is outside of <Switch> in routes.js which is what imports history for every other component/page
+  let history = useHistory();
+
+  //returns the current url minus the domain name
+  const pathname = useLocation().pathname; 
+  // Dont show our navbar at the landing, login, and register page.
+  if (pathname === '/login' || pathname === '/user/register' || pathname === '/') {
+    return null;
+  }
+
+  // If user does not have access or refresh token, then return nothing!
+  if (!isAuth) {
+    return null;
+  }
+
+
+  let refToken = localStorage.getItem('refreshToken');
+  // Verify user has a refresh token
+  const decodeRefresh = jwt.decode(refToken);
+  // Prevent navbar from rendering if no tokens
+  if (!decodeRefresh) {
+    return null;
+  }
+
+
 
   // Handle logout
   const logoutHandler = async (evt) => {
