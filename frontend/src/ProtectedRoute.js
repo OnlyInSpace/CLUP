@@ -9,7 +9,7 @@ function ProtectedRoute({ component: Component, ...rest }) {
   const refreshToken = localStorage.getItem('refreshToken');
   const decodeRefresh = jwt.decode(refreshToken);
   let isAuth = true;
-  if (decodeRefresh) {
+  if (decodeRefresh.phoneNumber) {
     isAuth = true;
   } else {
     isAuth = false;
