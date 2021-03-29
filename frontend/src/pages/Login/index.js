@@ -14,7 +14,6 @@ function Login() {
   const [errorMessage, setErrorMessage] = useState('');
 
 
-  // Function that will talk to server api
   const handleSubmit = async evt => {
     // Prevent default event when button is clicked
     evt.preventDefault();
@@ -37,7 +36,8 @@ function Login() {
         if (accessToken) {
           localStorage.setItem('accessToken', accessToken, { secure: true });
           localStorage.setItem('refreshToken', refreshToken, { secure: true });
-          console.log('accessToken:', accessToken);
+          // refresh page
+          window.location.reload(false);
           history.push('/dashboard'); // go to dashboard
         } else {
           setErrorMessage(response.data.message);
@@ -59,7 +59,7 @@ function Login() {
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
     <Container>
-      <div className="content">
+      <div className="loginContent">
         <a href='/'>
           <img src={logo} className="loginLogo" alt="Logo" /> 
         </a>
@@ -75,7 +75,9 @@ function Login() {
             <Form.Control type="password" placeholder="Your password" onChange = {evt => setPassword(evt.target.value)}/>
           </Form.Group>
           <Form.Group>
-            <Button className="submit-btn" variant="secondary" type="submit">Login</Button>
+            <Button className="btn-action2 login" type="submit">
+              <span>Login</span>
+            </Button>
             {errorMessage ? (
               /* ^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
               <Alert className="loginAlertBox" variant='warning'>
@@ -84,7 +86,7 @@ function Login() {
             ): ''}
           </Form.Group>
           <Form.Group>
-            <p className="register-p">Need an account?</p>
+            <p className="login-accountBtn">Need an account?</p>
             <Button className="secondary-btn" onClick={() => history.push('/user/register')} variant="secondary" type="button">
               New Account
             </Button>

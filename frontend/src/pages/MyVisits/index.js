@@ -192,6 +192,7 @@ function MyVisits() {
           partyAmount: visit.partyAmount
         };
       }));
+      console.log('getCards', getCards);
 
       return getCards;
       
@@ -199,6 +200,7 @@ function MyVisits() {
       console.log(error);
     }
   };
+
 
   const deleteVisitHandler = async (visit_id) => {
     try {
@@ -244,6 +246,12 @@ function MyVisits() {
       console.log(error);
     }
   };
+
+
+  function goToDashboard() {
+    history.push('/dashboard');
+  }
+
 
   // Render card component
   const renderCards = (card, index) => {
@@ -298,10 +306,14 @@ function MyVisits() {
         }
 
         { visitCards && visitCards.map(renderCards) }
-        
+
         {!visitCards.length &&
-          <h5 className="noVisits">Go to &quot;Schedule a visit&quot; in the navigation menu to schedule a visit.</h5>
+          <h5 className="noVisits">Go to &apos;Schedule a visit&apos; in the navigation menu to schedule a visit.</h5>
         }
+
+        <button className="submit-btn dashboard" onClick={goToDashboard}>
+        ← Back to Dashboard
+        </button>
       </div>
     </Container>
   );

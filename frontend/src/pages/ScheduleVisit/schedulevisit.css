@@ -51,3 +51,10 @@
 #visitRedText {
     color: var(--darkRed) !important;
 }
+
+.scheduleVisit-input {
+    max-width: 8.5em;
+    margin: 0 auto;
+    text-align: center;
+}
+

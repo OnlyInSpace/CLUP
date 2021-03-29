@@ -5,11 +5,7 @@ module.exports = {
     try {
       // Get store id from URL and amount from api call
       const { storeId, amount } = req.body;
-      if (amount <= 0) {
-        return res.status(200).json({
-          message: 'Required information is missing.'
-        });
-      }
+
       console.log('Increase amount = ', amount);
       // Get our store's current customer count
       const customerCount = await Store.findOneAndUpdate({_id: storeId}, {$inc: {'currentCount': amount}});
@@ -23,11 +19,7 @@ module.exports = {
     try {
       // Get store id and amount from body 
       const { storeId, amount } = req.body;
-      if (amount <= 0) {
-        return res.status(200).json({
-          message: 'Required information is missing.'
-        });
-      }
+
       // amount = 0 - amount;
       console.log('Decrease amount = ', amount);
       // Get our store's current customer count

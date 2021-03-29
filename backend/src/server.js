@@ -94,9 +94,6 @@ async function updateVisits(visit, currentTime) {
 }
 
 
-
-
-
 // Listen for whatever PORT is set
 app.listen(PORT, () => {
   console.log(`Listening on ${PORT}`);

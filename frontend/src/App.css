@@ -1,12 +1,6 @@
 /* Quicksand font */
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
 
-.form-control:focus{
-    border-color: var(--darkBlue);
-    box-shadow: 0 0 0 2px rgba(68, 84, 105, 0.3);
-}
-
-
 :root {
     font-size: 17px;
     --darkBlue: #445469;
@@ -38,11 +32,21 @@ html, body, #root {
 
 body {
     background-color: var(--darkBlue);
+    color:rgb(12, 12, 12);
 }
 
 
 body, input, button {
     font-family: "Quicksand", Arial, Helvetica, sans-serif;
+}
+
+.form-control {
+    border: 1px solid #9b9b9b;
+}
+
+.form-control:focus {
+    border-color: var(--darkBlue);
+    box-shadow: 1px 1px 2px var(--darkBlue);
 }
 
 
@@ -56,24 +60,25 @@ body, input, button {
     align-items: center;
 }
 
-.alert {
-    margin-top: 1em;
-}
 
 .container h1, h2, h3, h4, h5, h6 {
-    color: var(--darkBlue);
+    color: rgb(27, 27, 27);
 }
 
 
 .container strong {
-    color: #616161;
+    color: rgb(36, 36, 36);
+}
+
+
+.container .form-group {
+    min-width: 320px;
 }
 
 
 /* white square behind everything */
 .content {
-    width: 115%;
-    opacity: 0.9;
+    opacity: 0.95;
     background-color: white;
     margin-bottom: 2em;
     border-radius: 10px;
@@ -83,18 +88,13 @@ body, input, button {
 
 
 .content > p {
-    font-size: 1.25em;
+    font-size: 1.1em;
 }
 
 
-.container .form-group {
-    min-width: 320px;
-}
-
-
-.content button.submit-btn {
+button.submit-btn {
     border: 0;
-    border-radius: 6px;
+    border-radius: .2rem;
     height: 2.5em;
     padding: 0 1em;
     font-weight: 600;
@@ -103,15 +103,28 @@ body, input, button {
 }
 
 
-.content button.submit-btn:hover {
+.submit-btn.dashboard {
+    margin-top: 3em;
+}
+
+button.submit-btn:hover {
     background-color: var(--lightBlue);
     transition: .4s;
 }
 
+/* for hyperlinks */
+.hyperlinks {
+    color: var(--darkBlue);
+}
 
-.content button.secondary-btn {
+/* for hyperlinks */
+.hyperlinks:hover {
+    color: var(--lightBlue);
+}
+
+button.secondary-btn {
     border: 0;
-    border-radius: 6px;
+    border-radius: .2rem;
     height: 2.5em;
     padding: 0 1em;
     font-weight: 600;
@@ -120,15 +133,15 @@ body, input, button {
 }
 
 
-.content button.secondary-btn:hover {
-    background: #2c7aaa;
+button.secondary-btn:hover {
+    background: var(--green);
     transition: .4s;
 }
 
 
-.content button.delete-btn {
+button.delete-btn {
     border: 0;
-    border-radius: 6px;
+    border-radius: .2rem;
     height: 2.5em;
     padding: 0 1em;
     font-weight: 600;
@@ -137,7 +150,7 @@ body, input, button {
 }
 
 
-.content button.delete-btn:hover {
+button.delete-btn:hover {
     background-color: var(--darkRed);
     transition: .4s;
 }
@@ -145,7 +158,7 @@ body, input, button {
 
 .modal-content button.btn-primary {
     border: 0;
-    border-radius: 6px;
+    border-radius: .2rem;
     height: 2.5em;
     padding: 0px 1em 0px 1em;
     font-weight: 600;
@@ -162,7 +175,7 @@ body, input, button {
 
 .modal-content button.btn-secondary {
     border: 0;
-    border-radius: 6px;
+    border-radius: .2rem;
     height: 2.5em;
     padding: 0px 1em 0px 1em;
     font-weight: 600;
@@ -174,4 +187,215 @@ body, input, button {
 .modal-content button.btn-secondary:hover {
     background: #576c86;
     transition: .4s;
+}
+
+
+.alert {
+    margin-top: 1em;
+}
+
+/* Animated button that fills color from left to right */
+/* IMPORTANT, ENSURE BUTTON TEXT IS WRAPPED IN SPAN */
+
+
+
+/* REGISTER PAGE */
+.btn-action2.signup span:before{
+    content: '\2713'; 
+    font-size: 1.5em;
+}
+
+.btn-action2.signup {
+    background: linear-gradient(to right, var(--green) 50%, var(--lightBlue) 50% );
+    background-size: 200% 100%;
+    background-position: right bottom;
+    font-size: 1.05em;
+}
+
+.btn-action2.signup span:before{
+    margin-left: 180px;
+    top: -8px;
+}
+
+.btn-action2.signup:hover {
+    box-shadow: 1px 1px #dbdbdbfb !important;
+    color: white;
+    background-position: left bottom;
+    padding-left: 1.5em; 
+}
+
+.btn-action2.signup:hover span{
+    padding-right: 1.6em !important; 
+}
+
+
+
+/* LOGIN PAGE */
+.btn-action2.login span:before{
+    content: '\003F'; 
+    font-size: 1.4em;
+}
+
+.btn-action2.login {
+    background: linear-gradient(to right, var(--green) 50%, var(--lightBlue) 50% );
+    background-size: 200% 100%;
+    background-position: right bottom;
+    font-size: 1.05em;
+    box-shadow: 3px 3px #b5b6eea8;
+}
+
+.btn-action2.login span:before{
+    margin-left: 48px;
+    top: -7px;
+}
+
+.btn-action2.login:hover {
+    box-shadow: 1px 1px #dbdbdbfb !important;
+    color: white;
+    background-position: left bottom;
+    padding-left: 1.5em; 
+}
+
+.btn-action.login:hover span{
+    padding-right: 1.5em !important; 
+}
+
+/* EMPLOYEES PAGE */
+
+/* add employee */
+.btn-action.addEmployee span:before{
+    content: '\002B'; 
+}
+
+.btn-action.addEmployee {
+    background: linear-gradient(to right, var(--green) 50%, var(--lightBlue) 50% );
+    background-size: 200% 100%;
+    background-position: right bottom;
+}
+
+/* remove employee */
+.btn-action.removeEmployee {
+    background: linear-gradient(to right, var(--darkRed) 50%, var(--darkBlue) 50% );
+    background-size: 200% 100%;
+    background-position: right bottom;
+    font-size: .9em;
+    box-shadow: none;
+    margin-left: 0.5em;
+}
+
+.btn-action.removeEmployee span:before{
+    content: '\2010'; 
+    margin-left: -12px;
+    margin-top: -9px;
+    font-size: 1.5em;
+}
+
+.btn-action.removeEmployee:hover span{
+    padding-left: .8em; 
+}
+
+.btn-action.removeEmployee:hover span:before{
+    left: 12px;
+    opacity: 1;
+}
+
+
+
+/* PADDING TO LEFT OF BUTTON ANIMATION */
+.btn-action {
+    font-weight: 700;
+    margin-top: 1.5em;
+    font-size: 1.1rem;
+    text-decoration: none;
+    text-align: center;
+    display: block;
+    max-height: 3em;
+    padding: 0.5em;
+    border-radius: .2rem;
+    border: none;
+    box-shadow: 3px 3px #b5b6eea8;
+    color: white;
+    transition: all .5s ease 0s; 
+}
+
+.btn-action:hover {
+    box-shadow: 1px 3px #dbdbdbfb;
+    color: white;
+    background-position: left bottom;
+}
+  
+.btn-action span{
+    display: inline-block;
+    position: relative;
+    transition: all .5s ease;
+}
+
+.btn-action span:before{
+    color: white;
+    margin-left: -25px;
+    margin-top: -12px;
+    font-size: 2rem;
+    font-family: FontAwesome;
+    display: inline-block;
+    position: absolute;
+    opacity: 0;
+    transition: all ease 0.5s;
+}
+
+.btn-action:hover span{
+    padding-left: 1.5em; 
+}
+
+.btn-action:hover span:before{
+    opacity: 1;
+}
+
+
+/* PADDING TO RIGHT OF BUTTON ANIMATION */
+.btn-action2 {
+    font-weight: 700;
+    margin-top: 1.5em;
+    font-size: 1.1rem;
+    text-decoration: none;
+    text-align: center;
+    display: block;
+    max-height: 3em;
+    padding: 0.5em;
+    border-radius: .2rem;
+    border: none;
+    box-shadow: 3px 4px #b5b6eea8;
+    color: white;
+    transition: all .5s ease 0s; 
+}
+
+.btn-action2:hover {
+    box-shadow: 1px 3px #dbdbdbfb;
+    color: white;
+    background-position: left bottom;
+}
+  
+.btn-action2 span{
+    display: inline-block;
+    position: relative;
+    transition: all .5s ease;
+}
+
+.btn-action2 span:before{
+    color: white;
+    font-size: 2rem;
+    font-family: FontAwesome;
+    display: inline-block;
+    position: absolute;
+    opacity: 0;
+    transition: all ease 0.5s;
+    margin-left: 65px;
+    top: -12px;
+}
+
+.btn-action2:hover span{
+    padding-right: 1.5em; 
+}
+
+.btn-action2:hover span:before{
+    opacity: 1;
 }

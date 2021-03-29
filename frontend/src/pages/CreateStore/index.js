@@ -9,7 +9,6 @@ import './createstore.css';
 import PropTypes from 'prop-types';
 
 
-
 //  CreateCompany allows users to create their own store
 //  TODO: Create a (?) icon next to each box to reveal more information about the option
 //    ex: For maximum amount of customer allowed to visit one group    (?)
@@ -56,6 +55,8 @@ function CreateStore() {
   const [open24hours, setOpen24Hours] = useState(false);
   // For alert 
   const [errorMessage, setErrorMessage] = useState('');
+  // For success alert 
+  const [successAlert, setSuccessAlert] = useState('');
   // User's role
   const [ userRole, setUserRole ] = useState(''); 
 
@@ -135,7 +136,12 @@ function CreateStore() {
     // If the access or refresh token is unlegit, this returns false, otherwise it returns the user's object data : )
     return await verifyAccess(accessToken, refreshToken);
   };
-    
+
+
+  // Sleep function
+  const delay = ms => new Promise(res => setTimeout(res, ms));
+  
+  
   // Function that will talk to make axios request to create store
   const handleSubmit = async (evt) => {
     // Prevent default event when button is clicked
@@ -169,8 +175,13 @@ function CreateStore() {
       } else if (maxPartyAllowed < 0 || postalCode < 0 || avgVisitLength < 0) {
         setErrorMessage('Invalid negative value.');
         return;
+      } else if (isNaN(maxOccupants) || isNaN(maxPartyAllowed) || isNaN(avgVisitLength) || isNaN(postalCode)) {
+        setErrorMessage('Please enter only numbers for the fields that require it.');
+        return;
       } else if (!storeName || !maxOccupants || !maxPartyAllowed || !city || !state || !address1 || !postalCode || !avgVisitLength) {
         setErrorMessage('Missing required information.');
+      } else if (!sunday && !monday && !tuesday && !wednesday && !thursday && !friday && !saturday && !open24hours) {
+        setErrorMessage('Please define business hours for your store.');
       } else {
         let accessToken = localStorage.getItem('accessToken');
         let refreshToken = localStorage.getItem('refreshToken');
@@ -261,6 +272,8 @@ function CreateStore() {
         localStorage.setItem('store', store_id);
 
         if (store_id) {
+          setSuccessAlert('Store created!');
+          await delay(2000);
           history.push('/dashboard');
         } else {
           setErrorMessage('This store already exists.');
@@ -271,7 +284,10 @@ function CreateStore() {
     }
   };
 
-  
+  function goToDashboard() {
+    history.push('/dashboard');
+  }
+
   // everything inside the return is JSX (looks exactly like HTML) and is what gets rendered to screen
   return (
     <Container>
@@ -312,8 +328,12 @@ function CreateStore() {
             setOpenSat={setOpenSat}
             setCloseSat={setCloseSat}
             errorMessage={errorMessage}
+            successAlert={successAlert}
           /> : <p>Before you can create a store, you have to first create a <a href='http://localhost:3000/company/create'><strong>company here</strong></a></p>
         }
+        <button className="submit-btn dashboard" onClick={goToDashboard}>
+          ← Back to Dashboard
+        </button>
       </div>
     </Container>
   );
@@ -354,52 +374,53 @@ function CreateStoreContent({
   setOpenSat,
   setCloseSat,
   errorMessage,
+  successAlert
 }) {
   return (
     <Form className="createStoreForm" onSubmit = {handleSubmit}>
       <Form.Group controlId="formStoreName">
-        <Form.Label>Store name</Form.Label>
+        <Form.Label className='labels'>Store name</Form.Label>
         <Form.Control placeholder="Your store's name" onChange={evt => setStoreName(evt.target.value)}/>
       </Form.Group>
-      <Form.Group controlId="formMaxOccupants">
-        <Form.Label>Maximum number of occupants allowed</Form.Label>
-        <Form.Control type='number' placeholder="Number" onChange={evt => setMaxOccupants(parseInt(evt.target.value))}/>
-      </Form.Group>
-      <Form.Group controlId="formMaxPartyAllowed">
-        <Form.Label>Maximum number of customers allowed to visit in one group </Form.Label>
-        <Form.Control type='number' placeholder="Number" onChange={evt => setMaxPartyAllowed(parseInt(evt.target.value))}/>
-      </Form.Group>
-      <Form.Group controlId="formAvgLength">
-        <Form.Label>Average length of a customer&apos;s visit <br/>(in minutes)</Form.Label>
-        <Form.Control type='number' placeholder="Minutes" onChange={evt => setAvgVisitLength(parseInt(evt.target.value))} />
-      </Form.Group>
       <Form.Group controlId="formAddress1">
-        <Form.Label>Address</Form.Label>
+        <Form.Label className='labels'>Address</Form.Label>
         <Form.Control placeholder="1234 Main St" onChange = {evt => setAddress1(evt.target.value)}/>
       </Form.Group>
 
       <Form.Group controlId="formAdress2">
-        <Form.Label>Address 2</Form.Label>
+        <Form.Label className='labels'>Address 2</Form.Label>
         <Form.Control defaultValue="" placeholder="Apartment, studio, or floor" onChange = {evt => setAddress2(evt.target.value)} />
       </Form.Group>
 
       <Row className="row">
         <Col>
-          <Form.Label>City</Form.Label>
-          <Form.Control onChange = {evt => setCity(evt.target.value)}/>
+          <Form.Label className='labels'>City</Form.Label>
+          <Form.Control placeholder='City' onChange = {evt => setCity(evt.target.value)}/>
         </Col>
         {/* Call Selectstate function defined later in this file */}
         <Selectstate setState={setState} />
       </Row>
 
       <Form.Group>
-        <Form.Label>Postal Code</Form.Label>
-        <Form.Control type='number' onChange = {evt => setPostalCode(evt.target.value)}/>
+        <Form.Label className='labels'>Postal Code (Numbers only)</Form.Label>
+        <Form.Control placeholder='Postal code' type='text' onChange = {evt => setPostalCode(evt.target.value)}/>
+      </Form.Group>
+      <Form.Group controlId="formMaxOccupants">
+        <Form.Label className='labels'>Maximum number of occupants allowed</Form.Label>
+        <Form.Control type='text' placeholder="Number" onChange={evt => setMaxOccupants(parseInt(evt.target.value))}/>
+      </Form.Group>
+      <Form.Group controlId="formMaxPartyAllowed">
+        <Form.Label className='labels'>Maximum number of customers allowed to visit in one group </Form.Label>
+        <Form.Control type='text' placeholder="Number" onChange={evt => setMaxPartyAllowed(parseInt(evt.target.value))}/>
+      </Form.Group>
+      <Form.Group controlId="formAvgLength">
+        <Form.Label className='labels'>Average length of a customer&apos;s visit <br/>(in minutes)</Form.Label>
+        <Form.Control type='text' placeholder="Number" onChange={evt => setAvgVisitLength(parseInt(evt.target.value))} />
       </Form.Group>
 
 
       <p className="createStoreHours"><strong>Business Hours</strong></p>
-      <p className="open_24"><strong>Open 24/7?</strong><br/>Checkmark the box below and ignore filling out each day&apos;s hours</p>
+      <p className="open_24"><strong>Open 24/7?</strong><br/> Just checkmark the box below and ignore filling out each day&apos;s hours</p>
       <Checkmarkbox day="Open 24/7" setCheckState={setOpen24Hours} />
       <Row>
         <Col>
@@ -452,14 +473,20 @@ function CreateStoreContent({
       {/* CHECKBOX_END */}
 
 
-      <p>All of these settings will be <strong>changeable</strong> after clicking the submit button.</p>
-      <Button className="submit-btn" variant="secondary" type="submit">
-      Submit
+      <p>Note: <br/> All of these settings will be <strong>changeable</strong> after clicking the submit button.</p>
+      <Button className="secondary-btn">
+      Create store
       </Button>
       {errorMessage ? (
       /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
         <Alert className="alertBox" variant='warning'>
           {errorMessage}
+        </Alert>
+      ): ''}
+      {successAlert ? (
+      /* ^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+        <Alert className="loginAlertBox" variant='success'>
+          {successAlert}
         </Alert>
       ): ''}
     </Form>
@@ -579,7 +606,7 @@ function Selecthours({setTimeState, openclose}) {
 function Selectstate({setState}) {
   return (
     <Col>
-      <Form.Label>State</Form.Label>
+      <Form.Label className='labels'>State</Form.Label>
       <Form.Control as="select" onChange = {evt => setState(evt.target.value)}>
         <option>Choose...</option>
         <option value="AL">Alabama (AL)</option>
@@ -698,4 +725,5 @@ CreateStoreContent.propTypes = {
   setOpenSat: PropTypes.func.isRequired,
   setCloseSat: PropTypes.func.isRequired,
   errorMessage: PropTypes.string.isRequired,
+  successAlert: PropTypes.string.isRequired
 };

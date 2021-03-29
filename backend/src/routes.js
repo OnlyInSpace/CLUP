@@ -9,7 +9,6 @@ const ChangeCountController = require('./controllers/ChangeCountController');
 const SetRoleController = require('./controllers/SetRoleController');
 // import jwt
 const jwt = require('jsonwebtoken');
-const { setClockIn } = require('./controllers/UserController');
 // import access token secret, refresh token secret, mongoDB ssl  
 require('dotenv').config();
 // Assign the router
@@ -47,20 +46,25 @@ function verifyToken(req, res, next) {
   }
 }
 
-/* Setting roles */
-// Set Owner role
+/* Setting roles and business id */
+// Add employee
+routes.post('/addEmployee', verifyToken, SetRoleController.addEmployee);
+// Change employee's role
+routes.post('/changeRole', verifyToken, SetRoleController.changeRole);
+// Set owner role
 routes.post('/role/owner', verifyToken, SetRoleController.setOwnerRole);
-// Set Manager role
-routes.post('/role/manager', verifyToken, SetRoleController.setManagerRole);
-// Set Employee role
-routes.post('/role/employee', verifyToken, SetRoleController.setEmployeeRole);
+// Remove employee
+routes.post('/removeEmployee', verifyToken, SetRoleController.removeEmployee);
 // Set business_id
 routes.post('/business_id', verifyToken, SetRoleController.setBusiness_id);
+/* Setting clock in and out */
 // Clock user IN
 routes.post('/clockIn', verifyToken, UserController.setClockIn);
 // Clock user OUT
 routes.post('/clockOut', verifyToken, UserController.setClockOut);
 
+/* Getting employees */
+routes.get('/getEmployees/:store_id', verifyToken, StoreController.getAllEmployees);
 
 // Create a company
 // Notice how verifyToken is placed before the api call, which means it will run before the api call.
@@ -87,7 +91,6 @@ routes.post('/visit/create', verifyToken, VisitController.createVisit);
 // Delete visit
 routes.delete('/myvisits/:visitId', verifyToken, VisitController.delete);
 
-
 // FindStore -  returns all stores 
 routes.get('/findstore', verifyToken, StoreController.getAllStores);
 
@@ -112,10 +115,11 @@ routes.get('/company/:user_id', verifyToken, CompanyController.getCompanyByUserI
 // Store
 // Return all stores
 routes.get('/store', verifyToken, StoreController.getAllStores);
-// Return store by company_id
+// Return all owned stores
+routes.get('/stores/:company_id', verifyToken, StoreController.getOwnedStores);
 
 // Get store by id
-// Used by Dashboard - returns current store
+// returns store data
 routes.get('/store/:store_id', verifyToken, StoreController.getStoreById);
 
 
