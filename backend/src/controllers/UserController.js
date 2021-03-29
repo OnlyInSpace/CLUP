@@ -36,7 +36,7 @@ module.exports = {
   },
 
 
-  // Get all users
+  // clock user in
   async setClockIn(req, res) {
     try {
       const { user_id } = req.body;
@@ -51,7 +51,7 @@ module.exports = {
   },
 
 
-  // Get all users
+  // clock user out
   async setClockOut(req, res) {
     try {
       const { user_id } = req.body;

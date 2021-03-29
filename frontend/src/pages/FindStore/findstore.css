@@ -1,5 +1,6 @@
 .css-2b097c-container {
-    margin-bottom: 15px;
+    margin-bottom: 1em;
+    margin-top: 1em;
 }
 
 
@@ -7,3 +8,14 @@
     width: 100%;
 }
 
+.secondary-btn.findstore {
+    margin-bottom: 1.5em;
+}
+
+.alertBox.findstore {
+    margin-top: -.5em;
+}
+
+.findStore-p1 {
+    margin-bottom: -1.5em;
+}

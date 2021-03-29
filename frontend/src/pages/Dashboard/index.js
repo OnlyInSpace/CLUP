@@ -31,13 +31,17 @@ function Dashboard() {
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  // for displaying 'out' or 'in'
-  const [in_out, setIn_Out] = useState('IN');
   // Delete alert 
   const [deleteAlert, setDeleteAlert] = useState('');
 
-  //TODO: add time of visit to search bar label
-  //TODO: Create a manage store page where store owner can add employees, managers, and other store owners.
+  // determining which function to run if user clicks yes in modal
+  const [runFunc, setRunFunc] = useState(''); 
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+  const refreshToken = localStorage.getItem('refreshToken');
+  const store_id = localStorage.getItem('store');
+
+
 
   // Function to refresh a user's access token if it is unexpired
   const refresh = async (refreshToken) => {
@@ -94,19 +98,21 @@ function Dashboard() {
   };
 
 
+  //TODO: create functions to get visits in useEffect rather than just one large thing
   useEffect(async () => {
     try {
       // Ensure user has a store id
-      const refreshToken = localStorage.getItem('refreshToken');
-      // Refresh our user's token so that their clockIn status is updated in localstorage
       let accessToken = localStorage.getItem('accessToken');
-      await refresh(refreshToken);
-      const store_id = localStorage.getItem('store');
+
       let user = jwt.decode(accessToken);
-      
+
       if (!store_id) {
         return;
       }
+      if (!user) {
+        user = protectPage(accessToken, refreshToken);
+      }
+      
 
       // Get store object and verify the user's accessToken
       let response = await api.get(`/store/${store_id}`, { headers: {'accessToken': accessToken }});
@@ -125,14 +131,7 @@ function Dashboard() {
         }
       }
 
-      console.log('user.clockedin:', user.clockedIn);
-
-      if (user.clockedIn) {
-        setIn_Out('OUT');
-      }
-
       setIsClockedIn(user.clockedIn);
-
 
       // Else we know at this point, the user's token is verified
       // Set our store data to be displayed
@@ -238,14 +237,11 @@ function Dashboard() {
       console.log('response.data not found');
     }
   }, []);
-      
-  
-  async function getStoreVisits() {
-    // Fetch a store's visits
-    const store_id = localStorage.getItem('store');
+    
 
+  // Fetch a store's visits
+  async function getStoreVisits() {
     let accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
 
     let storeVisits = await api.get(`/visits/${store_id}`, { headers: {'accessToken': accessToken }});
 
@@ -332,9 +328,7 @@ function Dashboard() {
   }
 
 
-  async function handleClockInOut(evt) {
-    evt.preventDefault();
-
+  async function handleClockInOut() {
     let clockInOut = '';
     if (isClockedIn) {
       clockInOut = '/clockOut';
@@ -343,15 +337,8 @@ function Dashboard() {
     }
 
     let accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
     const user = await protectPage(accessToken, refreshToken);
     const user_id = user._id;
-
-    if (user.isClockedIn) {
-      setIn_Out('OUT');
-    } else {
-      setIn_Out('IN');
-    }
 
     // Clock user in or out
     let getUser = await api.post(clockInOut, {user_id}, { headers: {'accessToken': accessToken }});
@@ -386,11 +373,14 @@ function Dashboard() {
   }
 
 
-  const confirmVisitHandler = async (evt) => {
+  async function confirmVisitHandler() {
     try {
-      evt.preventDefault();
       if (!selectedVisit) {
         setErrorMessage('Please select a visit to confirm.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 3000);
+        handleClose();
         return;
       }
       let accessToken = localStorage.getItem('accessToken');
@@ -421,18 +411,35 @@ function Dashboard() {
       setDeleteAlert('Visit confirmed.');
       setTimeout(() => {
         setDeleteAlert('');
-      }, 5000);
+      }, 2000);
 
       setShow(false);
       response = await getStoreVisits();
       setSearchData(response);
+      // Sleep function
+      await delay(1500);
+
       window.location.reload(false);
 
     } catch (error) {
       history.push('/login');
       console.log(error);
     }
-  };
+  }
+
+  // Sleep function
+  const delay = ms => new Promise(res => setTimeout(res, ms));
+
+
+  async function handleModal() {
+    if (runFunc === 'handleClockInOut') {
+      console.log('running changeRole');
+      await handleClockInOut();
+    } else if (runFunc === 'confirmVisitHandler') {
+      console.log('running removeEmployee');
+      await confirmVisitHandler();
+    }
+  }
 
 
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
@@ -441,11 +448,11 @@ function Dashboard() {
       {/* Modal */}
       <Modal show={show} onHide={handleClose} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Cancel visit?</Modal.Title>
+          <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Are you sure you want to clock {in_out}?</Modal.Body>
+        <Modal.Body>{modalMessage}</Modal.Body>
         <Modal.Footer>
-          <Button variant="primary" onClick={handleClockInOut}>
+          <Button variant="primary" onClick={() => handleModal()}>
             Yes
           </Button>
           <Button variant="secondary" onClick={handleClose}>
@@ -472,7 +479,6 @@ function Dashboard() {
 
         { employeeStatus &&
         <EmployeeContent
-          handleShow={handleShow}
           searchData={searchData}
           setSelectedVisit={setSelectedVisit}
           selectedVisit={selectedVisit}
@@ -480,6 +486,10 @@ function Dashboard() {
           errorMessage={errorMessage}
           deleteAlert={deleteAlert}
           isClockedIn={isClockedIn}
+          handleShow={handleShow}
+          setRunFunc={setRunFunc}
+          setModalTitle={setModalTitle}
+          setModalMessage={setModalMessage}
         />
         }
 
@@ -505,12 +515,58 @@ function DashboardContent({storeData, openCloseStatus, closeTime, donutData, for
       <h5 className="currentCapacity">Current occupancy: <strong>{storeData.currentCount}</strong>/{storeData.maxOccupants}</h5>
       <h2><strong>{Math.floor((storeData.currentCount / storeData.maxOccupants) * 100) }%</strong></h2>
       <Doughnut data = {donutData} />
-      <Button className="refresh-btn" onClick={() => window.location.reload(false)}>Refresh</Button>
+      <Button className="refresh-btn" onClick={() => window.location.reload(false)}>
+        Refresh
+      </Button>
     </div>
   );
 }
 
 
+
+
+
+function EmployeeContent({
+  searchData,
+  setSelectedVisit,
+  selectedVisit,
+  errorMessage,
+  deleteAlert,
+  isClockedIn,
+  handleShow,
+  setRunFunc,
+  setModalTitle,
+  setModalMessage }) {
+  // Here we can define state variables that will only be used by this component
+
+  return (
+    <div>
+      { isClockedIn ? 
+        <Button className="clockOut-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock out?'); setModalMessage('Are you sure you want to clock out?'); handleShow();}}>Clock Out?</Button>
+        :
+        <Button className="clockIn-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock in?'); setModalMessage('Are you sure you want to clock in?'); handleShow();}}>Clock In?</Button>
+      }
+
+      { isClockedIn ?
+        <VisitSearchBar 
+          searchData={searchData}
+          setSelectedVisit={setSelectedVisit}
+          selectedVisit={selectedVisit}
+          errorMessage={errorMessage}
+          deleteAlert={deleteAlert}
+          handleShow={handleShow}
+          setRunFunc={setRunFunc}
+          setModalTitle={setModalTitle}
+          setModalMessage={setModalMessage}
+        />
+        :
+        ''
+      }
+    </div>
+  );
+}
+
+// Custom stylin for our searchbar
 // Custom stylin for our searchbar
 const customStyles = {
   option: (provided, state) => ({
@@ -522,41 +578,28 @@ const customStyles = {
 
   singleValue: (provided) => {
     return { ...provided };
-  }
+  },
+
+  control: base => ({
+    ...base,
+    '&:hover': { border: '1px solid #445469', boxShadow: '0px 0px 1px #445469' }, // border style on hover
+    border: '1px solid #445469',
+    // This line disable the blue border
+    boxShadow: 'none'
+  })
 };
-  
-
-function EmployeeContent({searchData, setSelectedVisit, selectedVisit, confirmVisitHandler, errorMessage, deleteAlert, isClockedIn, handleShow }) {
-  // Here we can define state variables that will only be used by this component
-  {/* //TODO: Make clockout button and switch views. ALSO FINISH SEARCHBAR and CONFIRMATION!! */}
-
-  return (
-    <div>
-      { isClockedIn ? 
-        <Button className="clockOut-btn" onClick={handleShow}>Clock Out?</Button>
-        :
-        <Button className="clockIn-btn" onClick={handleShow}>Clock In?</Button>
-      }
-
-      { isClockedIn ?
-        <VisitSearchBar 
-          searchData={searchData}
-          setSelectedVisit={setSelectedVisit}
-          selectedVisit={selectedVisit}
-          confirmVisitHandler={confirmVisitHandler}
-          errorMessage={errorMessage}
-          deleteAlert={deleteAlert}
-          isClockedIn={isClockedIn}
-        />
-        :
-        ''
-      }
-    </div>
-  );
-}
 
 
-function VisitSearchBar({searchData, setSelectedVisit, selectedVisit, confirmVisitHandler, errorMessage, deleteAlert}) {
+function VisitSearchBar({
+  searchData,
+  setSelectedVisit,
+  selectedVisit,
+  errorMessage,
+  deleteAlert,
+  handleShow,
+  setRunFunc,
+  setModalTitle,
+  setModalMessage }) {
   return (
     <div>
       <h5>Today&apos;s Visits</h5>
@@ -567,7 +610,9 @@ function VisitSearchBar({searchData, setSelectedVisit, selectedVisit, confirmVis
         options={searchData}
         onChange = {evt => setSelectedVisit(evt.label)}
       />
-      <Button className="submit-btn" onClick={confirmVisitHandler} variant="secondary" type="submit">Confirm Visit</Button>
+      <Button className="secondary-btn" onClick={() => { setRunFunc('confirmVisitHandler'); setModalTitle('Confirm visit?'); setModalMessage('Are you sure you want to confirm this visit?'); handleShow();}}>
+        Confirm Visit
+      </Button>
       { errorMessage ? 
         <Alert className="alertBox" variant='warning'>
           {errorMessage}
@@ -587,7 +632,7 @@ function VisitSearchBar({searchData, setSelectedVisit, selectedVisit, confirmVis
 function NoStoreID() {
   return (
     <div>
-      <h5 className="dashboardNoStore">Go to &quot;<strong>Select a store</strong>&quot; in the navigation bar and select a store in order to view this page&apos;s content</h5>
+      <h5 className="dashboardNoStore">Go to <strong><a className='hyperlinks' href='/findStore'>Select a store</a></strong> in order to view this page&apos;s content.</h5>
     </div>
   );
 }
@@ -609,13 +654,17 @@ DashboardContent.propTypes = {
 
 EmployeeContent.propTypes = {
   handleShow: PropTypes.func.isRequired,
+  setRunFunc: PropTypes.func.isRequired,
+  setModalTitle: PropTypes.func.isRequired,
+  setModalMessage: PropTypes.func.isRequired,
   isClockedIn: PropTypes.bool.isRequired,
   deleteAlert: PropTypes.string.isRequired,
   searchData: PropTypes.array.isRequired,
   selectedVisit: PropTypes.string,
   setSelectedVisit: PropTypes.func.isRequired,
   confirmVisitHandler: PropTypes.func.isRequired,
-  errorMessage: PropTypes.string.isRequired
+  errorMessage: PropTypes.string.isRequired,
+
 };
 
 
@@ -625,5 +674,9 @@ VisitSearchBar.propTypes = {
   selectedVisit: PropTypes.string,
   setSelectedVisit: PropTypes.func.isRequired,
   confirmVisitHandler: PropTypes.func.isRequired,
-  errorMessage: PropTypes.string.isRequired
+  errorMessage: PropTypes.string.isRequired,
+  handleShow: PropTypes.func.isRequired,
+  setRunFunc: PropTypes.func.isRequired,
+  setModalTitle: PropTypes.func.isRequired,
+  setModalMessage: PropTypes.func.isRequired
 };

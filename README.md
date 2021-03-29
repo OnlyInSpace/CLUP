@@ -1,5 +1,12 @@
 # CLUP2.0
-CLUP
+CLUP - Senior Design project for West Texas A&M University
+
+# What is CLUP? (Customer Lineup)
+Full product description: https://docs.google.com/document/d/1ly9NTnhpajnhPrgtFI8vu0EJ9nhfC0wtdk1QYEIhB5U/edit
+
+CLUP is a virtual queue manager created for store owners that will allow customers to schedule visits and join a customer queue all from their own device.
+Customers can also view the current occupancy of the store as well as other metrics such as business hours.
+
 
 Contacts:
 - jesalomon1@buffs.wtamu.edu
@@ -21,15 +28,16 @@ STEPS TO RUN PROJECT:
     "Git bash" which should open a new git bash terminal.
 7.  Split the terminal 3 times by clicking on the split terminal icon in the top right corner of the terminal window two times. It's right next to the trash can icon. This should split the terminal 3 different times. 
 8.  In the first terminal, enter "cd backend" to go to the backend directory.
-9.  Then enter the command "npm install" to install package dependencies for the project.
-10. Afterward, to start the backend server, enter the command "npm run dev". The backend server will start and the terminal will remain busy/open from now on.
-11.  In the second terminal, enter "cd backend" to go to the backend directory.
-12. To start the backend authentication server, enter the command "npm run authServer". The backend server will start and the terminal will remain busy/open from now on.
-13. While leaving the other two terminals open, switch to the third terminal.
-14. In the third terminal, enter "cd frontend" to go to the frontend directory.
-15. Enter the command "npm install" to install package dependencies for the project.
-16. Enter the command "npm run dev" to start the frontend server. If you have a browser open, then the project will automatically open up a new broswer
-    window with the application now visible. If the project does not open automatically, then you can simply type localhost:3000/ in your browser's URL to reach
+9.  Then enter the command "npm install --save node-cron" to install our task scheduler that runs every x minutes
+10.  Then enter the command "npm install" to install package dependencies for the project.
+11. Afterward, to start the backend server, enter the command "npm run dev". The backend server will start and the terminal will remain busy/open from now on.
+12.  In the second terminal, enter "cd backend" to go to the backend directory.
+13. To start the backend authentication server, enter the command "npm run authServer". The backend server will start and the terminal will remain busy/open from now on.
+14. While leaving the other two terminals open, switch to the third terminal.
+15. In the third terminal, enter "cd frontend" to go to the frontend directory.
+16. Enter the command "npm install" to install package dependencies for the project.
+17. Enter the command "npm run dev" to start the frontend server. If you have Firefox open, then the project will automatically open up a new 
+    window with the application now visible, go to localhost:3000/login to see the login page. If the project does not open automatically, then you can simply type localhost:3000/login in Firefox's URL to reach
     it.
 
 ________________________________________________________________________________________________________________________________________________________________

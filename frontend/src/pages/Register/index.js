@@ -4,6 +4,7 @@ import './register.css';
 import PropTypes from 'prop-types';
 import { useHistory, withRouter } from 'react-router-dom';
 import auth from '../../services/auth';
+import logo from '../Login/logo.png';
 
 
 function Register() {
@@ -19,9 +20,8 @@ function Register() {
   const handleSubmit = async evt => {
     // Prevent default event when button is clicked
     evt.preventDefault();
-
     try {
-      // Missing information checks
+      // Missing information and validation checks
       if (!phoneNumber && email && password) {
         setErrorMessage('Phone number field is empty.');
         return;
@@ -34,8 +34,8 @@ function Register() {
       } else if (!phoneNumber || !email || !password || !confirmPassword) {
         setErrorMessage('Required information is missing.');
         return;
-      } else if (phoneNumber.length !== 10 ) { // Ensure phone number is valid
-        setErrorMessage('Invalid phone number');
+      } else if (phoneNumber.length !== 10 || isNaN(phoneNumber)) { // Ensure phone number is valid
+        setErrorMessage('Invalid phone number. Please only enter nothing but numbers.');
         return;
       } else if (password !== confirmPassword) { // Ensure passwords match
         setErrorMessage('Passwords don\'t match');
@@ -56,7 +56,7 @@ function Register() {
         localStorage.removeItem('store');
         localStorage.setItem('accessToken', accessToken, { secure: true });
         localStorage.setItem('refreshToken', refreshToken, { secure: true });
-        history.push('/dashboard');
+        history.push('/findstore');
       } else { // Else if 
         setErrorMessage(response.data.message);
       }
@@ -70,17 +70,20 @@ function Register() {
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
     <Container>
-      <div className="content">
-        <h3>Signup</h3>
-        <p>Register your <strong>new account</strong> below</p>
+      <div className="registerContent">
+        <a href='/'>
+          <img src={logo} className="loginLogo" alt="Logo" /> 
+        </a>
+        <h4>Creating an account allows you to:</h4>
         <Form onSubmit = {handleSubmit}>
           <ul className='registerList'>
-            <li>You will be able to <strong>schedule visits</strong> and join a <strong>customer queue</strong> all from your device.</li>
-            <li>Business owners can <strong>create, manage,</strong> and <strong>assign</strong> employee accounts to their own stores.</li>
+            <li><strong>Schedule visits</strong>, <strong>view store occupancy</strong>, and join a <strong>customer queue</strong> all from your device.</li>
+            <li>Business owners can <strong>create, manage,</strong> and <strong>assign</strong> employees to their own stores.</li>
           </ul>
+          <h3>Signup below</h3>
           <Form.Group controlId="formPhoneNum">
-            <Form.Label className="phoneDescription">Phone number <br></br> (For sending you <strong>alerts</strong> related to your scheduled visits)</Form.Label>
-            <Form.Control type="number" placeholder="Your phone number" onChange = {evt => setPhoneNumber(evt.target.value)} />
+            <Form.Label className="phoneDescription">Phone number (For visit alerts)</Form.Label>
+            <Form.Control type="text" placeholder="Your phonenumber (numbers only)" onChange = {evt => setPhoneNumber(evt.target.value)} />
           </Form.Group>
           <Form.Group controlId="formEmail">
             <Form.Label>Email address</Form.Label>
@@ -94,7 +97,9 @@ function Register() {
             <Form.Label>Confirm password</Form.Label>
             <Form.Control type="password" placeholder="Confirm password" onChange = {evt => setConfirmPassword(evt.target.value)}/>
           </Form.Group>
-          <Button className="submit-btn" variant="secondary" type="submit">Signup</Button>
+          <Button className="btn-action2 signup" type="submit">
+            <span>Create your account</span>
+          </Button>
           {errorMessage ? (
           /* ^^^^^^^^^^^^^^^^ is a ternary operator: is errorMessage undefined? If no, then display the alert*/
             <Alert className="alertBox" variant='warning'>
@@ -102,8 +107,8 @@ function Register() {
             </Alert>
           ): ''}
           <Form.Group>
-            <p className="register-p">Already have an <strong>account</strong>?</p>
-            <Button className="secondary-btn" onClick={() => history.push('/login')} variant="secondary" type="button">
+            <p className="register-account">Already have an account?</p>
+            <Button className="secondary-btn" onClick={() => history.push('/login')} type="button">
                 Login
             </Button>
           </Form.Group>

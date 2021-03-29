@@ -1,14 +1,23 @@
 .card {
     min-width: 265px;
-    margin-bottom: 20px;
+    margin-bottom: 1.5em;
 }
 
 
 .noVisits {
-    margin-top: 30px;
+    margin-top: 1.5em;
 }
 
 
-.content button.delete-btn {
-    margin-right: 13px;
+.card button.delete-btn {
+    margin-right: 1em;
+}
+
+
+.text-muted {
+    font-size: .9em;
+}
+
+.submit-btn.myVisits {
+    margin-top: 1em;
 }
