@@ -38,12 +38,14 @@ try {
 // Register a user and send a generated access and refresh token back to frontend
 app.post('/user/register', async function (req, res) {
   try {
-    const {phoneNumber, email, password} = req.body;
+    let {phoneNumber, email, password} = req.body;
     if (!phoneNumber || !email || !password) {
       return res.status(200).json({
         message: 'Required information is missing.'
       });
     }
+    email = email.toLowerCase();
+
     // Check if user exists
     let message = '';
     const existingEmail = await User.findOne({email});
@@ -100,12 +102,13 @@ app.post('/user/register', async function (req, res) {
 app.post('/login', async function (req, res) {
   try {
     // Get email and password from body
-    const {email, password} = req.body;
+    let {email, password} = req.body;
     // If email or password field are empty
     if (!email || !password) {
       return res.status(200).json({message: 'Required field(s) missing'});
     }
-          
+    
+    email = email.toLowerCase();
     // Get user
     const user = await User.findOne({email});
     // If user does not exist, display error message

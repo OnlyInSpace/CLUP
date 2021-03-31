@@ -7,6 +7,7 @@ import ScheduleVisit from './pages/ScheduleVisit';
 import FindStore from './pages/FindStore';
 import MyVisits from './pages/MyVisits';
 import Navbar from './pages/Navbar/navbar';
+import Employees from './pages/Employees';
 import {BrowserRouter, Switch, Route} from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import Login from './pages/Login/';
@@ -26,6 +27,7 @@ function Routes() {
         <ProtectedRoute exact path='/visit/schedule' component={ScheduleVisit} />
         <ProtectedRoute exact path='/myvisits' component={MyVisits} />
         <ProtectedRoute exact path='/findstore' component={FindStore} />
+        <ProtectedRoute exact path='/employees' component={Employees} />
       </Switch>
     </BrowserRouter>
   );

@@ -345,6 +345,8 @@ function ScheduleVisit() {
       // Last validation checks of party size
       if (partyAmount <= 0) {
         errorAlert = 'Please enter the number of members in your visiting party.';
+      } else if (isNaN(partyAmount)) {
+        errorAlert = 'Please enter a valid number for your party.';
       } else if (partyAmount > maxPartyAmount) {
         errorAlert = 'The maximum allowed members in a party is ' + maxPartyAmount;
       } else if (scheduledMins < currentMins) { // If the scheduled time is not ahead of current time + avgVisitLength + 15 mins
@@ -513,14 +515,19 @@ function ScheduleVisit() {
   }
 
 
+  function goToDashboard() {
+    history.push('/dashboard');
+  }
+
+
   return (
     <Container>
       <div className="content">
         {storeName && 
-          <p>Business hours for:<br/><strong>{storeName}</strong></p>
+          <h5>Business hours for:<br/><strong>{storeName}</strong></h5>
         }
         {open24hours &&
-          <p style={{color: '#209129'}}>Open 24/7</p>
+          <h5 style={{color: '#209129'}}>Open 24/7</h5>
         }
         <ul className="scheduleListBorder">
           {storeName && businessHours.map(renderBusinessHours) }
@@ -535,17 +542,25 @@ function ScheduleVisit() {
             setPartyAmount={setPartyAmount}
             scheduledTime={scheduledTime}
             formattedTime={formattedTime}
+            maxPartyAmount={maxPartyAmount}
           />
         }
         {!storeName && 
-          <h5 className="noStoreId">To schedule a visit, you need to <strong>Select a store</strong> in the navigation menu</h5>
+          <h5 className="noStoreId">To schedule a visit, you need to <strong><a className='hyperlinks' href='/findStore'>Select a store</a></strong> in the navigation menu</h5>
         }
+
         {errorMessage ? (
         /* ^ is a ternary operator: Is party amount > 0? If no, then display the alert */
           <Alert className="alertBox" variant='warning'>
             {errorMessage}
           </Alert>
         ): ''}
+        
+        <button className="submit-btn dashboard" onClick={goToDashboard}>
+          ← Back to Dashboard
+        </button>
+        
+
       </div>
     </Container>
   );
@@ -561,7 +576,9 @@ function VisitContent({
   handleTimeChange, 
   setPartyAmount, 
   scheduledTime, 
-  formattedTime }) {
+  formattedTime,
+  maxPartyAmount
+}) {
   // Here we can define state variables that will only be used by this component
   return (
     <Form className= "visitContent" onSubmit = {handleSubmit}>
@@ -574,7 +591,7 @@ function VisitContent({
         /*timeClassName = {handleColor}*/
         minDate={new Date()}
       />
-      <p><br></br>Please schedule your visit within <strong>15 minute</strong> intervals.</p>
+      <p><br></br>15 minute intervals</p>
       <div className="timeKeeper">
         <TimeKeeper
           time={scheduledTime} 
@@ -584,11 +601,14 @@ function VisitContent({
         />
         <p>Time chosen: <strong>{formattedTime}</strong></p>
       </div>
+      <p>Maximum party size allowed: <strong>{maxPartyAmount}</strong></p>
       <Form.Group controlId="formPartyNumber">
-        <Form.Label>Number of members in your party <strong>(including you)</strong></Form.Label>
-        <Form.Control type="number" placeholder="" onChange = {evt => setPartyAmount(parseInt(evt.target.value))}/>
+        <Form.Label>Total number of members in your party <strong>(including you)</strong></Form.Label>
+        <Form.Control className='scheduleVisit-input' type="text" onChange = {evt => setPartyAmount(parseInt(evt.target.value))}/>
       </Form.Group>
-      <Button className="submit-btn" variant="secondary" type="submit" onClick={handleSubmit}>Schedule Visit</Button>
+      <Button className="secondary-btn myVisits" onClick={handleSubmit}>
+        Schedule Visit
+      </Button>
     </Form>
   );
 }
@@ -607,5 +627,6 @@ VisitContent.propTypes = {
   scheduledTime: PropTypes.string.isRequired,
   setPartyAmount: PropTypes.func.isRequired,
   setScheduledDate: PropTypes.func.isRequired,
-  formattedTime: PropTypes.string.isRequired
+  formattedTime: PropTypes.string.isRequired,
+  maxPartyAmount: PropTypes.number.isRequired
 };

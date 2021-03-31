@@ -26,3 +26,20 @@
     margin-top: 2em;
     font-size: 1.5em;
 }
+
+.createStoreForm input {
+    margin : 0 auto;
+    max-width: 15em;
+}
+
+.createStoreForm .labels {
+    margin-top: .5em;
+}
+
+.secondary-btn.visit {
+    margin-bottom: 1.5em;
+} 
+
+.secondary-btn.visit:hover {
+    background-color: var(--green) !important;
+} 

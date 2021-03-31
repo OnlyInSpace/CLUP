@@ -66,17 +66,17 @@ async function updateVisits(visit, currentTime) {
   const store = await Store.findById(visit.store);
 
   // this offset is needed to ensure a user's party gets reserved in the system before their visit 
-  let visitLengthOffset = store.avgVisitLength;
+  let visitLengthOffset = store.avgVisitLength * 2;
   if (store.avgVisitLength <= 10) {
     visitLengthOffset += 5;
   } else if (store.avgVisitLength <= 20) {
     visitLengthOffset += 10;
   } else if (store.avgVisitLength <= 30) {
-    visitLengthOffset += 15;
-  } else if (store.avgVisitLength <= 60) {
     visitLengthOffset += 20;
-  } else {
+  } else if (store.avgVisitLength <= 60) {
     visitLengthOffset += 30;
+  } else {
+    visitLengthOffset += 40;
   } 
 
   // if time of visit is within avg visit length plus 15 minutes, then reserve user's party by incrementing current count by partyAmount
@@ -85,17 +85,14 @@ async function updateVisits(visit, currentTime) {
     await Visit.findOneAndUpdate({_id: visit._id}, {'reserved': true});
   }
 
-  // If timeOfVisit is -15 minutes or more late, then delete visit in database and unreserve the party
-  if (timeDifference <= -15) {
-    await Visit.findByIdAndDelete(visit._id);
+  // If timeOfVisit is -20 minutes or more late, then delete visit in database and unreserve the party
+  if (timeDifference <= -20) {
     await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'currentCount': -visit.partyAmount}});
+    await Visit.findByIdAndDelete(visit._id);
+
     console.log('late and deleted! Decrement of:', -visit.partyAmount);
   }
 }
-
-
-
-
 
 // Listen for whatever PORT is set
 app.listen(PORT, () => {

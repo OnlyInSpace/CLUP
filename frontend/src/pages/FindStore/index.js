@@ -9,19 +9,43 @@ import { withRouter, useHistory } from 'react-router-dom';
 import './findstore.css';
 
 function FindStore() {
-  let history = useHistory();
+  const history = useHistory();
+
   // Store's id
-  const [selectedStore, setSelectedStore] = useState(null);
+  const [selectedStore, setSelectedStore] = useState('');
+  const [preSelectedStore, setPreSelectedStore] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [searchData, setSearchData] = useState([]);
+
+  const store_id = localStorage.getItem('store');
   
   console.log(searchData);
 
   
   useEffect(async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
+      let accessToken = localStorage.getItem('accessToken');
       let refreshToken = localStorage.getItem('refreshToken');
+
+      if (store_id) {
+        let storeData = await api.get(`/store/${store_id}`, { headers: {'accessToken': accessToken }});
+  
+        // If token comes back as expired, refresh the token and make api call again
+        if (storeData.data.message === 'Access token expired') {
+          const user = await protectPage(accessToken, refreshToken);
+          // If the access token or refresh token are unlegit, then return.
+          if (!user) {
+            console.log('no user!');
+            history.push('/login');
+          } else {
+            // overwrite storeData with the new access token.
+            let newAccessToken = localStorage.getItem('accessToken');
+            accessToken = newAccessToken;
+            storeData = await api.get(`/store/${store_id}`, { headers: {'accessToken': newAccessToken }});
+          }
+        }
+        setPreSelectedStore(storeData.data.storeName);
+      }
 
       let storeList = await api.get('/store', { headers: {'accessToken': accessToken }});
 
@@ -47,7 +71,7 @@ function FindStore() {
         const storeAddress1 = store.location.address1;
         const storeAddress2 = store.location.address2;
         const storeId = store._id;
-        const label = storeName + ' - ' + storeCity + ', ' + storeState + ' ' + storeAddress1 + ' ' + storeAddress2;
+        const label = storeName + ' - ' + storeCity + ', ' + storeState + ' - \r\n' + storeAddress1 + ' ' + storeAddress2;
         return {label, value: storeId};
       });
       setSearchData(formattedData);
@@ -113,11 +137,16 @@ function FindStore() {
   };
 
 
+  // Sleep function
+  const delay = ms => new Promise(res => setTimeout(res, ms));
+  
+  
   // Function that will talk to server api when button is clicked
   const handleSubmit = async evt => {
     evt.preventDefault();
     if (!selectedStore) {
       setErrorMessage('Please select a store.');
+      return;
     } else {
       // Get the store's id from our generated search list 
       const getStoreId = searchData.find( ({label}) => label === selectedStore);
@@ -125,9 +154,17 @@ function FindStore() {
       console.log(getStoreId);
       // set storeId to selected store in a cookie with secure option set. meaning this cookie is only readable on HTTPS
       localStorage.setItem('store', storeId, { secure: true });
-      history.push('/dashboard');
+
+      // refresh page
+      window.location.reload(false);
+      await delay(3000);
     }
   };
+
+  
+  function goToDashboard() {
+    history.push('/dashboard');
+  }
 
   
   // Custom stylin for our searchbar
@@ -141,7 +178,15 @@ function FindStore() {
 
     singleValue: (provided) => {
       return { ...provided };
-    }
+    },
+
+    control: base => ({
+      ...base,
+      '&:hover': { border: '1px solid #445469', boxShadow: '0px 0px 1px #445469' }, // border style on hover
+      border: '1px solid #445469',
+      // This line disable the blue border
+      boxShadow: 'none'
+    })
   };
 
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
@@ -155,18 +200,38 @@ function FindStore() {
           options={searchData}
           onChange = {evt => setSelectedStore(evt.label)}
         />
-        <h5>Selected store: <strong>{selectedStore}</strong></h5>
-        <p><br></br>You can search via the store&apos;s name or its address like so: <strong>101 Zoey St</strong> 
-          <br></br><br></br>You can also view all supported stores in your city like so: <strong> MyCityName, TX</strong>
-        </p>
-        <Button className="submit-btn" onClick={handleSubmit} variant="secondary" type="submit">Select Store</Button>
+
+        { preSelectedStore && !selectedStore ? 
+          <p>Selected store: <br/> <strong>{preSelectedStore}</strong></p>
+          : ''
+        }
+
+        { selectedStore && 
+        <p>Selected store: <br/> <strong>{selectedStore}</strong></p>
+        }
+
+        <Button className="secondary-btn findstore" onClick={handleSubmit}>
+          Select Store
+        </Button>
+
         {errorMessage ?
         /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
-          <Alert className="alertBox" variant='warning'>
+          <Alert className="alertBox findstore" variant='warning'>
             {errorMessage}
           </Alert>
           : ''
         }
+
+        <p className='findStore-p1'>Click the button below to view the store&apos;s occupancy</p>
+
+        <button className="submit-btn dashboard" onClick={goToDashboard}>
+        ← Dashboard
+        </button>
+
+
+        <p className='findStore-p2'><br></br>You can search via the store&apos;s name or its address like so: <br/><strong>101 Zoey St</strong> 
+          <br></br><br></br>You can also view all supported stores in your city like so: <br/> <strong> MyCityName, TX</strong>
+        </p>
       </div>
     </Container>
   );

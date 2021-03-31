@@ -1,0 +1,138 @@
+.addEmployeeEmail {
+    margin-bottom: 1.5em;
+}
+
+.employeeRoleField {
+    width: 300px !important;
+}
+
+.employeesContent .table {
+    width: 491px;
+    border: 2px solid var(--darkBlue);
+}
+
+.employeesContent {
+    width: 155%;
+    opacity: 0.9;
+    background-color: white;
+    margin-bottom: 2em;
+    border-radius: 10px;
+    padding: 3em;
+}
+
+/* TODO: FIX CSS PADDING IN SCHEDULE VISIT, CHECK FOR MOBILE RESPONSIVNESS ON EVERYPAGE */
+
+.employeesContent > p {
+    font-size: 1.25em;
+}
+
+.employeesContent > select {
+    max-width: 5em;
+}
+
+.changeRole-btn {
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--darkBlue);
+    border-top-left-radius: 20px !important;
+    border-bottom-left-radius: 20px !important;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    margin-left: 0.5em;
+    transition: all .4s ease;
+}
+
+.changeRole-btn:hover {
+    background-color: var(--darkBlue); 
+}
+
+
+.css-2b097c-container {
+    z-index: 5;
+}
+
+.employeesContent > input {
+    max-width: 17em;
+}
+
+
+/* Table */
+.employeeTable th {
+    background-color: var(--darkBlue);
+    color: white; 
+    border-bottom: 2px solid var(--darkBlue) !important;
+
+}
+
+.employeeTable td {
+    border-bottom: 2px solid var(--darkBlue) !important;
+    border-top: 2px solid var(--darkBlue) !important;
+}
+
+.employeeTable input {
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-top-right-radius: 20px !important;
+    border-bottom-right-radius: 20px !important; 
+}
+
+.managerCol {
+    background-color: rgb(236, 204, 115);
+    border: 2px solid var(--darkBlue);
+
+}
+
+.ownerCol {
+    background-color: #70c978;
+    border: 2px solid var(--darkBlue);
+
+}
+
+.employeeCol {
+    border: 2px solid var(--darkBlue);
+}
+
+.col-role {
+    width: 117px;
+    border: 2px solid var(--darkBlue);
+}
+
+.employeesContent ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: var(--darkBlue);
+    opacity: 1; /* Firefox */
+}
+
+.employeesContent a {
+    color: var(--lightBlue);
+    transition: 0.3s;
+}
+
+.employeesContent a:hover {
+    color: var(--darkBlue);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.addEmployee-ul {
+    margin-left: 2em;    
+}
+
+.employees-ul {
+    margin-left: 3em;
+}
+
+.employees-ul > li {
+margin-bottom: .5em;
+}
+
+.nestedEmployees-ul {
+    margin-left: 3em;
+}
+
+.nestedEmployees-ul > li {
+    margin-top: .5em;
+}
+
+.employees-h5 {
+    margin-top: 3em;
+}

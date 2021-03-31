@@ -6,10 +6,15 @@ import { useHistory, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import jwt from 'jsonwebtoken';
 import auth from '../../services/auth';
+import api from '../../services/api';
 
 
 function NavigationBar() {
-  const [ userRole, setUserRole ] = useState(''); 
+  const [ userRole, setUserRole ] = useState('');
+  // const [ userCompany_id, setUserCompany_id ] = useState('');
+  // const [ storeCompany_id, setStoreCompany_id ] = useState('');
+
+  const store_id = localStorage.getItem('store');
 
   let isAuth = true;
 
@@ -25,13 +30,37 @@ function NavigationBar() {
       }
 
       // Get user data and refresh token if needed.
-      const user = await protectPage(accessToken, refreshToken);
-      
+      let user = await protectPage(accessToken, refreshToken);
       if (!user) {
         console.log('Please log in again.');
       }   
 
       setUserRole(user.role);
+      // setUserCompany_id(user.business_id);
+
+      if (!store_id) {
+        console.log('no store_id found');
+        return;
+      }
+
+      // Get store data
+      let response = await api.get(`/store/${store_id}`, { headers: {'accessToken': accessToken }});
+
+      // If token comes back as expired, refresh the token and make api call again
+      if (response.data.message === 'Access token expired') {
+        user = await protectPage(accessToken, refreshToken);
+        // If the access token or refresh token are unlegit, then return.
+        if (!user) {
+          console.log('Please log in again.');
+          history.push('/login');
+        } else {
+          // overwrite response with the new access token.
+          let newAccessToken = localStorage.getItem('accessToken');
+          response = await api.get(`/store/${store_id}`, { headers: {'accessToken': newAccessToken }});
+        }
+      }
+
+      // setStoreCompany_id(response.data.company_id);
 
     } catch (error) {
       console.log(error);
@@ -160,11 +189,11 @@ function NavigationBar() {
           <Nav.Link href="/findstore">Select a store</Nav.Link>
           <NavDropdown title="Account" id="collasible-nav-dropdown">
             {userRole === 'owner' ? 
-              <NavDropdown.Item href="/store/create">Create your own store?</NavDropdown.Item>
+              <NavDropdown.Item href="/store/create">Create a store</NavDropdown.Item>
               : 
-              <NavDropdown.Item href="/company/create">Create your own store?</NavDropdown.Item>
+              <NavDropdown.Item href="/company/create">Create a store</NavDropdown.Item>
             }
-            {userRole === 'owner' ? 
+            {(userRole === 'owner' || userRole === 'manager') ? 
               <NavDropdown.Item href="/employees">Employees</NavDropdown.Item>
               :
               '' 

@@ -9,7 +9,7 @@ module.exports = {
       const { companyName, ownerId } = req.body;
       if (!companyName || !ownerId) {
         return res.status(200).json({
-          message: 'Required information is missing.'
+          message: 'ownerId is missing.'
         });
       }
       // Create a new company with await
@@ -33,7 +33,7 @@ module.exports = {
       // If visit exists, send the visit
       if (!company) {
         return res.status(200).json({
-          message: 'User_id is missing in controller.'
+          message: 'User_id is missing in controller, company not found.'
         });      
       }
       return res.json(company);

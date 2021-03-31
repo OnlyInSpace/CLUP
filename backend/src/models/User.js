@@ -6,6 +6,8 @@ const UserSchema = new mongoose.Schema({
   email: String,
   password: String,
   refreshToken: String,
+  firstName: String,
+  lastName: String,
   queuePin: {
     type: Number,
     default: 0
@@ -25,7 +27,7 @@ const UserSchema = new mongoose.Schema({
   role: {
     type: String,
     default: 'user',
-    enum: ['user', 'employee', 'manager','owner']
+    enum: ['user', 'employee', 'manager', 'owner']
   }
 });
 

@@ -12,6 +12,8 @@ function CreateCompany() {
   const [companyName, setCompanyName] = useState('');
   // For alert
   const [errorMessage, setErrorMessage] = useState('');
+  // For success alert 
+  const [successAlert, setSuccessAlert] = useState('');
 
   // Check user's role. If they are already an owner, then send them to the create store page
   useEffect(async () => {
@@ -89,6 +91,14 @@ function CreateCompany() {
     return await verifyAccess(accessToken, refreshToken);
   };
 
+
+  function goToDashboard() {
+    history.push('/dashboard');
+  }
+
+
+  // Sleep function
+  const delay = ms => new Promise(res => setTimeout(res, ms));
   
   // Function that will talk to server api
   const handleSubmit = async evt => {
@@ -166,6 +176,8 @@ function CreateCompany() {
 
         if (comapnyId && response.data.role === 'owner') {
           console.log('companyID:', comapnyId);
+          setSuccessAlert('Company created! Now let\'s create your first store.');
+          await delay(3000);
           history.push('/store/create');
         } else {
           setErrorMessage(response.data.message);
@@ -193,13 +205,26 @@ function CreateCompany() {
             <Form.Label className="createCompanyName">Company name</Form.Label>
             <Form.Control type="text" placeholder="Your company's name" onChange = {evt => setCompanyName(evt.target.value)} />
           </Form.Group>
-          <Button className="submit-btn" variant="secondary" type="submit">Create</Button>
+          <Button className="secondary-btn" variant="secondary" type="submit">
+            Create company
+          </Button>
           {errorMessage ? (
           /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
             <Alert className="alertBox" variant='warning'>
               {errorMessage}
             </Alert>
           ): ''}
+
+          {successAlert ? (
+          /* ^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+            <Alert className="loginAlertBox" variant='success'>
+              {successAlert}
+            </Alert>
+          ): ''}
+          <br/>
+          <button className="submit-btn dashboard" onClick={goToDashboard}>
+          ← Back to Dashboard
+          </button>
         </Form>
       </div>
     </Container>
