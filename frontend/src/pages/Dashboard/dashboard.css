@@ -29,17 +29,22 @@
     color: var(--darkRed);
 }
 
-.clockIn-btn {
-    position: relative;
-    top: -31em;
+.clockIn-btn, .clockOut-btn {
+    position: absolute;
+    top: 7em;
+    left: 618px;
     transform: translateY(-50%);
     border: 2px solid var(--darkRed);
-    border-radius: 6px;
+    border-radius: .2rem;
     height: 2.5em;
     padding: 0 1em;
     font-weight: 600;
     color: white;
     background: #23272c;
+}
+
+.clockOut-btn {
+    background: var(--darkRed);
 }
 
 .clockIn-btn:hover {
@@ -48,18 +53,6 @@
     transition: 0.3s;
 }
 
-.clockOut-btn {
-    position: relative;
-    top: -31em;
-    transform: translateY(-50%);
-    border: 2px solid var(--darkRed);
-    border-radius: 6px;
-    height: 2.5em;
-    padding: 0 1em;
-    font-weight: 600;
-    color: white;
-    background: var(--darkRed);
-}
 
 .clockOut-btn:hover {
     background: #23272c;

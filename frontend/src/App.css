@@ -61,8 +61,48 @@ body, input, button {
 }
 
 
-.container h1, h2, h3, h4, h5, h6 {
+.h1, h2, h3, h4, h5, h6 {
+    /* These are technically the same, but use both */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+
+    -ms-word-break: break-all;
+    /* This is the dangerous one in WebKit, as it breaks things wherever */
+    word-break: break-all;
+    /* Instead use this non-standard one: */
+    word-break: break-word;
+
+    /* Adds a hyphen where the word breaks, if supported (No Blink) */
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    
+    white-space: initial;
     color: rgb(27, 27, 27);
+}
+
+
+.content > p {
+    /* These are technically the same, but use both */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+
+    -ms-word-break: break-all;
+    /* This is the dangerous one in WebKit, as it breaks things wherever */
+    word-break: break-all;
+    /* Instead use this non-standard one: */
+    word-break: break-word;
+
+    /* Adds a hyphen where the word breaks, if supported (No Blink) */
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    white-space: initial;
+
+
+    font-size: 1.1em;
 }
 
 
@@ -84,11 +124,6 @@ body, input, button {
     border-radius: 10px;
     padding: 3em;
     text-align: center;
-}
-
-
-.content > p {
-    font-size: 1.1em;
 }
 
 
