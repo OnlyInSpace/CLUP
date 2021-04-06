@@ -181,19 +181,26 @@ function FindStore() {
         { preSelectedStore ?
         /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
           <Alert className="alertBox clickDashBtn" variant='success'>
-            <strong>Click the button below to view the store&apos;s occupancy</strong>
+            <strong>Store selected! All other pages are now viewable.</strong>
           </Alert>
           : ''
         }
 
         { preSelectedStore ? ''
           :
-          <p className='findStore-p1'>Click the button below to view the store&apos;s occupancy</p>
+          <Alert className="alertBox clickDashBtn" variant='warning'>
+            <strong>Select a store to view other pages and store&apos;s occupancy.</strong>
+          </Alert>
         }
 
-        <button className="submit-btn dashboard" onClick={goToDashboard}>
-        ← Dashboard
-        </button>
+        { preSelectedStore ? 
+          <button className="submit-btn dashboard" onClick={goToDashboard}>
+          ← Dashboard
+          </button>
+          :
+          <br/>
+        }
+
 
 
         <p className='findStore-p2'><br></br>You can search via the store&apos;s name or its address like so: <br/><strong>101 Zoey St</strong> 

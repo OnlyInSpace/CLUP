@@ -53,6 +53,7 @@ function Dashboard() {
 
       let user = jwt.decode(accessToken);
       if (!store_id) {
+        history.push('/findStore');
         return;
       }
       if (!user) {

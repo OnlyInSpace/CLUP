@@ -41,6 +41,10 @@ function ScheduleVisit() {
       try {
         let accessToken = localStorage.getItem('accessToken');
 
+        if (!store_id) {
+          history.push('/findStore');
+        }
+
         // Get user's current selected store so we can set the maxPartyAmount
         let headers = {
           authorization: `Bearer ${accessToken}`
