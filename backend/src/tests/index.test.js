@@ -1,11 +1,9 @@
-const app = require('../index');
+const app = require('../testServer.js');
 const User = require('../models/User');
 const Store = require('../models/Store');
 const mongoose = require('mongoose');
 const supertest = require('supertest');
 require('dotenv').config();
-
-console.log('mongotest:', process.env.MONGO_DB_TEST);
 
 beforeEach((done) => {
   mongoose.connect(process.env.MONGO_DB_TEST, {
@@ -22,7 +20,7 @@ afterEach((done) => {
   });
 });
 
-const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDZiYmZjYmJmYmQ5ZTNjMTQ2MGViYmQiLCJlbWFpbCI6InN0ZXZlQHRlc3QuY29tIiwicGhvbmVOdW1iZXIiOiI4MDY3MzAzNTU1IiwiYnVzaW5lc3NfaWQiOiI2MDZiYmZlMDc4OWViODNjMjYwYTM4ZWUiLCJyb2xlIjoib3duZXIiLCJjbG9ja2VkSW4iOmZhbHNlLCJpYXQiOjE2MTc2NzYxNTcsImV4cCI6MTYxNzY3Njg3N30.0SfyP0MaNYWNswXFJJc_sVVah6vCgIyE8w3R-tSD6n8'
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDZiYmZjYmJmYmQ5ZTNjMTQ2MGViYmQiLCJlbWFpbCI6InN0ZXZlQHRlc3QuY29tIiwicGhvbmVOdW1iZXIiOiI4MDY3MzAzNTU1IiwiYnVzaW5lc3NfaWQiOiI2MDZiYmZlMDc4OWViODNjMjYwYTM4ZWUiLCJyb2xlIjoib3duZXIiLCJjbG9ja2VkSW4iOmZhbHNlLCJpYXQiOjE2MTc2NzcwNDIsImV4cCI6MTYxNzY3Nzc2Mn0.MrH1ZEq4oqnGM36fzK5H-lp1Gk0bk4Ol0bVAvhTKZe8'
 
 describe('Creating and getting a store\'s data', () => {
   test('GET /store/:store_id', async () => {
@@ -50,7 +48,6 @@ describe('Creating and getting a store\'s data', () => {
         // Check type 
         expect(typeof(response.body) === "object").toBeTruthy();
 
-        console.log(response.body);
         // Check data
         expect(response.body._id).toBe(store.id);
         expect(response.body.storeName).toBe(store.storeName);
@@ -91,7 +88,7 @@ describe('Adding an employee to a store and changing their role', () => {
     });
 
 
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDZiYmZjYmJmYmQ5ZTNjMTQ2MGViYmQiLCJlbWFpbCI6InN0ZXZlQHRlc3QuY29tIiwicGhvbmVOdW1iZXIiOiI4MDY3MzAzNTU1IiwiYnVzaW5lc3NfaWQiOiI2MDZiYmZlMDc4OWViODNjMjYwYTM4ZWUiLCJyb2xlIjoib3duZXIiLCJjbG9ja2VkSW4iOmZhbHNlLCJpYXQiOjE2MTc2NzYxNTcsImV4cCI6MTYxNzY3Njg3N30.0SfyP0MaNYWNswXFJJc_sVVah6vCgIyE8w3R-tSD6n8'
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDZiYmZjYmJmYmQ5ZTNjMTQ2MGViYmQiLCJlbWFpbCI6InN0ZXZlQHRlc3QuY29tIiwicGhvbmVOdW1iZXIiOiI4MDY3MzAzNTU1IiwiYnVzaW5lc3NfaWQiOiI2MDZiYmZlMDc4OWViODNjMjYwYTM4ZWUiLCJyb2xlIjoib3duZXIiLCJjbG9ja2VkSW4iOmZhbHNlLCJpYXQiOjE2MTc2Nzc4NTgsImV4cCI6MTYxNzY3ODU3OH0.2YBEnS-eLJgCoIFaHShjsslcSpWoPKo0F1TCnwnkFcA'
     const headers = {
       authorization: 'Bearer ' + token
     };
@@ -105,15 +102,16 @@ describe('Adding an employee to a store and changing their role', () => {
       company_id: 'x'
     }
 
+    console.log('user:', user.id);
     
-    await supertest(app)
-      .post('/addEmployee')
+    await supertest(app).post('/addEmployee')
       .set('Authorization', `Bearer ${token}`)
       .send(data)
       .expect(200)
       .then((response) => {
         // Check type 
         expect(typeof(response.body) === "object").toBeTruthy();
+        console.log('body:', response.body._id);
   
         // Check data
         expect(response.body._id).toBe(user.id);

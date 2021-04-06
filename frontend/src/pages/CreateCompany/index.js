@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import auth from '../../services/auth';
 import api from '../../services/api';
 import { Container, Button, Form, Alert } from 'react-bootstrap';
 import './createcompany.css';
 import { useHistory } from 'react-router-dom';
 import jwt from 'jsonwebtoken';
+import {
+  refresh,
+  protectPage
+} from '../verifyTokens/tokenFunctions';
 
 // CreateCompany allows users to create their own company
 function CreateCompany() {
@@ -16,9 +19,10 @@ function CreateCompany() {
   const [successAlert, setSuccessAlert] = useState('');
 
   // Check user's role. If they are already an owner, then send them to the create store page
+  const refreshToken = localStorage.getItem('refreshToken');
+
   useEffect(async () => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken');
       let accessToken = localStorage.getItem('accessToken');
       // Get user data and refresh token if needed.
       let user = await protectPage(accessToken, refreshToken);
@@ -35,61 +39,6 @@ function CreateCompany() {
       console.log(error);
     }
   }, []);
-
-
-  // Function to refresh a user's access token if it is unexpired
-  const refresh = async (refreshToken) => {
-    console.log('refreshing token. . .');
-    let response = await auth.get('/refresh', { headers: { refreshToken }});
-    // if refresh token was unlegit or not found, then return false
-    if (response.data.success === false) {
-      console.log('resolving false.');
-      return false;
-    } else { // else we get the new access token, set the cookie, and return it!
-      const newAccessToken = response.data.newAccessToken;
-      localStorage.setItem('accessToken', newAccessToken, { secure: true });
-      return newAccessToken;
-    }
-  };
-    
-    
-  // returns true or false depending on whether the access token is legit : )
-  const verifyAccess = async (accessToken, refreshToken) => {
-    let response = await auth.get('/verifyAccessToken', { headers: { 'accessToken': accessToken }});
-    if (response.data.success === false) {
-      // If the access token is expired, then go ahead and create a new access token with the refresh token
-      if (response.data.message === 'Access token expired') { 
-        const newAccessToken = await refresh(refreshToken);
-        // Now that we have a new access token, let's verify the user and return the user
-        return await verifyAccess(newAccessToken, refreshToken);
-      }
-      // If token comes back as invalid, return false
-      return false;
-    }
-    // else the token is valid, return the user object with their data
-    return response.data.user;     
-  };
-    
-    
-  // This function returns the user's object data within the token if it's legit, otherwise returns false.
-  // This function also handles refreshing the token if needed
-  const protectPage = async (accessToken, refreshToken) => {
-    // If user doesnt have a refresh token: have user login 
-    if (!refreshToken) {
-      console.log('Please log out and log back in.');
-    }
-    // If we have a refresh token but no access token, then go ahead and create a new token
-    if (accessToken === undefined) {
-      // This returns either an access token or false if the refresh token is unlegit
-      accessToken = await refresh(refreshToken);
-    }
-    // If token is legit, return false
-    if (!accessToken) {
-      console.log('Please log out and log back in.');
-    }
-    // If the access or refresh token is unlegit, this returns false, otherwise it returns the user's object data : )
-    return await verifyAccess(accessToken, refreshToken);
-  };
 
 
   function goToDashboard() {
@@ -109,7 +58,6 @@ function CreateCompany() {
         setErrorMessage('Please enter your company\'s name.');
       } else {
         let accessToken = localStorage.getItem('accessToken');
-        const refreshToken = localStorage.getItem('refreshToken');
 
         // Decode to get data stored in cookie
         let user = jwt.decode(accessToken);
@@ -117,7 +65,10 @@ function CreateCompany() {
         let ownerId = user._id;
 
         // Make api call to create the new company 
-        let response = await api.post('/company/create', { companyName, ownerId }, { headers: {'accessToken': accessToken }});
+        let headers = {
+          authorization: `Bearer ${accessToken}`
+        };
+        let response = await api.post('/company/create', { companyName, ownerId }, { headers });
         // If token comes back as expired, refresh the token and make api call again
         if (response.data.message === 'Access token expired') {
           user = await protectPage(accessToken, refreshToken);
@@ -128,8 +79,12 @@ function CreateCompany() {
           } else {
           // overwrite response with the new access token.
             let newAccessToken = localStorage.getItem('accessToken');
+            accessToken = newAccessToken;
             ownerId = user._id;
-            response = await api.post('/company/create', { companyName, ownerId }, { headers: {'accessToken': newAccessToken }});
+            headers = {
+              authorization: `Bearer ${newAccessToken}`
+            };
+            response = await api.post('/company/create', { companyName, ownerId }, { headers });
           }
         }
 
@@ -137,7 +92,7 @@ function CreateCompany() {
         const comapnyId = response.data._id || false;
 
         // Set user's role to owner so that they are able to now create stores.
-        response = await api.post('/role/owner', { user_id: ownerId }, { headers: {'accessToken': accessToken }});
+        response = await api.post('/role/owner', { user_id: ownerId }, { headers });
         // If token comes back as expired, refresh the token and make api call again
         if (response.data.message === 'Access token expired') {
           const user = await protectPage(accessToken, refreshToken);
@@ -149,13 +104,16 @@ function CreateCompany() {
             // overwrite response with the new access token.
             let newAccessToken = localStorage.getItem('accessToken');
             ownerId = user._id;
-            response = await api.post('/role/owner', { user_id: ownerId }, { headers: {'accessToken': newAccessToken }});
+            headers = {
+              authorization: `Bearer ${newAccessToken}`
+            };
+            response = await api.post('/role/owner', { user_id: ownerId }, { headers });
           }
         }
 
         
         // Set user's business_id to the company's id
-        response = await api.post('/business_id', { user_id: ownerId, business_id: comapnyId }, { headers: {'accessToken': accessToken }});
+        response = await api.post('/business_id', { user_id: ownerId, business_id: comapnyId }, { headers });
         // If token comes back as expired, refresh the token and make api call again
         if (response.data.message === 'Access token expired') {
           const user = await protectPage(accessToken, refreshToken);
@@ -167,7 +125,10 @@ function CreateCompany() {
             // overwrite response with the new access token.
             let newAccessToken = localStorage.getItem('accessToken');
             ownerId = user._id;
-            response = await api.post('/business_id', { user_id: ownerId, business_id: comapnyId }, { headers: {'accessToken': newAccessToken }});
+            headers = {
+              authorization: `Bearer ${newAccessToken}`
+            };
+            response = await api.post('/business_id', { user_id: ownerId, business_id: comapnyId }, { headers });
           }
         }
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import auth from '../../services/auth';
 import {Container, Button, Alert, Table, Modal, Form, FormControl, Row, Col, InputGroup} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import { withRouter, useHistory } from 'react-router-dom';
 import Select from 'react-select';
-
+import {
+  protectPage
+} from '../verifyTokens/tokenFunctions';
 
 import './employees.css';
 
@@ -64,8 +65,10 @@ function Employees() {
         routeName = `/store/${company_id}`;
       }
 
-
-      let storeList = await api.get(routeName, { headers: {'accessToken': accessToken }});
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+      let storeList = await api.get(routeName, { headers });
 
       // If token comes back as expired, refresh the token and make api call again
       if (storeList.data.message === 'Access token expired') {
@@ -79,7 +82,10 @@ function Employees() {
           // Return store by company_id
           // overwrite storeList with the new access token.
           let newAccessToken = localStorage.getItem('accessToken');
-          storeList = await api.get(routeName, { headers: {'accessToken': newAccessToken }});
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          storeList = await api.get(routeName, { headers });
         }
       }
 
@@ -122,67 +128,14 @@ function Employees() {
   }
 
 
-  // Function to refresh a user's access token if it is unexpired
-  const refresh = async (refreshToken) => {
-    console.log('refreshing token. . .');
-    let response = await auth.get('/refresh', { headers: { refreshToken }});
-    // if refresh token was unlegit or not found, then return false
-    if (response.data.success === false) {
-      console.log('resolving false.');
-      return false;
-    } else { // else we get the new access token, set the cookie, and return it!
-      const newAccessToken = response.data.newAccessToken;
-      localStorage.setItem('accessToken', newAccessToken, { secure: true });
-      return newAccessToken;
-    }
-  };
-      
-      
-  // returns true or false depending on whether the access token is legit : )
-  const verifyAccess = async (accessToken, refreshToken) => {
-    let response = await auth.get('/verifyAccessToken', { headers: { 'accessToken': accessToken }});
-    if (response.data.success === false) {
-      // If the access token is expired, then go ahead and create a new access token with the refresh token
-      if (response.data.message === 'Access token expired') { 
-        const newAccessToken = await refresh(refreshToken);
-        // Now that we have a new access token, let's verify the user and return the user
-        return await verifyAccess(newAccessToken, refreshToken);
-      }
-      // If token comes back as invalid, return false
-      return false;
-    }
-    // else the token is valid, return the user object with their data
-    return response.data.user;     
-  };
-      
-      
-  // This function returns the user's object data within the token if it's legit, otherwise returns false.
-  // This function also handles refreshing the token if needed
-  const protectPage = async (accessToken, refreshToken) => {
-    // If user doesnt have a refresh token: have user login 
-    if (!refreshToken){
-      console.log('Please log out and log back in.');
-    }
-    // If we have a refresh token but no access token, then go ahead and create a new token
-    if (accessToken === undefined) {
-      // This returns either an access token or false if the refresh token is unlegit
-      accessToken = await refresh(refreshToken);
-    }
-    // If token is legit, return false
-    if (!accessToken) {
-      console.log('Please log out and log back in.');
-    }
-    // If the access or refresh token is unlegit, this returns false, otherwise it returns the user's object data : )
-    return await verifyAccess(accessToken, refreshToken);
-  };
-
-
   async function removeEmployeeHandler(email) {
     try {
       let accessToken = localStorage.getItem('accessToken');
       const refreshToken = localStorage.getItem('refreshToken');
-  
-      let removeEmployee = await api.post('/removeEmployee', { email }, { headers: {'accessToken': accessToken }});
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+      let removeEmployee = await api.post('/removeEmployee', { email }, { headers });
   
       // If token comes back as expired, refresh the token and make api call again
       if (removeEmployee.data.message === 'Access token expired') {
@@ -195,7 +148,10 @@ function Employees() {
           // overwrite removeEmployee with the new access token.
           let newAccessToken = localStorage.getItem('accessToken');
           accessToken = newAccessToken;
-          removeEmployee = await api.post('/removeEmployee', { email }, { headers: {'accessToken': newAccessToken }});
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          removeEmployee = await api.post('/removeEmployee', { email }, { headers });
         }
       } 
       
@@ -231,8 +187,11 @@ function Employees() {
       }
         
       let accessToken = localStorage.getItem('accessToken');
-  
-      let addEmployee = await api.post('/addEmployee', { 'email': employeeEmail, 'role': employeeRole, 'firstName': employeeFirstname, 'lastName': employeeLastname, 'store_id': selectedStore_id, company_id }, { headers: {'accessToken': accessToken }});
+      
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+      let addEmployee = await api.post('/addEmployee', { 'email': employeeEmail, 'role': employeeRole, 'firstName': employeeFirstname, 'lastName': employeeLastname, 'store_id': selectedStore_id, company_id }, { headers });
   
       // If token comes back as expired, refresh the token and make api call again
       if (addEmployee.data.message === 'Access token expired') {
@@ -245,7 +204,10 @@ function Employees() {
           // overwrite addEmployee with the new access token.
           let newAccessToken = localStorage.getItem('accessToken');
           accessToken = newAccessToken;
-          addEmployee = await api.post('/addEmployee', { 'email': employeeEmail, 'role': employeeRole, 'firstName': employeeFirstname, 'lastName': employeeLastname, 'store_id': selectedStore_id, company_id }, { headers: {'accessToken': newAccessToken }});
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          addEmployee = await api.post('/addEmployee', { 'email': employeeEmail, 'role': employeeRole, 'firstName': employeeFirstname, 'lastName': employeeLastname, 'store_id': selectedStore_id, company_id }, { headers });
         }
       } 
       
@@ -286,8 +248,10 @@ function Employees() {
       if (role === 'employee' || role === 'manager') {
         let accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
-          
-        let changeRole = await api.post('/changeRole', { email, role }, { headers: {'accessToken': accessToken }});
+        let headers = {
+          authorization: `Bearer ${accessToken}`
+        };
+        let changeRole = await api.post('/changeRole', { email, role }, { headers });
           
         // If token comes back as expired, refresh the token and make api call again
         if (changeRole.data.message === 'Access token expired') {
@@ -300,7 +264,10 @@ function Employees() {
             // overwrite changeRole with the new access token.
             let newAccessToken = localStorage.getItem('accessToken');
             accessToken = newAccessToken;
-            changeRole = await api.post('/changeRole', { email, role }, { headers: {'accessToken': newAccessToken }});
+            headers = {
+              authorization: `Bearer ${newAccessToken}`
+            };
+            changeRole = await api.post('/changeRole', { email, role }, { headers });
           }
         } 
               
@@ -408,7 +375,10 @@ function Employees() {
 
     let accessToken = localStorage.getItem('accessToken');
 
-    let storeData = await api.get(`/store/${store_id}`, { headers: {'accessToken': accessToken }});
+    let headers = {
+      authorization: `Bearer ${accessToken}`
+    };
+    let storeData = await api.get(`/store/${store_id}`, { headers });
 
     // If token comes back as expired, refresh the token and make api call again
     if (storeData.data.message === 'Access token expired') {
@@ -421,13 +391,20 @@ function Employees() {
         // overwrite storeData with the new access token.
         let newAccessToken = localStorage.getItem('accessToken');
         accessToken = newAccessToken;
-        storeData = await api.get(`/store/${store_id}`, { headers: {'accessToken': newAccessToken }});
+        headers = {
+          authorization: `Bearer ${newAccessToken}`
+        };
+        storeData = await api.get(`/store/${store_id}`, { headers });
       }
     }
 
+    console.log(storeData.data);
+
+
     setCompany_id(storeData.data.company_id);
 
-    let getEmployees = await api.get(`/getEmployees/${store_id}`, { headers: {'accessToken': accessToken }}); 
+
+    let getEmployees = await api.get(`/getEmployees/${store_id}`, { headers }); 
     // If token comes back as expired, refresh the token and make api call again
     if (getEmployees.data.message === 'Access token expired') {
       const user = await protectPage(accessToken, refreshToken);
@@ -439,7 +416,10 @@ function Employees() {
         // overwrite getEmployees with the new access token.
         let newAccessToken = localStorage.getItem('accessToken');
         accessToken = newAccessToken;
-        getEmployees = await api.get(`/store/${store_id}`, { headers: {'accessToken': newAccessToken }});
+        headers = {
+          authorization: `Bearer ${newAccessToken}`
+        };
+        getEmployees = await api.get(`/store/${store_id}`, { headers });
       }
     }
 
