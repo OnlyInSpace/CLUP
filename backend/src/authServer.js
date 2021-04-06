@@ -165,9 +165,9 @@ app.post('/logout', async function (req, res) {
 // This function is used in ProtectedRoute to prevent a page from rendering if a user doesnt have a valid accessToken
 // This function protects our frontend whereas the other verifyToken function in routes.js protects our backend
 app.get('/verifyAccessToken', async function (req, res) {
-  const accessToken = req.header('accessToken');
   // Verify accessToken is legit
-  if (accessToken) {
+  if (req.headers.authorization) {
+    const accessToken = req.headers.authorization.split(" ")[1];
     // Verify the token is legit and unexpired! If it is, then go ahead and return success = true
     jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
       if (user) {
