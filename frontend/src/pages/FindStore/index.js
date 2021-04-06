@@ -178,7 +178,18 @@ function FindStore() {
           : ''
         }
 
-        <p className='findStore-p1'>Click the button below to view the store&apos;s occupancy</p>
+        { preSelectedStore ?
+        /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+          <Alert className="alertBox clickDashBtn" variant='success'>
+            <strong>Click the button below to view the store&apos;s occupancy</strong>
+          </Alert>
+          : ''
+        }
+
+        { preSelectedStore ? ''
+          :
+          <p className='findStore-p1'>Click the button below to view the store&apos;s occupancy</p>
+        }
 
         <button className="submit-btn dashboard" onClick={goToDashboard}>
         ← Dashboard
