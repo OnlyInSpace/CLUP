@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "authServer": "nodemon src/authServer.js"
+    "authServer": "nodemon src/authServer.js",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -20,10 +21,12 @@
     "js-cookie": "^2.2.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.11.18",
-    "node-cron": "^2.0.3"
+    "node-cron": "^2.0.3",
+    "supertest": "^6.1.3"
   },
   "devDependencies": {
-    "eslint": "^7.16.0",
+    "eslint": "^7.23.0",
+    "eslint-plugin-jest": "^24.3.4",
     "eslint-plugin-react": "^7.21.5",
     "nodemon": "^2.0.6"
   }
