@@ -20,7 +20,8 @@ afterEach((done) => {
   });
 });
 
-const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDZiYmZjYmJmYmQ5ZTNjMTQ2MGViYmQiLCJlbWFpbCI6InN0ZXZlQHRlc3QuY29tIiwicGhvbmVOdW1iZXIiOiI4MDY3MzAzNTU1IiwiYnVzaW5lc3NfaWQiOiI2MDZiYmZlMDc4OWViODNjMjYwYTM4ZWUiLCJyb2xlIjoib3duZXIiLCJjbG9ja2VkSW4iOmZhbHNlLCJpYXQiOjE2MTc2NzcwNDIsImV4cCI6MTYxNzY3Nzc2Mn0.MrH1ZEq4oqnGM36fzK5H-lp1Gk0bk4Ol0bVAvhTKZe8'
+// Must have a working access token, need to copy one from the console
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDZiZGQ0M2U2NDc5ZjhiYTRjYWIzY2UiLCJlbWFpbCI6InRlc3QzQHRlc3QuY29tIiwicGhvbmVOdW1iZXIiOiI0MjA0MjA2OTY5IiwiYnVzaW5lc3NfaWQiOiIiLCJyb2xlIjoidXNlciIsImNsb2NrZWRJbiI6ZmFsc2UsImlhdCI6MTYxNzcyMzg4MiwiZXhwIjoxNjE3NzI0NjAyfQ.9U2_R2sHN3R6ZlN0SN7rySbViEDQcsF_nKShxYkHJGU'
 
 describe('Creating and getting a store\'s data', () => {
   test('GET /store/:store_id', async () => {
@@ -86,12 +87,6 @@ describe('Adding an employee to a store and changing their role', () => {
       email: 'plz@test.com',
       password: 'testpassword',
     });
-
-
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDZiYmZjYmJmYmQ5ZTNjMTQ2MGViYmQiLCJlbWFpbCI6InN0ZXZlQHRlc3QuY29tIiwicGhvbmVOdW1iZXIiOiI4MDY3MzAzNTU1IiwiYnVzaW5lc3NfaWQiOiI2MDZiYmZlMDc4OWViODNjMjYwYTM4ZWUiLCJyb2xlIjoib3duZXIiLCJjbG9ja2VkSW4iOmZhbHNlLCJpYXQiOjE2MTc2Nzc4NTgsImV4cCI6MTYxNzY3ODU3OH0.2YBEnS-eLJgCoIFaHShjsslcSpWoPKo0F1TCnwnkFcA'
-    const headers = {
-      authorization: 'Bearer ' + token
-    };
 
     const data = {
       email: user.email,
