@@ -357,10 +357,10 @@ function Employees() {
     console.log('handle submit');
     
     if (!hide) {
-      setSelectedAlert('Store selected');
+      setSelectedAlert('Store selected! Scroll down to see the employee page');
       setTimeout(() => {
         setSelectedAlert('');
-      }, 3000);
+      }, 4300);
     } 
 
     let store_id;
