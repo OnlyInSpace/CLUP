@@ -52,10 +52,12 @@ function Dashboard() {
       console.log('accessToken:', accessToken);
 
       let user = jwt.decode(accessToken);
+      console.log('decoded:', user);
       if (!store_id) {
         history.push('/findStore');
         return;
       }
+
       if (!user) {
         user = protectPage(accessToken, refreshToken);
       }

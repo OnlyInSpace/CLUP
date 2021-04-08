@@ -9,7 +9,8 @@ import api from '../../services/api';
 import auth from '../../services/auth';
 
 import {
-  protectPage
+  protectPage,
+  // refresh
 } from '../verifyTokens/tokenFunctions';
 
 
@@ -17,6 +18,7 @@ function NavigationBar() {
   const [ userRole, setUserRole ] = useState('');
   // const [ userCompany_id, setUserCompany_id ] = useState('');
   // const [ storeCompany_id, setStoreCompany_id ] = useState('');
+  const refreshToken = localStorage.getItem('refreshToken');
 
   const store_id = localStorage.getItem('store');
 
@@ -25,7 +27,6 @@ function NavigationBar() {
 
   useEffect(async () => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken');
       let accessToken = localStorage.getItem('accessToken');
 
       if (!accessToken || !refreshToken) {
@@ -33,11 +34,16 @@ function NavigationBar() {
         return;
       }
 
+      // if (accessToken === 'undefined') {
+      //   await refresh(refreshToken);
+      // }
+
       // Get user data and refresh token if needed.
       let user = await protectPage(accessToken, refreshToken);
       if (!user) {
         console.log('Please log in again.');
       }   
+
 
       setUserRole(user.role);
       // setUserCompany_id(user.business_id);

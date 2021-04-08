@@ -43,9 +43,9 @@ cron.schedule('*/1 * * * *', async () => {
   try {
     // get current time and convert to minutes
     let currentTime = Math.floor(Date.now() / 60000);
-    // Return all visits
+    // Return all visits from database in an array
     const visits = await Visit.find({});
-    // For each visit, check if visit is late and delete if so
+    // For each visit in array, check if visit is late and delete if so
     visits.forEach(visit => updateVisits(visit, currentTime));
 
     console.log('running a task every minute');

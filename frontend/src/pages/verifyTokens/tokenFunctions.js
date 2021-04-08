@@ -17,7 +17,7 @@ export const refresh = async (refreshToken) => {
       
 
 // returns true or false depending on whether the access token is legit : )
-export const verifyAccess = async (accessToken, refreshToken) => {
+export const verifyAccess = async (acesssToken, refreshToken) => {
   const headers = {
     authorization: `Bearer ${localStorage.getItem('accessToken')}`
   };
@@ -46,11 +46,11 @@ export const protectPage = async (accessToken, refreshToken) => {
     console.log('Please log out and log back in.');
   }
   // If we have a refresh token but no access token, then go ahead and create a new token
-  if (accessToken === undefined) {
+  if (accessToken === 'undefined') {
     // This returns either an access token or false if the refresh token is unlegit
     accessToken = await refresh(refreshToken);
   }
-  // If token is legit, return false
+  // If token is unlegit, return false
   if (!accessToken) {
     console.log('Please log out and log back in.');
   }

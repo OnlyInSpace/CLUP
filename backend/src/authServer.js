@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const app = express();
 const PORT = 4000;
+
 // Listen for whatever PORT is set to
 app.listen(PORT, () => {
   console.log(`Listening on ${PORT}`);
@@ -183,13 +184,15 @@ app.get('/verifyAccessToken', async function (req, res) {
           message: 'Access token expired'
         });
       } else { // else token doesnt exist or could be unlegit, return 403 forbidden status back to frontend and have user login again
-        console.log('Verified failed.');
-        console.log(err);
+        console.log('\nverify failed in authServer.\n');
+        console.log('\nuser:', user);
+        console.log('\nheaders:', req.headers.authorization);
         return res.status(403).json({ err, message: 'User not authenticated' });
       }
     }); 
 
   } else { 
+    console.log('no token in auth headers (from authServer.js)')
     return res.sendStatus(401);
   }
 });
