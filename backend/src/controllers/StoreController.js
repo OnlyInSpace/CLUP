@@ -47,7 +47,7 @@ module.exports = {
         return res.json(store);
       }
     } catch (error) {
-      return res.status(200).json({message: 'No Store Selected Yet, so no data is being displayed.'});
+      return res.status(404).json({message: 'No Store Selected Yet, so no data is being displayed.'});
     }
   },
 

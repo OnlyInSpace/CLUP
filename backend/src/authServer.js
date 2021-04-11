@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const app = express();
 const PORT = 4000;
+
 // Listen for whatever PORT is set to
 app.listen(PORT, () => {
   console.log(`Listening on ${PORT}`);
@@ -165,9 +166,9 @@ app.post('/logout', async function (req, res) {
 // This function is used in ProtectedRoute to prevent a page from rendering if a user doesnt have a valid accessToken
 // This function protects our frontend whereas the other verifyToken function in routes.js protects our backend
 app.get('/verifyAccessToken', async function (req, res) {
-  const accessToken = req.header('accessToken');
   // Verify accessToken is legit
-  if (accessToken) {
+  if (req.headers.authorization) {
+    const accessToken = req.headers.authorization.split(" ")[1];
     // Verify the token is legit and unexpired! If it is, then go ahead and return success = true
     jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
       if (user) {
@@ -183,13 +184,15 @@ app.get('/verifyAccessToken', async function (req, res) {
           message: 'Access token expired'
         });
       } else { // else token doesnt exist or could be unlegit, return 403 forbidden status back to frontend and have user login again
-        console.log('Verified failed.');
-        console.log(err);
+        console.log('\nverify failed in authServer.\n');
+        console.log('\nuser:', user);
+        console.log('\nheaders:', req.headers.authorization);
         return res.status(403).json({ err, message: 'User not authenticated' });
       }
     }); 
 
   } else { 
+    console.log('no token in auth headers (from authServer.js)')
     return res.sendStatus(401);
   }
 });

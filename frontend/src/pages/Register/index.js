@@ -50,6 +50,8 @@ function Register() {
       const accessToken = response.data.accessToken;
       const refreshToken = response.data.refreshToken;
 
+      console.log(accessToken);
+
       // If the user was able to register then send them to dashboard and store their data in Cookies
       if (accessToken) {
         // Store user refresh and access token in a Cookie with secure option set, meaning this cookie is only readable on HTTPS.
