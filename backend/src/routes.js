@@ -16,14 +16,41 @@ const routes = express.Router();
 
 
 // This is a middleware function which verifies every API database query made by users
-//  - Parameters: 
-//  - Return: it returns a req.user back to the frontend which contains  
+
+// function verifyToken(req, res, next) {
+//   // Get token from headers.authorization
+//   const token = req.header('accessToken');
+
+//   console.log('\n\n\nToken:', token);
+
+//   if (token) {
+//     // Verify the token is legit! and if so, set req.user to user and call next()
+//     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+//       if (user) {
+//         // If token is legit, set req.accessToken = user, so now we can call req.accessToken if we wanted to
+//         req.accessToken = user;
+//         // next() is required so the program can continue and now run the controller's api call
+//         next();  
+//       } else if (err.message === 'jwt expired') { // else if jwt is expired, notify our frontend so we can refresh it
+//         return res.json({
+//           success: false,
+//           message: 'Access token expired'
+//         });
+//       } else { // else token doesnt exist or could be unlegit, return 403 forbidden status back to frontend and have user login again
+//         console.log(err);
+//         return res.status(403).json({ err, message: 'User not authenticated' });
+//       }
+//     }); 
+//   } else {
+//     return res.sendStatus(401);
+//   }
+// }
 
 function verifyToken(req, res, next) {
-  // Get token from headers.authorization
-  const token = req.header('accessToken');
 
-  if (token) {
+  if (req.headers.authorization) {
+    // Get token from headers.authorization
+    const token = req.headers.authorization.split(" ")[1];
     // Verify the token is legit! and if so, set req.user to user and call next()
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
       if (user) {
@@ -37,7 +64,7 @@ function verifyToken(req, res, next) {
           message: 'Access token expired'
         });
       } else { // else token doesnt exist or could be unlegit, return 403 forbidden status back to frontend and have user login again
-        console.log(err);
+        console.log('\nverify failed in routes.js\n');
         return res.status(403).json({ err, message: 'User not authenticated' });
       }
     }); 
@@ -99,16 +126,13 @@ routes.get('/findstore', verifyToken, StoreController.getAllStores);
 
 // Visit
 // Get visit by id
-routes.get('/visit/:visitId', VisitController.getVisitById);
+routes.get('/visit/:visitId', verifyToken, VisitController.getVisitById);
 
+// User
 // Get user by id
 routes.get('/user/:user_id', verifyToken, UserController.getUserById);
-// Get all users
-routes.get('/getusers', UserController.getAllUsers);
 
 // Company
-// Return all companies
-routes.get('/company', CompanyController.getAllCompanies);
 // Get company by user id
 routes.get('/company/:user_id', verifyToken, CompanyController.getCompanyByUserId);
 

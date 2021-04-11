@@ -62,6 +62,7 @@ module.exports = {
       let { email, role } = req.body;
 
       email = email.toLowerCase();
+      role = role.toLowerCase();
 
       let checkStatus = await User.find({ email });
       checkStatus = checkStatus[0];

@@ -56,6 +56,7 @@ module.exports = {
   async getVisitById(req, res) {
     // Get visit ID from URL /visit/<visitid>
     const { visitId } = req.params;
+    
     try {
       const visit = await Visit.findById(visitId);
       // If visit exists, send the visit

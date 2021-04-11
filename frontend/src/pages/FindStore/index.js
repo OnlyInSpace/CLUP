@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import auth from '../../services/auth';
 import {Container, Button, Alert} from 'react-bootstrap';
 import Select from 'react-select';
 import PropTypes from 'prop-types';
 import { withRouter, useHistory } from 'react-router-dom';
+import {
+  protectPage
+} from '../verifyTokens/tokenFunctions';
 
 import './findstore.css';
 
@@ -26,9 +28,12 @@ function FindStore() {
     try {
       let accessToken = localStorage.getItem('accessToken');
       let refreshToken = localStorage.getItem('refreshToken');
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
 
       if (store_id) {
-        let storeData = await api.get(`/store/${store_id}`, { headers: {'accessToken': accessToken }});
+        let storeData = await api.get(`/store/${store_id}`, { headers });
   
         // If token comes back as expired, refresh the token and make api call again
         if (storeData.data.message === 'Access token expired') {
@@ -41,13 +46,16 @@ function FindStore() {
             // overwrite storeData with the new access token.
             let newAccessToken = localStorage.getItem('accessToken');
             accessToken = newAccessToken;
-            storeData = await api.get(`/store/${store_id}`, { headers: {'accessToken': newAccessToken }});
+            headers = {
+              authorization: `Bearer ${newAccessToken}`
+            };
+            storeData = await api.get(`/store/${store_id}`, { headers });
           }
         }
         setPreSelectedStore(storeData.data.storeName);
       }
 
-      let storeList = await api.get('/store', { headers: {'accessToken': accessToken }});
+      let storeList = await api.get('/store', { headers });
 
       // If token comes back as expired, refresh the token and make api call again
       if (storeList.data.message === 'Access token expired') {
@@ -60,7 +68,10 @@ function FindStore() {
         } else {
           // overwrite storeList with the new access token.
           let newAccessToken = localStorage.getItem('accessToken');
-          storeList = await api.get('/store', { headers: {'accessToken': newAccessToken }});
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          storeList = await api.get('/store', { headers });
         }
       }
       // populate our search list
@@ -80,61 +91,6 @@ function FindStore() {
       console.log(error);
     }
   }, []);
-
-
-  // Function to refresh a user's access token if it is unexpired
-  const refresh = async (refreshToken) => {
-    console.log('refreshing token. . .');
-    let response = await auth.get('/refresh', { headers: { refreshToken }});
-    // if refresh token was unlegit or not found, then return false
-    if (response.data.success === false) {
-      console.log('resolving false.');
-      return false;
-    } else { // else we get the new access token, set the cookie, and return it!
-      const newAccessToken = response.data.newAccessToken;
-      localStorage.setItem('accessToken', newAccessToken, { secure: true });
-      return newAccessToken;
-    }
-  };
-      
-      
-  // returns true or false depending on whether the access token is legit : )
-  const verifyAccess = async (accessToken, refreshToken) => {
-    let response = await auth.get('/verifyAccessToken', { headers: { 'accessToken': accessToken }});
-    if (response.data.success === false) {
-      // If the access token is expired, then go ahead and create a new access token with the refresh token
-      if (response.data.message === 'Access token expired') { 
-        const newAccessToken = await refresh(refreshToken);
-        // Now that we have a new access token, let's verify the user and return the user
-        return await verifyAccess(newAccessToken, refreshToken);
-      }
-      // If token comes back as invalid, return false
-      return false;
-    }
-    // else the token is valid, return the user object with their data
-    return response.data.user;     
-  };
-      
-      
-  // This function returns the user's object data within the token if it's legit, otherwise returns false.
-  // This function also handles refreshing the token if needed
-  const protectPage = async (accessToken, refreshToken) => {
-    // If user doesnt have a refresh token: have user login 
-    if (!refreshToken){
-      console.log('Please log out and log back in.');
-    }
-    // If we have a refresh token but no access token, then go ahead and create a new token
-    if (accessToken === undefined) {
-      // This returns either an access token or false if the refresh token is unlegit
-      accessToken = await refresh(refreshToken);
-    }
-    // If token is legit, return false
-    if (!accessToken) {
-      console.log('Please log out and log back in.');
-    }
-    // If the access or refresh token is unlegit, this returns false, otherwise it returns the user's object data : )
-    return await verifyAccess(accessToken, refreshToken);
-  };
 
 
   // Sleep function
@@ -222,11 +178,29 @@ function FindStore() {
           : ''
         }
 
-        <p className='findStore-p1'>Click the button below to view the store&apos;s occupancy</p>
+        { preSelectedStore ?
+        /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+          <Alert className="alertBox clickDashBtn" variant='success'>
+            <strong>Store selected! All other pages are now viewable.</strong>
+          </Alert>
+          : ''
+        }
 
-        <button className="submit-btn dashboard" onClick={goToDashboard}>
-        ← Dashboard
-        </button>
+        { preSelectedStore ? ''
+          :
+          <Alert className="alertBox clickDashBtn" variant='warning'>
+            <strong>Select a store to view other pages and store&apos;s occupancy.</strong>
+          </Alert>
+        }
+
+        { preSelectedStore ? 
+          <button className="submit-btn dashboard" onClick={goToDashboard}>
+          ← Dashboard
+          </button>
+          :
+          <br/>
+        }
+
 
 
         <p className='findStore-p2'><br></br>You can search via the store&apos;s name or its address like so: <br/><strong>101 Zoey St</strong> 

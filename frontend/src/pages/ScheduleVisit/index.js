@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import auth from '../../services/auth';
 // import {Container, Button, Form, Alert} from 'react-bootstrap';
 import {Container, Button, Form, Alert, Row, Col} from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
@@ -10,6 +9,9 @@ import './schedulevisit.css';
 import PropTypes from 'prop-types';
 // import jwt from 'jsonwebtoken';
 import { useHistory, withRouter } from 'react-router-dom';
+import {
+  protectPage
+} from '../verifyTokens/tokenFunctions';
 
 function ScheduleVisit() {
   let history = useHistory();
@@ -32,73 +34,22 @@ function ScheduleVisit() {
   // get store_id
   let store_id = localStorage.getItem('store');
 
-
-  //TODO: Ensure users cannot schedule visits at the same time as other users.
-
-  
-  // Function to refresh a user's access token if it is unexpired
-  const refresh = async (refreshToken) => {
-    console.log('refreshing token. . .');
-    let response = await auth.get('/refresh', { headers: { refreshToken }});
-    // if refresh token was unlegit or not found, then return false
-    if (response.data.success === false) {
-      console.log('resolving false.');
-      return false;
-    } else { // else we get the new access token, set the cookie, and return it!
-      const newAccessToken = response.data.newAccessToken;
-      localStorage.setItem('accessToken', newAccessToken, { secure: true });
-      return newAccessToken;
-    }
-  };
-      
-      
-  // returns true or false depending on whether the access token is legit : )
-  const verifyAccess = async (accessToken, refreshToken) => {
-    let response = await auth.get('/verifyAccessToken', { headers: { 'accessToken': accessToken }});
-    if (response.data.success === false) {
-      // If the access token is expired, then go ahead and create a new access token with the refresh token
-      if (response.data.message === 'Access token expired') { 
-        const newAccessToken = await refresh(refreshToken);
-        // Now that we have a new access token, let's verify the user and return the user
-        return await verifyAccess(newAccessToken, refreshToken);
-      }
-      // If token comes back as invalid, return false
-      return false;
-    }
-    // else the token is valid, return the user object with their data
-    return response.data.user;     
-  };
-      
-      
-  // This function returns the user's object data within the token if it's legit, otherwise returns false.
-  // This function also handles refreshing the token if needed
-  const protectPage = async (accessToken, refreshToken) => {
-    // If user doesnt have a refresh token: have user login 
-    if (!refreshToken){
-      console.log('Please log out and log back in.');
-    }
-    // If we have a refresh token but no access token, then go ahead and create a new token
-    if (accessToken === undefined) {
-      // This returns either an access token or false if the refresh token is unlegit
-      accessToken = await refresh(refreshToken);
-    }
-    // If token is legit, return false
-    if (!accessToken) {
-      console.log('Please log out and log back in.');
-    }
-    // If the access or refresh token is unlegit, this returns false, otherwise it returns the user's object data : )
-    return await verifyAccess(accessToken, refreshToken);
-  };
-
+  const refreshToken = localStorage.getItem('refreshToken');
 
   useEffect(() => {
     (async () => {
       try {
         let accessToken = localStorage.getItem('accessToken');
-        let refreshToken = localStorage.getItem('refreshToken');
+
+        if (!store_id) {
+          history.push('/findStore');
+        }
 
         // Get user's current selected store so we can set the maxPartyAmount
-        let response = await api.get(`/store/${store_id}`, { headers: {'accessToken': accessToken }});
+        let headers = {
+          authorization: `Bearer ${accessToken}`
+        };
+        let response = await api.get(`/store/${store_id}`, { headers });
 
         // If token comes back as expired, refresh the token and make api call again
         if (response.data.message === 'Access token expired') {
@@ -110,7 +61,10 @@ function ScheduleVisit() {
           } else {
             // overwrite response with the new access token.
             let newAccessToken = localStorage.getItem('accessToken');
-            response = await api.get(`/store/${store_id}`, { headers: {'accessToken': newAccessToken }});
+            headers = {
+              authorization: `Bearer ${newAccessToken}`
+            };
+            response = await api.get(`/store/${store_id}`, { headers });
           }
         }
         
@@ -177,51 +131,13 @@ function ScheduleVisit() {
     })();
   }, []);
 
-
-  // // Function to return all visits tied to user and specific store
-  // async function getUserVisits(accessToken, refreshToken) {
-  //   try {  
-  //     // Decode to get data stored in cookie
-  //     let user = jwt.decode(accessToken);
-  //     // When we decode a cookie using jwt.decode, we get an object called userData with the user's data stored inside
-  //     let user_id = user._id;
-  //     // Log the user here to see how it looks 
-  //     // console.log('User:', user);
-
-  //     let response = await api.get(`/myvisits/${store_id}/${user_id}`, { headers: {'accessToken': accessToken }});
-  //     // If token comes back as expired, refresh the token and make api call again
-  //     if (response.data.message === 'Access token expired') {
-  //       user = await protectPage(accessToken, refreshToken);
-  //       // If the access token or refresh token are unlegit, then return.
-  //       if (!user) {
-  //         setErrorMessage('Please log in again.');
-  //         console.log('Please log in again.');
-  //         history.push('/login');
-  //       } else {
-  //         // overwrite response with the new access token.
-  //         let newAccessToken = localStorage.getItem('accessToken');
-  //         user_id = user._id;
-  //         response = await api.get(`/myvisits/${store_id}/${user_id}`, { headers: {'accessToken': newAccessToken }});
-  //       }
-  //     }
-  
-  //     // Create a userVisits array of objects
-  //     // Here .map means for every object in userVisits
-  //     const userVisits = response.data;
-
-  //     return userVisits;
-        
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }
-
-
   async function getStoreVisits(accessToken, refreshToken) {
     // Fetch a store's visits
 
-
-    let storeVisits = await api.get(`/visits/${store_id}`, { headers: {'accessToken': accessToken }});
+    let headers = {
+      authorization: `Bearer ${accessToken}`
+    };
+    let storeVisits = await api.get(`/visits/${store_id}`, { headers });
 
     // If token comes back as expired, refresh the token and make api call again
     if (storeVisits.data.message === 'Access token expired') {
@@ -233,7 +149,10 @@ function ScheduleVisit() {
       } else {
         // overwrite storeList with the new access token.
         let newAccessToken = localStorage.getItem('accessToken');
-        storeVisits = await api.get(`/visits/${store_id}`, { headers: {'accessToken': newAccessToken }});
+        headers = {
+          authorization: `Bearer ${newAccessToken}`
+        };
+        storeVisits = await api.get(`/visits/${store_id}`, { headers });
       }
     }
     
@@ -324,7 +243,6 @@ function ScheduleVisit() {
       scheduledDate.setHours(parseInt(hoursMinutes[0]));
       scheduledDate.setMinutes(parseInt(hoursMinutes[1]));
 
-      let refreshToken = localStorage.getItem('refreshToken');
       let accessToken = localStorage.getItem('accessToken');
       // Get userId from token stored in cookie
       let user = await protectPage(accessToken, refreshToken);
@@ -473,13 +391,16 @@ function ScheduleVisit() {
       console.log('businessCloseMins:', businessCloseMins);
       console.log('day:', scheduledDay, 'scheduledHours:', scheduledHours, 'scheduledMins:', scheduledMins);
 
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
       
       if (errorAlert) {
         setErrorMessage(errorAlert);
         return;
       } else {
         // Create the visit
-        let response = await api.post('/visit/create', {phoneNumber, user_id, scheduledDate, partyAmount, store_id}, { headers: {'accessToken': accessToken} });
+        let response = await api.post('/visit/create', {phoneNumber, user_id, scheduledDate, partyAmount, store_id}, { headers });
 
         // If token comes back as expired, refresh the token and make api call again
         if (response.data.message === 'Access token expired') {
@@ -494,7 +415,10 @@ function ScheduleVisit() {
             let newAccessToken = localStorage.getItem('accessToken');
             user_id = user._id;
             phoneNumber = user.phoneNumber;
-            response = await api.post('/visit/create', {phoneNumber, user_id, scheduledDate, partyAmount, store_id}, { headers: {'accessToken': newAccessToken }});
+            headers = {
+              authorization: `Bearer ${newAccessToken}`
+            };
+            response = await api.post('/visit/create', {phoneNumber, user_id, scheduledDate, partyAmount, store_id}, { headers });
           }
         }
 
