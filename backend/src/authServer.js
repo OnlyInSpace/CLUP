@@ -114,7 +114,7 @@ app.post('/login', async function (req, res) {
     const user = await User.findOne({email});
     // If user does not exist, display error message
     if (!user) {
-      return res.status(200).json({message: 'User not found, register instead?'});
+      return res.status(200).json({message: 'This email does not exist, but you can register a new account below'});
     }
 
     // Else if user exists and the password matches what's in the database
