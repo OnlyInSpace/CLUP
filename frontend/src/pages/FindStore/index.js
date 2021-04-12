@@ -181,7 +181,7 @@ function FindStore() {
         { preSelectedStore ?
         /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
           <Alert className="alertBox clickDashBtn" variant='success'>
-            <strong>Store selected! All other pages are now viewable.</strong>
+            <strong>Store selected. All other pages are viewable.</strong>
           </Alert>
           : ''
         }

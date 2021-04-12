@@ -464,6 +464,7 @@ function Dashboard() {
           closeTime={closeTime}
           donutData={donutData}
           formatTime={formatTime}
+          refreshPageData={refreshPageData}
         />
         }
 
@@ -491,7 +492,14 @@ function Dashboard() {
 export default withRouter(Dashboard);
 
 
-function DashboardContent({storeData, openCloseStatus, closeTime, donutData, formatTime }) {
+function DashboardContent({
+  storeData,
+  openCloseStatus,
+  closeTime,
+  donutData,
+  formatTime,
+  refreshPageData
+}) {
   // Here we can define state variables that will only be used by this component
 
   return (
@@ -505,7 +513,7 @@ function DashboardContent({storeData, openCloseStatus, closeTime, donutData, for
       <h5 className="currentCapacity">Current occupancy: <strong>{storeData.currentCount}</strong>/{storeData.maxOccupants}</h5>
       <h2><strong>{Math.floor((storeData.currentCount / storeData.maxOccupants) * 100) }%</strong></h2>
       <Doughnut data = {donutData} />
-      <Button className="refresh-btn" onClick={() => window.location.reload(false)}>
+      <Button className="refresh-btn" onClick={() => refreshPageData()}>
         Refresh
       </Button>
     </div>
@@ -642,7 +650,8 @@ DashboardContent.propTypes = {
   openCloseStatus: PropTypes.string.isRequired,
   closeTime: PropTypes.string.isRequired,
   donutData: PropTypes.object.isRequired,
-  formatTime: PropTypes.func.isRequired
+  formatTime: PropTypes.func.isRequired,
+  refreshPageData: PropTypes.func.isRequired
 };
 
 
