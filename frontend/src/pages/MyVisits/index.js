@@ -263,6 +263,11 @@ function MyVisits() {
     history.push('/dashboard');
   }
 
+  function scheduleVisit() {
+    history.push('/visit/schedule');
+  }
+
+
 
   // Render card component
   const renderCards = (card, index) => {
@@ -322,8 +327,13 @@ function MyVisits() {
           <h5 className="noVisits">Go to &apos;Schedule a visit&apos; in the navigation menu to schedule a visit.</h5>
         }
 
-        <button className="submit-btn dashboard" onClick={goToDashboard}>
-        ← Back to Dashboard
+
+        <button className="submit-btn myVisits" onClick={scheduleVisit}>
+        ← Schedule a Visit
+        </button>
+
+        <button className="submit-btn" onClick={goToDashboard}>
+        ← Dashboard
         </button>
       </div>
     </Container>

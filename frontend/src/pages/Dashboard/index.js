@@ -43,156 +43,22 @@ function Dashboard() {
   const refreshToken = localStorage.getItem('refreshToken');
   const store_id = localStorage.getItem('store');
 
+  let donutOptions;
 
-  //TODO: create functions to get visits in useEffect rather than just one large thing
   useEffect(async () => {
     try {
-      // Ensure user has a store id
-      let accessToken = localStorage.getItem('accessToken');
-      console.log('accessToken:', accessToken);
-
-      let user = jwt.decode(accessToken);
-      console.log('decoded:', user);
       if (!store_id) {
         history.push('/findStore');
         return;
       }
-
-      if (!user) {
-        user = protectPage(accessToken, refreshToken);
-      }
-      
-      let headers = {
-        authorization: `Bearer ${accessToken}`
-      };
-      // Get store object and verify the user's accessToken
-      let response = await api.get(`/store/${store_id}`, { headers });
-      // If token comes back as expired, refresh the token and make api call again
-      if (response.data.message === 'Access token expired') {
-        user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return.
-        if (!user) {
-          console.log('Please log in again.');
-          history.push('/login');
-        } else {
-          // overwrite response with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          response = await api.get(`/store/${store_id}`, { headers });
-        }
-      }
-
-      setIsClockedIn(user.clockedIn);
-
-      // Else we know at this point, the user's token is verified
-      // Set our store data to be displayed
-      setStoreData(response.data);  
-
-
-      // Set our open or close status to be displayed 
-      // Convert business hours to an array of objects
-      const businessHours = Object.keys(response.data.businessHours).map(key => {
-        return response.data.businessHours[key];
-      });
-
-      const currentTime = new Date();
-      const today = currentTime.getDay();
-      const businessDay = businessHours[today];
-      setCloseTime(businessDay.close);
-      let currentHour = parseInt(currentTime.getHours());
-      let currentMins = parseInt(currentTime.getMinutes());
-      let businessHoursMins = businessDay.open.split(':');
-      let businessOpenHours = parseInt(businessHoursMins[0]);
-      let businessOpenMins = parseInt(businessHoursMins[1]);
-      businessHoursMins = businessDay.close.split(':');
-      let businessCloseHours = parseInt(businessHoursMins[0]);
-      let businessCloseMins = parseInt(businessHoursMins[1]);
-
-      // When a business opens during the day and closes after midnight add 23 hours to closeHours
-      if (businessOpenHours > businessCloseHours) {
-        if ( (currentHour >= 0) && (currentHour <= businessCloseHours) ) {
-          currentHour += 23;
-        }
-        businessCloseHours += 23;
-      }
-
-      // If currentHour is within the CLOSING hour, ensure current time is not too LATE
-      if (currentHour === businessCloseHours) {
-        if (currentMins > businessCloseMins) {
-          setOpenCloseStatus('closed');
-        }
-      }
-      
-      // If currentHour is within the OPENING hour, ensure current time is not too EARLY
-      if (currentHour === businessOpenHours) {
-        if (currentMins < businessOpenMins) {
-          setOpenCloseStatus('closed');
-        }
-      }
-      
-      // Ensure current time is not too early
-      if ( (currentHour !== 0) && (currentHour < businessOpenHours)) {
-        setOpenCloseStatus('closed');
-      }
-            
-      // Ensure current time is not too late
-      if ( (businessCloseHours !== 0) && (currentHour > businessCloseHours) ) {
-        setOpenCloseStatus('closed');
-      }
-
-      // Ensure the store is open
-      if (!businessDay.open) {
-        setOpenCloseStatus('closed');
-      }  
-
-      if (response.data.open24hours) {
-        setOpenCloseStatus('open');
-      }
-
-      // Set our donut chart data
-      const vacantSpots = response.data.maxOccupants - response.data.currentCount;
-      const donutOptions = {
-        datasets: [{
-          // data: [20, 40], //0a6096
-          data: [response.data.currentCount, vacantSpots],
-          backgroundColor: ['#0a6096', '#b2b8c2'],
-          hoverBorderColor: ['#000000', 'grey'],
-          hoverBorderWidth: 2,
-          borderWidth: 3
-        }],
-        labels: ['Customers Present', 'Vacant Spots']
-      };
-      setDonutData(donutOptions);
-      setDisplayContent(true);
-        
-
-      /********************Validation checks for employee view********************/
-      
-      if (user.role !== 'employee' && user.role !== 'manager' && user.role !== 'owner' ) {
-        return;
-      }
-      // Get store's company_id
-      const storeCompany_id = response.data.company_id;
-
-      // If the user's business_id does not mach store_id or company_id then return.
-      if (user.business_id === store_id || user.business_id === storeCompany_id) {
-        setEmployeeStatus(true);
-      } else {
-        return; 
-      }
-
-      const storeVisits = await getStoreVisits();
-      setSearchData(storeVisits);
-
+      await refreshPageData();
     } catch (error) {
       console.log('response.data not found');
     }
   }, []);
     
 
-  // Fetch a store's visits
+  // Fetch a store's visits for today
   async function getStoreVisits() {
     let accessToken = localStorage.getItem('accessToken');
     let headers = {
@@ -217,8 +83,6 @@ function Dashboard() {
       }
     }
 
-    console.log(storeVisits.data);
-    
     // Populating our search list with today's visits
     const currentDate = new Date();
     const currentDay = currentDate.getDay();
@@ -230,6 +94,7 @@ function Dashboard() {
     let visitDay, visitMonth, visitYear;
     let visit_id, visitPhoneNumber, visitPartyAmount, label;
     let formatDate;
+
 
     for (let i=0; i < storeVisits.data.length; i++) {
       visit = storeVisits.data[i];
@@ -249,14 +114,167 @@ function Dashboard() {
         visitPhoneNumber = visit.phoneNumber;
         visitPartyAmount = visit.partyAmount;
         label = visitPhoneNumber + ' - ' + 'Party of ' + visitPartyAmount + ' (' + formatDate + ')';
-        visitsToday.push({label, value: visit_id});
+        visitsToday.push({label, value: visit_id, date: Date.parse(visitDate)});
       }
     }
 
-    console.log('VISITS:', visitsToday);
-    return visitsToday;
+    // sort the visits
+    visitsToday.sort((a, b) => (a.date > b.date) ? 1 : -1);
+
+    // push to a new list containing only a label and value, this is needed for the searchbar data
+    let visitSearchList = [];
+    for (let i=0; i < visitsToday.length; i++) {
+      visit = visitsToday[i];
+
+      visitSearchList.push({label: visit.label, value: visit.value});
+    }
+
+
+    console.log('VISITS:', visitSearchList);
+
+    return visitSearchList;
   }
 
+  // Fetch page data again
+  async function refreshPageData() {
+    // Ensure user has a store id
+    let accessToken = localStorage.getItem('accessToken');
+
+    let user = jwt.decode(accessToken);
+
+    if (!user) {
+      user = protectPage(accessToken, refreshToken);
+    }
+      
+    let headers = {
+      authorization: `Bearer ${accessToken}`
+    };
+      // Get store object and verify the user's accessToken
+    let response = await api.get(`/store/${store_id}`, { headers });
+    // If token comes back as expired, refresh the token and make api call again
+    if (response.data.message === 'Access token expired') {
+      user = await protectPage(accessToken, refreshToken);
+      // If the access token or refresh token are unlegit, then return.
+      if (!user) {
+        console.log('Please log in again.');
+        history.push('/login');
+      } else {
+        // overwrite response with the new access token.
+        let newAccessToken = localStorage.getItem('accessToken');
+        headers = {
+          authorization: `Bearer ${newAccessToken}`
+        };
+        response = await api.get(`/store/${store_id}`, { headers });
+      }
+    }
+
+    setIsClockedIn(user.clockedIn);
+
+    // Else we know at this point, the user's token is verified
+    // Set our store data to be displayed
+    setStoreData(response.data);  
+
+
+    // Set our donut chart data
+    const vacantSpots = response.data.maxOccupants - response.data.currentCount;
+    donutOptions = {
+      datasets: [{
+        // data: [20, 40], //0a6096
+        data: [response.data.currentCount, vacantSpots],
+        backgroundColor: ['#0a6096', '#b2b8c2'],
+        hoverBorderColor: ['#000000', 'grey'],
+        hoverBorderWidth: 2,
+        borderWidth: 3
+      }],
+      labels: ['Customers Present', 'Vacant Spots']
+    };
+    setDonutData(donutOptions);
+    setDisplayContent(true);
+              
+
+
+    /**        BUSINESS HOURS VALIDATION CHECKS           ***/
+    // Convert business hours to an array of objects
+    const businessHours = Object.keys(response.data.businessHours).map(key => {
+      return response.data.businessHours[key];
+    });
+
+    const currentTime = new Date();
+    const today = currentTime.getDay();
+    const businessDay = businessHours[today];
+    setCloseTime(businessDay.close);
+    let currentHour = parseInt(currentTime.getHours());
+    let currentMins = parseInt(currentTime.getMinutes());
+    let businessHoursMins = businessDay.open.split(':');
+    let businessOpenHours = parseInt(businessHoursMins[0]);
+    let businessOpenMins = parseInt(businessHoursMins[1]);
+    businessHoursMins = businessDay.close.split(':');
+    let businessCloseHours = parseInt(businessHoursMins[0]);
+    let businessCloseMins = parseInt(businessHoursMins[1]);
+
+    // When a business opens during the day and closes after midnight add 23 hours to closeHours
+    if (businessOpenHours > businessCloseHours) {
+      if ( (currentHour >= 0) && (currentHour <= businessCloseHours) ) {
+        currentHour += 23;
+      }
+      businessCloseHours += 23;
+    }
+
+    // If currentHour is within the CLOSING hour, ensure current time is not too LATE
+    if (currentHour === businessCloseHours) {
+      if (currentMins > businessCloseMins) {
+        setOpenCloseStatus('closed');
+      }
+    }
+      
+    // If currentHour is within the OPENING hour, ensure current time is not too EARLY
+    if (currentHour === businessOpenHours) {
+      if (currentMins < businessOpenMins) {
+        setOpenCloseStatus('closed');
+      }
+    }
+      
+    // Ensure current time is not too early
+    if ( (currentHour !== 0) && (currentHour < businessOpenHours)) {
+      setOpenCloseStatus('closed');
+    }
+            
+    // Ensure current time is not too late
+    if ( (businessCloseHours !== 0) && (currentHour > businessCloseHours) ) {
+      setOpenCloseStatus('closed');
+    }
+
+    // Ensure the store is open
+    if (!businessDay.open) {
+      setOpenCloseStatus('closed');
+    }  
+
+    if (response.data.open24hours) {
+      setOpenCloseStatus('open');
+    }
+
+    /**        END            ***/
+
+
+    /********************Validation checks for employee view********************/
+    if (user.role !== 'employee' && user.role !== 'manager' && user.role !== 'owner' ) {
+      return;
+    }
+    // Get store's company_id
+    const storeCompany_id = response.data.company_id;
+
+    // If the user's business_id does not mach store_id or company_id then return.
+    if (user.business_id === store_id || user.business_id === storeCompany_id) {
+      setEmployeeStatus(true);
+    } else {
+      return; 
+    }
+    /*******************     END       **************** */
+
+    //set our search data
+    setSearchData(await getStoreVisits());
+
+  }
 
   // Function to format 24 hour time to 12 hour
   function formatTime(time) {
@@ -382,15 +400,17 @@ function Dashboard() {
       setTimeout(() => {
         setDeleteAlert('');
       }, 2000);
-
+      
+      setSelectedVisit('');
       setShow(false);
       response = await getStoreVisits();
       setSearchData(response);
       // Sleep function
       await delay(1500);
 
-      window.location.reload(false);
+      await refreshPageData();
 
+      // window.location.reload(false);
     } catch (error) {
       history.push('/login');
       console.log(error);
@@ -572,9 +592,13 @@ function VisitSearchBar({
   setModalMessage }) {
   return (
     <div>
+      {selectedVisit &&
+        <h6 className='selectedVisit'>Visit selected:<br/><strong> {selectedVisit}</strong></h6>
+      }
       <h5>Today&apos;s Visits</h5>
-      <h6 className='selectedVisit'><strong>{selectedVisit}</strong></h6>
       <Select
+        key={`unique_select_key_${selectedVisit}`}
+        value={selectedVisit || ''}
         classname="searchBar"
         styles={customStyles}
         options={searchData}
@@ -643,7 +667,7 @@ VisitSearchBar.propTypes = {
   searchData: PropTypes.array.isRequired,
   selectedVisit: PropTypes.string,
   setSelectedVisit: PropTypes.func.isRequired,
-  confirmVisitHandler: PropTypes.func.isRequired,
+  confirmVisitHandler: PropTypes.func,
   errorMessage: PropTypes.string.isRequired,
   handleShow: PropTypes.func.isRequired,
   setRunFunc: PropTypes.func.isRequired,
