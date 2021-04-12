@@ -327,7 +327,7 @@ function ScheduleVisit() {
           }
           // Check if user has already scheduled for the same day
           if (visitUser === user_id && visitYear === scheduledYear && visitMonth === scheduledMonth && visitDay === scheduledDay) {
-            errorAlert = 'Sorry, but you can only schedule a visit once per day. You can cancel your visit in \'My visits\'';
+            errorAlert = 'Sorry, but you can only schedule a visit once per day. You can cancel your visit in \'My visits\' below';
           }
         }
       }
@@ -443,6 +443,11 @@ function ScheduleVisit() {
     history.push('/dashboard');
   }
 
+  
+  function goToMyVisits() {
+    history.push('/myvisits');
+  }
+
 
   return (
     <Container>
@@ -475,14 +480,19 @@ function ScheduleVisit() {
 
         {errorMessage ? (
         /* ^ is a ternary operator: Is party amount > 0? If no, then display the alert */
-          <Alert className="alertBox" variant='warning'>
+          <Alert className="alertBox myVisits" variant='warning'>
             {errorMessage}
           </Alert>
         ): ''}
         
-        <button className="submit-btn dashboard" onClick={goToDashboard}>
-          ← Back to Dashboard
+        <button className="submit-btn myVisits" onClick={goToMyVisits}>
+          ← My Visits
         </button>
+        <br/>
+        <button className="submit-btn myVisitsDash" onClick={goToDashboard}>
+          ← Dashboard
+        </button>
+
         
 
       </div>

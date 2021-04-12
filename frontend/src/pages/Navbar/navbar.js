@@ -149,18 +149,18 @@ function NavigationBar() {
           <Nav.Link href="/visit/schedule">Schedule a visit</Nav.Link>
           <Nav.Link href="/findstore">Select a store</Nav.Link>
           <NavDropdown title="Account" id="collasible-nav-dropdown">
-            {userRole === 'owner' ? 
-              <NavDropdown.Item href="/store/create">Create a store</NavDropdown.Item>
-              : 
-              <NavDropdown.Item href="/company/create">Create a store</NavDropdown.Item>
-            }
             {(userRole === 'owner' || userRole === 'manager') ? 
               <NavDropdown.Item href="/employees">Employees</NavDropdown.Item>
               :
               '' 
             }
             <NavDropdown.Divider />
-            <NavDropdown.Item href="#action/3.4">Settings</NavDropdown.Item>
+            {userRole === 'owner' ? 
+              <NavDropdown.Item href="/store/create">Create a store</NavDropdown.Item>
+              : 
+              <NavDropdown.Item href="/company/create">Create a store</NavDropdown.Item>
+            }
+            {/* <NavDropdown.Item href="#action/3.4">Settings</NavDropdown.Item> */}
           </NavDropdown>
         </Nav>
         {/* <Nav>
