@@ -16,7 +16,7 @@ import {
 function ScheduleVisit() {
   let history = useHistory();
   const [maxPartyAmount, setMaxPartyAmount] = useState(0);
-  const [partyAmount, setPartyAmount] = useState(0);
+  const [partyAmount, setPartyAmount] = useState('');
   const [avgVisitLength, setAvgVisitLength] = useState(0);
   const [errorMessage, setErrorMessage] = useState(false);
   // Date of visit inluding the day and time
@@ -261,11 +261,13 @@ function ScheduleVisit() {
       let errorAlert = '';
 
       // Last validation checks of party size
-      if (partyAmount <= 0) {
-        errorAlert = 'Please enter the number of members in your visiting party.';
-      } else if (isNaN(partyAmount)) {
-        errorAlert = 'Please enter a valid number for your party.';
-      } else if (partyAmount > maxPartyAmount) {
+      const isInt = /^\d+$/.test(partyAmount);
+
+      const amount = parseInt(partyAmount);
+
+      if (!isInt || amount <= 0) {
+        errorAlert = 'Please enter a only digits greater than 0.';
+      } else if (amount > maxPartyAmount) {
         errorAlert = 'The maximum allowed members in a party is ' + maxPartyAmount;
       } else if (scheduledMins < currentMins) { // If the scheduled time is not ahead of current time + avgVisitLength + 15 mins
         errorAlert = 'Visits must be scheduled at least ' + (avgVisitLength + 15) + ' minutes from now';
@@ -538,7 +540,7 @@ function VisitContent({
       <p>Maximum party size allowed: <strong>{maxPartyAmount}</strong></p>
       <Form.Group controlId="formPartyNumber">
         <Form.Label>Total number of members in your party <strong>(including you)</strong></Form.Label>
-        <Form.Control className='scheduleVisit-input' type="text" onChange = {evt => setPartyAmount(parseInt(evt.target.value))}/>
+        <Form.Control className='scheduleVisit-input' type="text" onChange = {evt => setPartyAmount(evt.target.value)}/>
       </Form.Group>
       <Button className="secondary-btn myVisits" onClick={handleSubmit}>
         Schedule Visit

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Doughnut } from 'react-chartjs-2';
-import { Container, Button, Modal, Alert } from 'react-bootstrap';
+import { Container, Button, Modal, Alert, Form } from 'react-bootstrap';
 import Select from 'react-select';
 import './dashboard.css';
 import PropTypes from 'prop-types';
@@ -23,6 +23,7 @@ function Dashboard() {
   const [displayContent, setDisplayContent] = useState(false);
   // allows user to see employee content
   const [employeeStatus, setEmployeeStatus] = useState(false);
+  const [employeeRole, setEmployeeRole] = useState('');
   // is user clocked in or not?
   const [isClockedIn, setIsClockedIn] = useState(false);
   // Data for visit searchbar
@@ -42,6 +43,9 @@ function Dashboard() {
   const [modalMessage, setModalMessage] = useState('');
   const refreshToken = localStorage.getItem('refreshToken');
   const store_id = localStorage.getItem('store');
+  const [occupancyChangeValue, setOccupancyChangeValue] = useState(0);
+  const [amountError, setAmountError] = useState('');
+  const [occupancySuccess, setOccupancySuccess] = useState('');
 
   let donutOptions;
 
@@ -266,6 +270,7 @@ function Dashboard() {
     // If the user's business_id does not mach store_id or company_id then return.
     if (user.business_id === store_id || user.business_id === storeCompany_id) {
       setEmployeeStatus(true);
+      setEmployeeRole(user.role);
     } else {
       return; 
     }
@@ -312,46 +317,51 @@ function Dashboard() {
       clockInOut = '/clockIn';
     }
 
-    let accessToken = localStorage.getItem('accessToken');
-    const user = await protectPage(accessToken, refreshToken);
-    const user_id = user._id;
-
-    // Clock user in or out
-    let headers = {
-      authorization: `Bearer ${accessToken}`
-    };
-    let getUser = await api.post(clockInOut, {user_id}, { headers });
-
-    // If token comes back as expired, refresh the token and make api call again
-    if (getUser.data.message === 'Access token expired') {
+    try {
+      let accessToken = localStorage.getItem('accessToken');
       const user = await protectPage(accessToken, refreshToken);
-      // If the access token or refresh token are unlegit, then return.
-      if (!user) {
-        console.log('no user!');
-        history.push('/login');
-      } else {
-        // overwrite storeList with the new access token.
-        let newAccessToken = localStorage.getItem('accessToken');
-        headers = {
-          authorization: `Bearer ${newAccessToken}`
-        };
-        getUser = await api.post(clockInOut, {user_id}, { headers });
+      const user_id = user._id;
+  
+      // Clock user in or out
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+      let getUser = await api.post(clockInOut, {user_id}, { headers });
+  
+      // If token comes back as expired, refresh the token and make api call again
+      if (getUser.data.message === 'Access token expired') {
+        const user = await protectPage(accessToken, refreshToken);
+        // If the access token or refresh token are unlegit, then return.
+        if (!user) {
+          console.log('no user!');
+          history.push('/login');
+        } else {
+          // overwrite storeList with the new access token.
+          let newAccessToken = localStorage.getItem('accessToken');
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          getUser = await api.post(clockInOut, {user_id}, { headers });
+        }
       }
+  
+      // Refresh our user's token so that their clockIn status is updated in localstorage
+      await refresh(refreshToken);
+          
+      if (getUser) {
+        if (clockInOut === '/clockIn') {
+          setIsClockedIn(true);
+        } else if (clockInOut === '/clockOut') {
+          setIsClockedIn(true);
+        }  
+        setShow(false);
+      } 
+      // refresh page
+      window.location.reload(false);
+      
+    } catch (error) {
+      console.log('err in handle clock in and out');
     }
-
-    // Refresh our user's token so that their clockIn status is updated in localstorage
-    await refresh(refreshToken);
-        
-    if (getUser) {
-      if (clockInOut === '/clockIn') {
-        setIsClockedIn(true);
-      } else if (clockInOut === '/clockOut') {
-        setIsClockedIn(true);
-      }  
-      setShow(false);
-    } 
-    // refresh page
-    window.location.reload(false);
   }
 
 
@@ -428,9 +438,97 @@ function Dashboard() {
     } else if (runFunc === 'confirmVisitHandler') {
       console.log('running removeEmployee');
       await confirmVisitHandler();
+    } else if (runFunc === 'changeOccupancy') {
+
+      if (occupancyChangeValue === 0) {
+        setAmountError('Please enter a valid amount.');
+        setTimeout(() => {
+          setAmountError('');
+        }, 15000);
+        handleClose();
+        return;
+      }
+
+      if (occupancyChangeValue > storeData.maxPartyAllowed) {
+        setAmountError('This amount goes over the max party allowed to enter, which is ' + storeData.maxPartyAllowed + '. The customers must lower their party size or enter with separate sized parties.');
+        setTimeout(() => {
+          setAmountError('');
+        }, 15000);
+        handleClose();
+        return;
+      }
+
+      if (occupancyChangeValue > 0) {
+        if ((storeData.currentCount + occupancyChangeValue) > storeData.maxOccupants) {
+          setAmountError('Occupancy would overflow, please have the customer the join queue.');
+          setTimeout(() => {
+            setAmountError('');
+          }, 9000);
+          handleClose();
+          return;
+        } else {
+          await changeOccupancy();
+        }
+      }
+
+      if (occupancyChangeValue < 0) {
+        if (storeData.currentCount - occupancyChangeValue < 0) {
+          setAmountError('Current occupancy cannot be less than zero. Please enter a different amount');
+          setTimeout(() => {
+            setAmountError('');
+          }, 9000);
+          handleClose();
+          return;
+        } else {
+          await changeOccupancy();
+        }
+      }
     }
+
   }
 
+
+  async function changeOccupancy() {
+    let accessToken = localStorage.getItem('accessToken');
+
+
+    // Clock user in or out
+    let headers = {
+      authorization: `Bearer ${accessToken}`
+    };
+
+    console.log('amount:' + occupancyChangeValue);
+    
+    let getStore = await api.post('/changeCount', { store_id, 'amount': occupancyChangeValue }, { headers });
+
+    // If token comes back as expired, refresh the token and make api call again
+    if (getStore.data.message === 'Access token expired') {
+      const user = await protectPage(accessToken, refreshToken);
+      // If the access token or refresh token are unlegit, then return.
+      if (!user) {
+        console.log('no user!');
+        history.push('/login');
+      } else {
+        // overwrite storeList with the new access token.
+        let newAccessToken = localStorage.getItem('accessToken');
+        headers = {
+          authorization: `Bearer ${newAccessToken}`
+        };
+        getStore = await api.post('/changeCount', { store_id, 'amount': occupancyChangeValue }, { headers });
+      }
+    }
+
+    // Set our delete alert for 5 seconds
+    setOccupancySuccess('Occupancy changed.');
+    setTimeout(() => {
+      setOccupancySuccess('');
+    }, 1500);
+
+    setShow(false);
+ 
+    // refresh page
+    await refreshPageData();
+  }
 
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
@@ -465,6 +563,8 @@ function Dashboard() {
           donutData={donutData}
           formatTime={formatTime}
           refreshPageData={refreshPageData}
+          isClockedIn={isClockedIn}
+          employeeStatus={employeeStatus}
         />
         }
 
@@ -481,9 +581,13 @@ function Dashboard() {
           setRunFunc={setRunFunc}
           setModalTitle={setModalTitle}
           setModalMessage={setModalMessage}
+          setOccupancyChangeValue={setOccupancyChangeValue}
+          occupancyChangeValue={occupancyChangeValue}
+          amountError={amountError}
+          occupancySuccess={occupancySuccess}
+          employeeRole={employeeRole}
         />
         }
-
       </div>
 
     </Container>
@@ -498,7 +602,9 @@ function DashboardContent({
   closeTime,
   donutData,
   formatTime,
-  refreshPageData
+  employeeRole,
+  isClockedIn,
+  employeeStatus
 }) {
   // Here we can define state variables that will only be used by this component
 
@@ -510,12 +616,22 @@ function DashboardContent({
       {closeTime && 
         <h5 className='closesAt'> Closes at <strong>{formatTime(closeTime)} today</strong></h5>
       }
+      { employeeRole === 'manager' || employeeRole === 'owner' ? 
+        <button className="submit-btn dashEmployees" onClick={() => history.push('/employees')}>← View Employees</button>
+        :
+        ''
+      }
       <h5 className="currentCapacity">Current occupancy: <strong>{storeData.currentCount}</strong>/{storeData.maxOccupants}</h5>
       <h2><strong>{Math.floor((storeData.currentCount / storeData.maxOccupants) * 100) }%</strong></h2>
       <Doughnut data = {donutData} />
-      <Button className="refresh-btn" onClick={() => refreshPageData()}>
+
+      { isClockedIn && employeeStatus ?
+        ''
+        :
+        <Button className="refresh-btn" onClick={() => window.location.reload(false)}>
         Refresh
-      </Button>
+        </Button>
+      }
     </div>
   );
 }
@@ -534,16 +650,60 @@ function EmployeeContent({
   handleShow,
   setRunFunc,
   setModalTitle,
-  setModalMessage }) {
+  setModalMessage,
+  setOccupancyChangeValue,
+  occupancyChangeValue,
+  amountError,
+  occupancySuccess
+}) {
   // Here we can define state variables that will only be used by this component
-
   return (
     <div>
+
       { isClockedIn ? 
-        <Button className="clockOut-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock out?'); setModalMessage('Are you sure you want to clock out?'); handleShow();}}>Clock Out?</Button>
-        :
-        <Button className="clockIn-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock in?'); setModalMessage('Are you sure you want to clock in?'); handleShow();}}>Clock In?</Button>
+        <h5 className='dash-h5'>Change occupancy</h5> : ''
       }
+
+      { isClockedIn ?
+        <button className='submit-btn decreaseCount' onClick={() => { setOccupancyChangeValue(prevCount => prevCount-1); }}>
+          -
+        </button> : ''
+      }
+
+      { isClockedIn ?
+        <Form.Control className='dashboard-amount' type="number" placeholder={occupancyChangeValue} readOnly onChange={evt => setOccupancyChangeValue(evt.target.value)}/> : ''
+      }
+
+      { isClockedIn ?
+        <button className='submit-btn increaseCount' onClick={() => { setOccupancyChangeValue(prevCount => prevCount+1); }}>
+          +
+        </button> : ''
+      }
+
+      <br/>
+
+      { isClockedIn ? 
+        <button className='secondary-btn changeOccupancy' onClick={() => { setRunFunc('changeOccupancy'); setModalTitle('Change occupancy by ' + occupancyChangeValue + ' ?'); setModalMessage('Are you sure?'); handleShow();} }>
+          Confirm
+        </button>
+        :
+        ''
+      }
+
+
+      { amountError ? (
+      /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+        <Alert className="alertBox amountError" variant='warning'>
+          {amountError}
+        </Alert>
+      ): ''}
+
+      { occupancySuccess ? (
+      /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+        <Alert className="alertBox occupancySuccess" variant='success'>
+          {occupancySuccess}
+        </Alert>
+      ): ''}
 
       { isClockedIn ?
         <VisitSearchBar 
@@ -560,6 +720,21 @@ function EmployeeContent({
         :
         ''
       }
+
+      <br/>
+
+      { isClockedIn ?
+        '' 
+        :
+        <p>Clock in below to switch views.</p>
+      }
+
+      { isClockedIn ? 
+        <Button className="clockOut-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock out?'); setModalMessage('Are you sure you want to clock out?'); handleShow();}}>Clock Out?</Button>
+        :
+        <Button className="clockIn-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock in?'); setModalMessage('Are you sure you want to clock in?'); handleShow();}}>Clock In?</Button>
+      }
+
     </div>
   );
 }
@@ -651,7 +826,10 @@ DashboardContent.propTypes = {
   closeTime: PropTypes.string.isRequired,
   donutData: PropTypes.object.isRequired,
   formatTime: PropTypes.func.isRequired,
-  refreshPageData: PropTypes.func.isRequired
+  refreshPageData: PropTypes.func.isRequired,
+  employeeRole: PropTypes.string,
+  isClockedIn: PropTypes.bool.isRequired,
+  employeeStatus: PropTypes.bool.isRequired
 };
 
 
@@ -667,9 +845,12 @@ EmployeeContent.propTypes = {
   setSelectedVisit: PropTypes.func.isRequired,
   confirmVisitHandler: PropTypes.func.isRequired,
   errorMessage: PropTypes.string.isRequired,
-
+  setOccupancyChangeValue: PropTypes.func.isRequired,
+  occupancyChangeValue: PropTypes.number.isRequired,
+  amountError: PropTypes.string.isRequired,
+  occupancySuccess: PropTypes.string.isRequired,
+  employeeRole: PropTypes.string.isRequired
 };
-
 
 VisitSearchBar.propTypes = {
   deleteAlert: PropTypes.string.isRequired,
