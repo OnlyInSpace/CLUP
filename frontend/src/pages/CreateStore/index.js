@@ -22,9 +22,9 @@ import {
 function CreateStore() {
   let history = useHistory();
   const [storeName, setStoreName] = useState('');
-  const [maxOccupants, setMaxOccupants] = useState(0);
-  const [maxPartyAllowed, setMaxPartyAllowed] = useState(0);
-  const [avgVisitLength, setAvgVisitLength] = useState(0);
+  const [maxOccupants, setMaxOccupants] = useState('');
+  const [maxPartyAllowed, setMaxPartyAllowed] = useState('');
+  const [avgVisitLength, setAvgVisitLength] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [address1, setAddress1] = useState('');
@@ -97,40 +97,89 @@ function CreateStore() {
     evt.preventDefault();
     try {
 
-      if (maxPartyAllowed > maxOccupants) {
-        setErrorMessage('The max party allowed cannot exceed total occupancy.');
+      const isMaxParty = /^\d+$/.test(maxPartyAllowed);
+      const isMaxOccupants = /^\d+$/.test(maxOccupants);
+      const isPostalCode = /^\d+$/.test(postalCode);
+      const isAvgVisitLength = /^\d+$/.test(avgVisitLength);
+
+      
+      if (!storeName || !maxOccupants || !maxPartyAllowed || !city || !state || !address1 || !postalCode || !avgVisitLength) {
+        setErrorMessage('Missing required information.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
         return;
-      } else if (sunday && (!openSun || !closeSun )) {
+      }
+      
+      if (!isMaxParty || !isMaxOccupants || !isPostalCode || !isAvgVisitLength) {
+        setErrorMessage('Please make sure to enter only digits in the number fields.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
+        return;
+      }
+
+      if (sunday && (!openSun || !closeSun )) {
         setErrorMessage('Sunday open/close time missing.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
         return;
       } else if (monday && (!openMon || !closeMon )) {
         setErrorMessage('Monday open/close time missing.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
         return;
       } else if (tuesday && (!openTues || !closeTues )) {
         setErrorMessage('Tuesday open/close time missing.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
         return;
       } else if (wednesday && (!openWed || !closeWed )) {
         setErrorMessage('Wednesday open/close time missing.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
         return;
       } else if (thursday && (!openThurs || !closeThurs )) {
         setErrorMessage('Thursday open/close time missing.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
         return;
       } else if (friday && (!openFri || !closeFri )) {
         setErrorMessage('Friday open/close time missing.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
         return;
       } else if (saturday && (!openSat || !closeSat )) {
         setErrorMessage('Saturday open/close time missing.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
         return;
-      } else if (maxPartyAllowed < 0 || postalCode < 0 || avgVisitLength < 0) {
-        setErrorMessage('Invalid negative value.');
-        return;
-      } else if (isNaN(maxOccupants) || isNaN(maxPartyAllowed) || isNaN(avgVisitLength) || isNaN(postalCode)) {
-        setErrorMessage('Please enter only numbers for the fields that require it.');
-        return;
-      } else if (!storeName || !maxOccupants || !maxPartyAllowed || !city || !state || !address1 || !postalCode || !avgVisitLength) {
-        setErrorMessage('Missing required information.');
       } else if (!sunday && !monday && !tuesday && !wednesday && !thursday && !friday && !saturday && !open24hours) {
         setErrorMessage('Please define business hours for your store.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
+        return;
+      }
+
+      const maxPartyNum = parseInt(maxPartyAllowed);
+      const maxOccupantsNum = parseInt(maxOccupants);
+      const postalCodeNum = parseInt(postalCode);
+      const avgVisitLengthNum = parseInt(avgVisitLength);
+
+      if (maxPartyNum > maxOccupantsNum) {
+        setErrorMessage('The max party allowed cannot exceed total occupancy.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
+        return;
       } else {
         let accessToken = localStorage.getItem('accessToken');
 
@@ -203,8 +252,8 @@ function CreateStore() {
           } 
         };
 
-        const location = {city, state, address1, address2, postalCode};
-        response = await api.post('/store/create', { company_id, storeName, location, maxOccupants, maxPartyAllowed, avgVisitLength, open24hours, businessHours }, { headers });
+        const location = {city, state, address1, address2, 'postalCode': postalCodeNum};
+        response = await api.post('/store/create', { company_id, storeName, location, 'maxOccupants': maxOccupantsNum, 'maxPartyAllowed': maxPartyNum, 'avgVisitLength': avgVisitLengthNum, open24hours, businessHours }, { headers });
 
         // If token comes back as expired, refresh the token and make api call again
         if (response.data.message === 'Access token expired') {
@@ -219,7 +268,7 @@ function CreateStore() {
             headers = {
               authorization: `Bearer ${newAccessToken}`
             };
-            response = await api.post('/store/create', { company_id, storeName, location, maxOccupants, maxPartyAllowed, avgVisitLength, open24hours, businessHours }, { headers });
+            response = await api.post('/store/create', { company_id, storeName, location, 'maxOccupants': maxOccupantsNum, 'maxPartyAllowed': maxPartyNum, 'avgVisitLength': avgVisitLengthNum, open24hours, businessHours }, { headers });
           }
         }
 
@@ -229,8 +278,8 @@ function CreateStore() {
         localStorage.setItem('store', store_id);
 
         if (store_id) {
-          setSuccessAlert('Store created!');
-          await delay(2000);
+          setSuccessAlert('Store created! You are being redirected.');
+          await delay(3000);
           history.push('/dashboard');
         } else {
           setErrorMessage('This store already exists.');
@@ -360,19 +409,19 @@ function CreateStoreContent({
 
       <Form.Group>
         <Form.Label className='labels'>Postal Code (Numbers only)</Form.Label>
-        <Form.Control placeholder='Postal code' type='text' onChange = {evt => setPostalCode(evt.target.value)}/>
+        <Form.Control placeholder='Number' type='text' onChange = {evt => setPostalCode(evt.target.value)}/>
       </Form.Group>
       <Form.Group controlId="formMaxOccupants">
         <Form.Label className='labels'>Maximum number of occupants allowed</Form.Label>
-        <Form.Control type='text' placeholder="Number" onChange={evt => setMaxOccupants(parseInt(evt.target.value))}/>
+        <Form.Control type='text' placeholder="Number" onChange={evt => setMaxOccupants(evt.target.value)}/>
       </Form.Group>
       <Form.Group controlId="formMaxPartyAllowed">
         <Form.Label className='labels'>Maximum number of customers allowed to visit in one group </Form.Label>
-        <Form.Control type='text' placeholder="Number" onChange={evt => setMaxPartyAllowed(parseInt(evt.target.value))}/>
+        <Form.Control type='text' placeholder="Number" onChange={evt => setMaxPartyAllowed(evt.target.value)}/>
       </Form.Group>
       <Form.Group controlId="formAvgLength">
         <Form.Label className='labels'>Average length of a customer&apos;s visit <br/>(in minutes)</Form.Label>
-        <Form.Control type='text' placeholder="Number" onChange={evt => setAvgVisitLength(parseInt(evt.target.value))} />
+        <Form.Control type='text' placeholder="Number" onChange={evt => setAvgVisitLength(evt.target.value)}/>
       </Form.Group>
 
 
@@ -431,9 +480,11 @@ function CreateStoreContent({
 
 
       <p>Note: <br/> All of these settings will be <strong>changeable</strong> after clicking the submit button.</p>
+
       <Button onClick={handleSubmit} className="secondary-btn">
         Create store
       </Button>
+      
       {errorMessage ? (
       /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
         <Alert className="alertBox" variant='warning'>

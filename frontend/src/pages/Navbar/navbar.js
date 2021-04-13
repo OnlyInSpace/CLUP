@@ -154,7 +154,11 @@ function NavigationBar() {
               :
               '' 
             }
-            <NavDropdown.Divider />
+            {(userRole === 'owner' || userRole === 'manager') ? 
+              <NavDropdown.Divider />
+              :
+              '' 
+            }
             {userRole === 'owner' ? 
               <NavDropdown.Item href="/store/create">Create a store</NavDropdown.Item>
               : 
