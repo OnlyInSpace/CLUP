@@ -206,6 +206,12 @@ function FindStore() {
         <p className='findStore-p2'><br></br>You can search via the store&apos;s name or its address like so: <br/><strong>101 Zoey St</strong> 
           <br></br><br></br>You can also view all supported stores in your city like so: <br/> <strong> MyCityName, TX</strong>
         </p>
+        <br/>
+
+        <p>Want setup your <strong>own store?</strong> Click below to begin.</p>
+        <button className="submit-btn find-createStore" onClick={() => history.push('/store/create')}>
+          Create a store
+        </button>
       </div>
     </Container>
   );

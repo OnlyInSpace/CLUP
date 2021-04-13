@@ -74,6 +74,9 @@ function CreateStore() {
       // Get user data and refresh token if needed.
       let user = await protectPage(accessToken, refreshToken);
 
+      if (user.role !== 'owner') {
+        history.push('/company/create');
+      }
       if (!user) {
         console.log('Please log in again.');
         // history.push('/login');

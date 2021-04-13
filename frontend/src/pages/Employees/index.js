@@ -57,6 +57,11 @@ function Employees() {
       let accessToken = localStorage.getItem('accessToken');
 
       const user = await protectPage(accessToken, refreshToken);
+
+      if (user.role !== 'manager' && user.role !== 'owner') {
+        history.push('/dashboard');
+      }
+      
       const company_id = user.business_id;
 
       let routeName = `/stores/${company_id}`;

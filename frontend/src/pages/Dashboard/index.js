@@ -449,15 +449,6 @@ function Dashboard() {
         return;
       }
 
-      if (occupancyChangeValue > storeData.maxPartyAllowed) {
-        setAmountError('This amount goes over the max party allowed to enter, which is ' + storeData.maxPartyAllowed + '. The customers must lower their party size or enter with separate sized parties.');
-        setTimeout(() => {
-          setAmountError('');
-        }, 15000);
-        handleClose();
-        return;
-      }
-
       if (occupancyChangeValue > 0) {
         if ((storeData.currentCount + occupancyChangeValue) > storeData.maxOccupants) {
           setAmountError('Occupancy would overflow, please have the customer the join queue.');
@@ -472,7 +463,7 @@ function Dashboard() {
       }
 
       if (occupancyChangeValue < 0) {
-        if (storeData.currentCount - occupancyChangeValue < 0) {
+        if (storeData.currentCount + occupancyChangeValue < 0) {
           setAmountError('Current occupancy cannot be less than zero. Please enter a different amount');
           setTimeout(() => {
             setAmountError('');
@@ -497,8 +488,6 @@ function Dashboard() {
       authorization: `Bearer ${accessToken}`
     };
 
-    console.log('amount:' + occupancyChangeValue);
-    
     let getStore = await api.post('/changeCount', { store_id, 'amount': occupancyChangeValue }, { headers });
 
     // If token comes back as expired, refresh the token and make api call again
@@ -522,7 +511,7 @@ function Dashboard() {
     setOccupancySuccess('Occupancy changed.');
     setTimeout(() => {
       setOccupancySuccess('');
-    }, 1500);
+    }, 1000);
 
     setShow(false);
  
@@ -565,6 +554,7 @@ function Dashboard() {
           refreshPageData={refreshPageData}
           isClockedIn={isClockedIn}
           employeeStatus={employeeStatus}
+          employeeRole={employeeRole}
         />
         }
 
@@ -607,6 +597,7 @@ function DashboardContent({
   employeeStatus
 }) {
   // Here we can define state variables that will only be used by this component
+  let history = useHistory();
 
   return (
     <div>
@@ -616,11 +607,13 @@ function DashboardContent({
       {closeTime && 
         <h5 className='closesAt'> Closes at <strong>{formatTime(closeTime)} today</strong></h5>
       }
-      { employeeRole === 'manager' || employeeRole === 'owner' ? 
+
+      { employeeStatus && employeeRole === 'manager' || employeeRole === 'owner' ? 
         <button className="submit-btn dashEmployees" onClick={() => history.push('/employees')}>← View Employees</button>
         :
         ''
       }
+
       <h5 className="currentCapacity">Current occupancy: <strong>{storeData.currentCount}</strong>/{storeData.maxOccupants}</h5>
       <h2><strong>{Math.floor((storeData.currentCount / storeData.maxOccupants) * 100) }%</strong></h2>
       <Doughnut data = {donutData} />
@@ -684,12 +677,19 @@ function EmployeeContent({
 
       { isClockedIn ? 
         <button className='secondary-btn changeOccupancy' onClick={() => { setRunFunc('changeOccupancy'); setModalTitle('Change occupancy by ' + occupancyChangeValue + ' ?'); setModalMessage('Are you sure?'); handleShow();} }>
-          Confirm
+          Change
         </button>
         :
         ''
       }
 
+
+      { occupancySuccess ? (
+      /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+        <Alert className="alertBox occupancySuccess" variant='success'>
+          {occupancySuccess}
+        </Alert>
+      ): ''}
 
       { amountError ? (
       /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
@@ -698,12 +698,6 @@ function EmployeeContent({
         </Alert>
       ): ''}
 
-      { occupancySuccess ? (
-      /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
-        <Alert className="alertBox occupancySuccess" variant='success'>
-          {occupancySuccess}
-        </Alert>
-      ): ''}
 
       { isClockedIn ?
         <VisitSearchBar 
