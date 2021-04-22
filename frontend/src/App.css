@@ -447,3 +447,9 @@ input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+
+.loadingText {
+    margin-top: 1em;
+    text-align: center;
+    color: white;
+}

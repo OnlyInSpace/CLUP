@@ -27,6 +27,7 @@ export const verifyAccess = async (acesssToken, refreshToken) => {
     // If the access token is expired, then go ahead and create a new access token with the refresh token
     if (response.data.message === 'Access token expired') { 
       const newAccessToken = await refresh(refreshToken);
+      if (!newAccessToken) return false;
       // Now that we have a new access token, let's verify the user and return the user
       return await verifyAccess(newAccessToken, refreshToken);
     }
