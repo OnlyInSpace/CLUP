@@ -237,6 +237,11 @@ function ScheduleVisit() {
     // Prevent default event when button is clicked
     evt.preventDefault();
     try {
+      if (!scheduledDate) {
+        setErrorMessage('Please select a day.');
+        return;
+      }
+
       // Return hours and minutes in an array (Split the 24 time form: 15:36 into [15,36])
       const hoursMinutes =scheduledTime.split(':');
       // Set our date hours and minutes
@@ -252,26 +257,30 @@ function ScheduleVisit() {
       // Validating the scheduled visit is scheduled within AT LEAST avgVisitLength + 15 mins
       let currentMins = Math.floor(Date.now() / 60000);
       // Add average visit time plus 15 minutes to current time so that we ensure user's have enough time to have a reserved spot.
-      currentMins += avgVisitLength;
-      currentMins += 15;
+      currentMins += avgVisitLength * 1.75;
       let scheduledMins = Math.floor(Date.parse(scheduledDate) / 60000);
 
 
       // VALIDATION CHECKS 
       let errorAlert = '';
-
+      console.log(scheduledDate);
+      
       // Last validation checks of party size
       const isInt = /^\d+$/.test(partyAmount);
-
+      
       const amount = parseInt(partyAmount);
-
+      
       if (!isInt || amount <= 0) {
-        errorAlert = 'Please enter a only digits greater than 0.';
+        setErrorMessage('Please enter your party amount.');
+        return;
       } else if (amount > maxPartyAmount) {
-        errorAlert = 'The maximum allowed members in a party is ' + maxPartyAmount;
+        setErrorMessage('The maximum allowed members in a party is ' + maxPartyAmount);
+        return;
       } else if (scheduledMins < currentMins) { // If the scheduled time is not ahead of current time + avgVisitLength + 15 mins
-        errorAlert = 'Visits must be scheduled at least ' + (avgVisitLength + 15) + ' minutes from now';
+        setErrorMessage('Visits must be scheduled at least ' + (avgVisitLength + 15) + ' minutes from now');
+        return;
       }
+
       
       const scheduledDay = scheduledDate.getDay();
       let scheduledHours, businessDay, businessHoursMins, businessOpenHours, businessOpenMins, businessCloseHours, businessCloseMins;
@@ -325,11 +334,13 @@ function ScheduleVisit() {
           
           // Check if someone else has already scheduled for that exact time
           if (visitYear === scheduledYear && visitMonth === scheduledMonth && visitDay === scheduledDay && visitHours === scheduledHours && visitMins === scheduledMins ) {
-            errorAlert = 'Sorry, but someone else has already scheduled for this slot.';
+            setErrorMessage('Sorry, but someone else has already scheduled for this slot.');
+            return;
           }
           // Check if user has already scheduled for the same day
           if (visitUser === user_id && visitYear === scheduledYear && visitMonth === scheduledMonth && visitDay === scheduledDay) {
-            errorAlert = 'Sorry, but you can only schedule a visit once per day. You can cancel your visit in \'My visits\' below';
+            setErrorMessage('Sorry, but you can only schedule a visit once per day. You can cancel your visit in \'My visits\' below');
+            return;
           }
         }
       }
@@ -375,19 +386,23 @@ function ScheduleVisit() {
       // If user is trying to schedule a visit within the CLOSING hour, ensure they aren't too LATE
       } else if ( !open24hours && scheduledHours === businessCloseHours) { 
         if (scheduledMins > businessCloseMins) {
-          errorAlert = 'Sorry, you can\'t schedule near closing time.';
+          setErrorMessage('Sorry, you can\'t schedule near closing time.');
+          return;
         }
       // If user is trying to schedule a visit within the OPENING hour, ensure they aren't too EARLY  
       } else if ( !open24hours && scheduledHours === businessOpenHours) {
         if (scheduledMins < businessOpenMins) {
-          errorAlert = storeName + ' is closed for the time you\'re trying to schedule';
+          setErrorMessage(storeName + ' is closed for the time you\'re trying to schedule');
+          return;
         }
       // Ensure scheduled time is not too early  
       } else if ( !open24hours && (scheduledHours !== 0) && (scheduledHours < businessOpenHours)) { 
-        errorAlert = storeName + ' is closed for the time you\'re trying to schedule';
+        setErrorMessage(storeName + ' is closed for the time you\'re trying to schedule');
+        return;
       // Ensure scheduled time is not too late  
       } else if ( !open24hours && (businessCloseHours !== 0) && (scheduledHours > businessCloseHours) ) { 
-        errorAlert = 'Sorry, you can\'t schedule near closing time or after business hours.';
+        setErrorMessage('Sorry, you can\'t schedule near closing time or after business hours.');
+        return;
       }
 
       console.log('businessCloseMins:', businessCloseMins);
@@ -563,6 +578,6 @@ VisitContent.propTypes = {
   scheduledTime: PropTypes.string.isRequired,
   setPartyAmount: PropTypes.func.isRequired,
   setScheduledDate: PropTypes.func.isRequired,
-  formattedTime: PropTypes.string.isRequired,
+  formattedTime: PropTypes.string,
   maxPartyAmount: PropTypes.number.isRequired
 };

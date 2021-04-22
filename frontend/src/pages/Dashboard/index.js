@@ -216,6 +216,12 @@ function Dashboard() {
     let businessCloseHours = parseInt(businessHoursMins[0]);
     let businessCloseMins = parseInt(businessHoursMins[1]);
 
+
+    console.log('open:', businessOpenHours);
+    console.log('close:', businessCloseHours);
+    console.log('current:', currentHour);
+
+
     // When a business opens during the day and closes after midnight add 23 hours to closeHours
     if (businessOpenHours > businessCloseHours) {
       if ( (currentHour >= 0) && (currentHour <= businessCloseHours) ) {
@@ -224,13 +230,19 @@ function Dashboard() {
       businessCloseHours += 23;
     }
 
+    if (businessOpenHours < businessCloseHours) {
+      if (currentHour > businessCloseHours || currentHour < businessOpenHours ) {
+        setOpenCloseStatus('closed');
+      }
+    }
+
     // If currentHour is within the CLOSING hour, ensure current time is not too LATE
     if (currentHour === businessCloseHours) {
       if (currentMins > businessCloseMins) {
         setOpenCloseStatus('closed');
       }
     }
-      
+
     // If currentHour is within the OPENING hour, ensure current time is not too EARLY
     if (currentHour === businessOpenHours) {
       if (currentMins < businessOpenMins) {
