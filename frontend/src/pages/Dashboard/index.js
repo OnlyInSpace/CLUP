@@ -576,6 +576,7 @@ function Dashboard() {
           amountError={amountError}
           occupancySuccess={occupancySuccess}
           employeeRole={employeeRole}
+          openCloseStatus={openCloseStatus}
         />
         }
       </div>
@@ -632,7 +633,6 @@ function DashboardContent({
 
 
 
-
 function EmployeeContent({
   searchData,
   setSelectedVisit,
@@ -647,7 +647,8 @@ function EmployeeContent({
   setOccupancyChangeValue,
   occupancyChangeValue,
   amountError,
-  occupancySuccess
+  occupancySuccess,
+  openCloseStatus
 }) {
   // Here we can define state variables that will only be used by this component
   return (
@@ -717,16 +718,22 @@ function EmployeeContent({
 
       <br/>
 
-      { isClockedIn ?
-        '' 
+      { openCloseStatus === 'open' ?
+        <p>Clock in/out below to switch views.</p>
         :
-        <p>Clock in below to switch views.</p>
+        ''
       }
 
-      { isClockedIn ? 
+      { isClockedIn && openCloseStatus === 'open' ? 
         <Button className="clockOut-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock out?'); setModalMessage('Are you sure you want to clock out?'); handleShow();}}>Clock Out?</Button>
         :
+        ''
+      }
+
+      { !isClockedIn && openCloseStatus === 'open' ? 
         <Button className="clockIn-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock in?'); setModalMessage('Are you sure you want to clock in?'); handleShow();}}>Clock In?</Button>
+        :
+        ''
       }
 
     </div>
@@ -843,8 +850,10 @@ EmployeeContent.propTypes = {
   occupancyChangeValue: PropTypes.number.isRequired,
   amountError: PropTypes.string.isRequired,
   occupancySuccess: PropTypes.string.isRequired,
-  employeeRole: PropTypes.string.isRequired
+  employeeRole: PropTypes.string.isRequired,
+  openCloseStatus: PropTypes.string.isRequired
 };
+
 
 VisitSearchBar.propTypes = {
   deleteAlert: PropTypes.string.isRequired,

@@ -4,7 +4,6 @@ import { Navbar, NavDropdown, Nav, Button, Form } from 'react-bootstrap';
 import './navbar.css';
 import { useHistory, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import jwt from 'jsonwebtoken';
 import api from '../../services/api';
 import auth from '../../services/auth';
 
@@ -40,8 +39,10 @@ function NavigationBar() {
 
       // Get user data and refresh token if needed.
       let user = await protectPage(accessToken, refreshToken);
+
       if (!user) {
         console.log('Please log in again.');
+        return;
       }   
 
 
@@ -95,15 +96,6 @@ function NavigationBar() {
 
   // If user does not have access or refresh token, then return nothing!
   if (!isAuth) {
-    return null;
-  }
-
-
-  let refToken = localStorage.getItem('refreshToken');
-  // Verify user has a refresh token
-  const decodeRefresh = jwt.decode(refToken);
-  // Prevent navbar from rendering if no tokens
-  if (!decodeRefresh) {
     return null;
   }
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { } from 'react';
 import Dashboard from './pages/Dashboard/';
 import Register from './pages/Register';
 import CreateCompany from './pages/CreateCompany';
@@ -8,12 +8,55 @@ import FindStore from './pages/FindStore';
 import MyVisits from './pages/MyVisits';
 import Navbar from './pages/Navbar/navbar';
 import Employees from './pages/Employees';
-import {BrowserRouter, Switch, Route} from 'react-router-dom';
+import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import Login from './pages/Login/';
 import LandingPage from './pages/LandingPage';
+// import {
+//   protectPage
+// } from './pages/verifyTokens/tokenFunctions';
+
 
 function Routes() {
+  // const [isAuth, setIsAuth] = useState(false);
+
+  // Verify user has a refresh token
+  // let isAuth = false;
+  // const [isAuth, setIsAuth] = useState(false);
+
+  // const accessToken = localStorage.getItem('accessToken');
+  // const refreshToken = localStorage.getItem('refreshToken');
+
+  // async function operation() {
+  //   return new Promise(function(resolve, reject) {
+  //     const user = protectPage(accessToken,refreshToken);
+  //     // may be a heavy db call or http request?
+  //     resolve(user); // successfully fill promise
+  //   });
+  // }
+
+  // async function makeCall() {
+  //   let user = await operation();
+  //   if (user) {
+  //     isAuth = true;
+  //   }
+  // }
+
+  // makeCall();
+
+  // (async () => {
+  //   if (accessToken && refreshToken) {
+  //     if (await protectPage(accessToken, refreshToken)) {
+  //       // isAuth = true;
+  //       setIsAuth(true);
+  //     }
+  //   }
+  // })();
+
+  // isAuth = true;
+
+  // console.log(isAuth);
+
   return(
     <BrowserRouter>
       <Navbar />
