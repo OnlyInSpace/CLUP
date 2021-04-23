@@ -1,5 +1,6 @@
 const Visit = require('../models/Visit');
 const User = require('../models/User');
+const Store = require('../models/Store');
 
 module.exports = {
   // Create an async event
@@ -41,12 +42,46 @@ module.exports = {
   async delete(req, res) {
     const { visitId } = req.params;
     try {
+      const visit = await Visit.findById(visitId);
+
+      // If visit is reserved, make sure to decrement reserved partyAmount
+      if ( visit.reserved ) {
+        await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'reservedCustomers': -visit.partyAmount}});
+      }
+      // delete visit
       await Visit.findByIdAndDelete(visitId);
       // 204 code: server succesfully fulfilled the request Delete
       return res.sendStatus(204);
             
     } catch (error) {
       return res.status(400).json({message: 'No visit found with that ID'});
+
+    }
+  },
+
+
+  // Confirm a visit
+  async confirmVisit(req, res) {
+    const { visitId } = req.params;
+    try {
+      const visit = await Visit.findById(visitId);
+
+      // If visit is reserved, make sure to decrement reserved partyAmount
+      if (visit.reserved ) {
+        // decrement reserved
+        await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'reservedCustomers': -visit.partyAmount}});
+        // increment store occupancy
+        await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'currentCount': visit.partyAmount}})
+        // delete visit 
+        await Visit.findByIdAndDelete(visitId);
+        return res.sendStatus(204);
+      } else {
+        console.log('VISIT NOT RESERVED!');
+        return res.json({message: 'Visit is not reserved.'});
+      }
+            
+    } catch (error) {
+      return res.status(400).json({message: 'Confirm visit error'});
 
     }
   },

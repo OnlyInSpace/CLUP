@@ -11,6 +11,11 @@ const Visit = require('./models/Visit');
 const Store = require('./models/Store');
 
 
+// Twilio setup
+const accountSid = 'AC0ea3fddea1f7c73c4c6e52f781faa95e'; 
+const authToken = '89db29b03877c0aadc1867cacf5103c5'; 
+const client = require('twilio')(accountSid, authToken); 
+
 
 // This line is needed for later deployment
 const PORT = process.env.PORT || 8000;
@@ -81,18 +86,33 @@ async function updateVisits(visit, currentTime) {
 
   // if time of visit is within avg visit length plus 15 minutes, then reserve user's party by incrementing current count by partyAmount
   if (timeDifference <= visitLengthOffset && !visit.reserved ) {
-    await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'currentCount': visit.partyAmount}});
+    await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'reservedCustomers': visit.partyAmount}});
     await Visit.findOneAndUpdate({_id: visit._id}, {'reserved': true});
   }
 
   // If timeOfVisit is -20 minutes or more late, then delete visit in database and unreserve the party
   if (timeDifference <= -20) {
-    await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'currentCount': -visit.partyAmount}});
+    await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'reservedCustomers': -visit.partyAmount}});
     await Visit.findByIdAndDelete(visit._id);
 
     console.log('late and deleted! Decrement of:', -visit.partyAmount);
   }
 }
+
+
+async function sendSMS(store, currentTime) {
+
+  console.log('sending message');
+  client.messages 
+  .create({ 
+      body: 'get trolled!!',  
+      messagingServiceSid: 'MGb2a42db17b3508e4802e24b44a94bcd3',      
+      to: '+18067303555' 
+  }) 
+  .then(message => console.log(message.sid)) 
+  .done();
+}
+
 
 // Listen for whatever PORT is set
 app.listen(PORT, () => {

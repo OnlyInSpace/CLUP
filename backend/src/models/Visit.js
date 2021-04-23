@@ -9,7 +9,10 @@ const VisitSchema = new mongoose.Schema({
   store: String,
   // User id tied to the visit
   user: String,
-  reserved: Boolean
+  reserved: {
+    type: Boolean,
+    default: false
+  }
 });
 
 module.exports = mongoose.model('Visit', VisitSchema);

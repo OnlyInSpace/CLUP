@@ -6,7 +6,6 @@ import Select from 'react-select';
 import './dashboard.css';
 import PropTypes from 'prop-types';
 import { withRouter, useHistory } from 'react-router-dom';
-import jwt from 'jsonwebtoken';
 import {
   refresh,
   protectPage
@@ -41,21 +40,40 @@ function Dashboard() {
   const [runFunc, setRunFunc] = useState(''); 
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
-  const refreshToken = localStorage.getItem('refreshToken');
-  const store_id = localStorage.getItem('store');
   const [occupancyChangeValue, setOccupancyChangeValue] = useState(0);
   const [amountError, setAmountError] = useState('');
   const [occupancySuccess, setOccupancySuccess] = useState('');
+  const [partyAmount, setPartyAmount] = useState('');
+  const [partyError, setPartyError] = useState('');
+  const [joinQueueAlert, setJoinQueueAlert] = useState('');
 
   let donutOptions;
+  const refreshToken = localStorage.getItem('refreshToken');
+  const store_id = localStorage.getItem('store');
 
   useEffect(async () => {
     try {
+      let log = 0;
       if (!store_id) {
         history.push('/findStore');
         return;
       }
       await refreshPageData();
+
+      // Ensure user has a store id
+      let accessToken = localStorage.getItem('accessToken');
+      let user = await protectPage(accessToken, refreshToken);
+      
+      const interval = setInterval(async () => {
+        if (user.clockedIn) {
+          log += 1;
+          console.log('refreshing data', log);
+          await refreshPageData();
+        }
+      }, 50000 );
+    
+      return () => clearInterval(interval);
+
     } catch (error) {
       console.log('response.data not found');
     }
@@ -141,155 +159,149 @@ function Dashboard() {
 
   // Fetch page data again
   async function refreshPageData() {
-    // Ensure user has a store id
-    let accessToken = localStorage.getItem('accessToken');
+    try {
+      // Ensure user has a store id
+      let accessToken = localStorage.getItem('accessToken');
+  
+      let user = await protectPage(accessToken, refreshToken);
+        
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+        // Get store object and verify the user's accessToken
+      let response = await api.get(`/store/${store_id}`, { headers });
+      // If token comes back as expired, refresh the token and make api call again
+      if (response.data.message === 'Access token expired') {
+        user = await protectPage(accessToken, refreshToken);
+        // If the access token or refresh token are unlegit, then return.
+        if (!user) {
+          console.log('Please log in again.');
+          history.push('/login');
+        } else {
+          // overwrite response with the new access token.
+          let newAccessToken = localStorage.getItem('accessToken');
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          response = await api.get(`/store/${store_id}`, { headers });
+        }
+      }
+  
+      setIsClockedIn(user.clockedIn);
+  
+      // Else we know at this point, the user's token is verified
+      // Set our store data to be displayed
+      setStoreData(response.data);  
 
-    let user = jwt.decode(accessToken);
-
-    if (!user) {
-      user = protectPage(accessToken, refreshToken);
-    }
-      
-    let headers = {
-      authorization: `Bearer ${accessToken}`
-    };
-      // Get store object and verify the user's accessToken
-    let response = await api.get(`/store/${store_id}`, { headers });
-    // If token comes back as expired, refresh the token and make api call again
-    if (response.data.message === 'Access token expired') {
-      user = await protectPage(accessToken, refreshToken);
-      // If the access token or refresh token are unlegit, then return.
-      if (!user) {
-        console.log('Please log in again.');
-        history.push('/login');
+      /********************Validation checks for employee view********************/
+      if (user.role !== 'employee' && user.role !== 'manager' && user.role !== 'owner' ) {
+        return;
+      }
+      // Get store's company_id
+      const storeCompany_id = response.data.company_id;
+      // If the user's business_id does not mach store_id or company_id then return.
+      if (user.business_id === store_id || user.business_id === storeCompany_id) {
+        setEmployeeStatus(true);
+        setEmployeeRole(user.role);
       } else {
-        // overwrite response with the new access token.
-        let newAccessToken = localStorage.getItem('accessToken');
-        headers = {
-          authorization: `Bearer ${newAccessToken}`
-        };
-        response = await api.get(`/store/${store_id}`, { headers });
+        return; 
       }
-    }
-
-    setIsClockedIn(user.clockedIn);
-
-    // Else we know at this point, the user's token is verified
-    // Set our store data to be displayed
-    setStoreData(response.data);  
-
-
-    // Set our donut chart data
-    const vacantSpots = response.data.maxOccupants - response.data.currentCount;
-    donutOptions = {
-      datasets: [{
-        // data: [20, 40], //0a6096
-        data: [response.data.currentCount, vacantSpots],
-        backgroundColor: ['#0a6096', '#b2b8c2'],
-        hoverBorderColor: ['#000000', 'grey'],
-        hoverBorderWidth: 2,
-        borderWidth: 3
-      }],
-      labels: ['Customers Present', 'Vacant Spots']
-    };
-    setDonutData(donutOptions);
-    setDisplayContent(true);
+      /*******************     END       **************** */
+        
+      //set our search data
+      setSearchData(await getStoreVisits());
+  
+  
+      // Set our donut chart data
+      const vacantSpots = response.data.maxOccupants - response.data.currentCount;
+      donutOptions = {
+        datasets: [{
+          // data: [20, 40], //0a6096
+          data: [response.data.currentCount, vacantSpots],
+          backgroundColor: ['#0a6096', '#b2b8c2'],
+          hoverBorderColor: ['#000000', 'grey'],
+          hoverBorderWidth: 2,
+          borderWidth: 3
+        }],
+        labels: ['Customers Present', 'Vacant Spots']
+      };
+      setDonutData(donutOptions);
+      setDisplayContent(true);
+                
+  
+  
+      /**        BUSINESS HOURS VALIDATION CHECKS           ***/
+      // Convert business hours to an array of objects
+      const businessHours = Object.keys(response.data.businessHours).map(key => {
+        return response.data.businessHours[key];
+      });
+  
+      const currentTime = new Date();
+      const today = currentTime.getDay();
+      const businessDay = businessHours[today];
+      setCloseTime(businessDay.close);
+      let currentHour = parseInt(currentTime.getHours());
+      let currentMins = parseInt(currentTime.getMinutes());
+      let businessHoursMins = businessDay.open.split(':');
+      let businessOpenHours = parseInt(businessHoursMins[0]);
+      let businessOpenMins = parseInt(businessHoursMins[1]);
+      businessHoursMins = businessDay.close.split(':');
+      let businessCloseHours = parseInt(businessHoursMins[0]);
+      let businessCloseMins = parseInt(businessHoursMins[1]);
+  
+  
+      // When a business opens during the day and closes after midnight add 23 hours to closeHours
+      if (businessOpenHours > businessCloseHours) {
+        if ( (currentHour >= 0) && (currentHour <= businessCloseHours) ) {
+          currentHour += 23;
+        }
+        businessCloseHours += 23;
+      }
+  
+      if (businessOpenHours < businessCloseHours) {
+        if (currentHour > businessCloseHours || currentHour < businessOpenHours ) {
+          setOpenCloseStatus('closed');
+        }
+      }
+  
+      // If currentHour is within the CLOSING hour, ensure current time is not too LATE
+      if (currentHour === businessCloseHours) {
+        if (currentMins > businessCloseMins) {
+          setOpenCloseStatus('closed');
+        }
+      }
+  
+      // If currentHour is within the OPENING hour, ensure current time is not too EARLY
+      if (currentHour === businessOpenHours) {
+        if (currentMins < businessOpenMins) {
+          setOpenCloseStatus('closed');
+        }
+      }
+        
+      // Ensure current time is not too early
+      if ( (currentHour !== 0) && (currentHour < businessOpenHours)) {
+        setOpenCloseStatus('closed');
+      }
               
-
-
-    /**        BUSINESS HOURS VALIDATION CHECKS           ***/
-    // Convert business hours to an array of objects
-    const businessHours = Object.keys(response.data.businessHours).map(key => {
-      return response.data.businessHours[key];
-    });
-
-    const currentTime = new Date();
-    const today = currentTime.getDay();
-    const businessDay = businessHours[today];
-    setCloseTime(businessDay.close);
-    let currentHour = parseInt(currentTime.getHours());
-    let currentMins = parseInt(currentTime.getMinutes());
-    let businessHoursMins = businessDay.open.split(':');
-    let businessOpenHours = parseInt(businessHoursMins[0]);
-    let businessOpenMins = parseInt(businessHoursMins[1]);
-    businessHoursMins = businessDay.close.split(':');
-    let businessCloseHours = parseInt(businessHoursMins[0]);
-    let businessCloseMins = parseInt(businessHoursMins[1]);
-
-
-    console.log('open:', businessOpenHours);
-    console.log('close:', businessCloseHours);
-    console.log('current:', currentHour);
-
-
-    // When a business opens during the day and closes after midnight add 23 hours to closeHours
-    if (businessOpenHours > businessCloseHours) {
-      if ( (currentHour >= 0) && (currentHour <= businessCloseHours) ) {
-        currentHour += 23;
-      }
-      businessCloseHours += 23;
-    }
-
-    if (businessOpenHours < businessCloseHours) {
-      if (currentHour > businessCloseHours || currentHour < businessOpenHours ) {
+      // Ensure current time is not too late
+      if ( (businessCloseHours !== 0) && (currentHour > businessCloseHours) ) {
         setOpenCloseStatus('closed');
       }
-    }
-
-    // If currentHour is within the CLOSING hour, ensure current time is not too LATE
-    if (currentHour === businessCloseHours) {
-      if (currentMins > businessCloseMins) {
+  
+      // Ensure the store is open
+      if (!businessDay.open) {
         setOpenCloseStatus('closed');
+      }  
+  
+      if (response.data.open24hours) {
+        setOpenCloseStatus('open');
       }
-    }
-
-    // If currentHour is within the OPENING hour, ensure current time is not too EARLY
-    if (currentHour === businessOpenHours) {
-      if (currentMins < businessOpenMins) {
-        setOpenCloseStatus('closed');
-      }
-    }
+  
+      /**        END            ***/
       
-    // Ensure current time is not too early
-    if ( (currentHour !== 0) && (currentHour < businessOpenHours)) {
-      setOpenCloseStatus('closed');
+    } catch (error) {
+      console.log('error in refreshPageData');
     }
-            
-    // Ensure current time is not too late
-    if ( (businessCloseHours !== 0) && (currentHour > businessCloseHours) ) {
-      setOpenCloseStatus('closed');
-    }
-
-    // Ensure the store is open
-    if (!businessDay.open) {
-      setOpenCloseStatus('closed');
-    }  
-
-    if (response.data.open24hours) {
-      setOpenCloseStatus('open');
-    }
-
-    /**        END            ***/
-
-
-    /********************Validation checks for employee view********************/
-    if (user.role !== 'employee' && user.role !== 'manager' && user.role !== 'owner' ) {
-      return;
-    }
-    // Get store's company_id
-    const storeCompany_id = response.data.company_id;
-
-    // If the user's business_id does not mach store_id or company_id then return.
-    if (user.business_id === store_id || user.business_id === storeCompany_id) {
-      setEmployeeStatus(true);
-      setEmployeeRole(user.role);
-    } else {
-      return; 
-    }
-    /*******************     END       **************** */
-
-    //set our search data
-    setSearchData(await getStoreVisits());
 
   }
 
@@ -399,7 +411,16 @@ function Dashboard() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      let response = await api.delete(`/myvisits/${visit_id}`, { headers });
+      let response = await api.delete(`/confirmVisit/${visit_id}`, { headers });
+
+      if (response.data.message === 'Visit is not reserved.') {
+        setErrorMessage('You cannot confirm a visit not yet reserved.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 3000);
+        return;
+      }
+
       // If token comes back as expired, refresh the token and make api call again
       if (response.data.message === 'Access token expired') {
         let user = await protectPage(accessToken, refreshToken);
@@ -413,7 +434,7 @@ function Dashboard() {
           headers = {
             authorization: `Bearer ${newAccessToken}`
           };
-          response = await api.delete(`/myvisits/${visit_id}`, { headers });
+          response = await api.delete(`/confirmVisit/${visit_id}`, { headers });
         }
       }
       
@@ -450,6 +471,9 @@ function Dashboard() {
     } else if (runFunc === 'confirmVisitHandler') {
       console.log('running removeEmployee');
       await confirmVisitHandler();
+    } else if (runFunc === 'joinQueue') {
+      console.log('running joinQueue');
+      await joinQueue();
     } else if (runFunc === 'changeOccupancy') {
 
       if (occupancyChangeValue === 0) {
@@ -531,6 +555,101 @@ function Dashboard() {
     await refreshPageData();
   }
 
+
+  async function joinQueue() {
+    try {
+      // Last validation checks of party size
+      const isInt = /^\d+$/.test(partyAmount);
+      const amount = parseInt(partyAmount);
+
+      if (!isInt || amount <= 0) {
+        setPartyError('Please a valid number.');
+        setTimeout(() => {
+          setPartyError('');
+        }, 5000);
+        handleClose();
+        return;
+      } else if (amount > storeData.maxPartyAllowed) {
+        setPartyError('Max party allowed is ' + storeData.maxPartyAllowed);
+        setTimeout(() => {
+          setPartyError('');
+        }, 5000);
+        handleClose();
+        return;
+      }
+
+      let accessToken = localStorage.getItem('accessToken');
+      let user = await protectPage(accessToken, refreshToken);
+  
+
+      let customer = {
+        user_id: user._id,
+        phoneNumber: user.phoneNumber,
+        partyAmount: partyAmount,
+        timesSkipped: 0,
+        date: Date.now()
+      };
+
+      console.log(customer);
+
+      // Clock user in or out
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+  
+      let joinQueue = await api.post('/queue/append', { customer, store_id }, { headers });
+
+      console.log('joinQueueData:', joinQueue.data);
+
+      if (joinQueue.data.message === 'User exists in queue.') {
+        setPartyError('You are already in the queue!');
+        setTimeout(() => {
+          setPartyError('');
+        }, 5000);
+        handleClose();
+        return;
+      }
+
+      // If token comes back as expired, refresh the token and make api call again
+      if (joinQueue.data.message === 'Access token expired') {
+        user = await protectPage(accessToken, refreshToken);
+        customer = {
+          user_id: user._id,
+          phoneNumber: user.phoneNumber,
+          partyAmount: partyAmount,
+          timesSkipped: 0
+        };
+        // If the access token or refresh token are unlegit, then return.
+        if (!user) {
+          console.log('no user!');
+          history.push('/login');
+        } else {
+          // overwrite storeList with the new access token.
+          let newAccessToken = localStorage.getItem('accessToken');
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          joinQueue = await api.post('/queue/append', { customer, store_id }, { headers });
+        }
+      }
+  
+      // Set our delete alert for 5 seconds
+      setJoinQueueAlert('You\'ve joined the queue!');
+      setTimeout(() => {
+        setJoinQueueAlert('');
+      }, 7000);
+  
+      handleClose();
+   
+      // refresh page
+      await refreshPageData();
+      
+    } catch (error) {
+      handleClose();
+      console.log('error in joinQueue');
+    }
+  }
+
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
     <Container>
@@ -553,7 +672,7 @@ function Dashboard() {
 
       <div className='content'>
         { !displayContent && 
-        <NoStoreID/>
+        <NoStoreID />
         }
 
         { displayContent && 
@@ -563,33 +682,39 @@ function Dashboard() {
           closeTime={closeTime}
           donutData={donutData}
           formatTime={formatTime}
-          refreshPageData={refreshPageData}
+          employeeRole={employeeRole}
           isClockedIn={isClockedIn}
           employeeStatus={employeeStatus}
-          employeeRole={employeeRole}
-        />
-        }
-
-        { employeeStatus &&
-        <EmployeeContent
-          searchData={searchData}
-          setSelectedVisit={setSelectedVisit}
-          selectedVisit={selectedVisit}
-          confirmVisitHandler={confirmVisitHandler}
-          errorMessage={errorMessage}
-          deleteAlert={deleteAlert}
-          isClockedIn={isClockedIn}
           handleShow={handleShow}
           setRunFunc={setRunFunc}
           setModalTitle={setModalTitle}
           setModalMessage={setModalMessage}
-          setOccupancyChangeValue={setOccupancyChangeValue}
-          occupancyChangeValue={occupancyChangeValue}
-          amountError={amountError}
-          occupancySuccess={occupancySuccess}
-          employeeRole={employeeRole}
-          openCloseStatus={openCloseStatus}
+          setPartyAmount={setPartyAmount}
+          partyError={partyError}
+          joinQueueAlert={joinQueueAlert}
         />
+        }
+
+        { employeeStatus && openCloseStatus === 'open' ?
+          <EmployeeContent
+            searchData={searchData}
+            setSelectedVisit={setSelectedVisit}
+            selectedVisit={selectedVisit}
+            errorMessage={errorMessage}
+            deleteAlert={deleteAlert}
+            isClockedIn={isClockedIn}
+            handleShow={handleShow}
+            setRunFunc={setRunFunc}
+            setModalTitle={setModalTitle}
+            setModalMessage={setModalMessage}
+            setOccupancyChangeValue={setOccupancyChangeValue}
+            occupancyChangeValue={occupancyChangeValue}
+            amountError={amountError}
+            occupancySuccess={occupancySuccess}
+            storeData={storeData}
+          />
+          :
+          ''
         }
       </div>
 
@@ -597,6 +722,7 @@ function Dashboard() {
   );
 }
 export default withRouter(Dashboard);
+
 
 
 function DashboardContent({
@@ -607,7 +733,14 @@ function DashboardContent({
   formatTime,
   employeeRole,
   isClockedIn,
-  employeeStatus
+  employeeStatus,
+  handleShow,
+  setRunFunc,
+  setModalTitle,
+  setModalMessage,
+  setPartyAmount,
+  partyError,
+  joinQueueAlert
 }) {
   // Here we can define state variables that will only be used by this component
   let history = useHistory();
@@ -617,7 +750,7 @@ function DashboardContent({
       <h2>{storeData.storeName}</h2>
       <h5 className='dashboardAddress'>{storeData.location.address1} {storeData.location.address2}</h5>
       <h5 className={openCloseStatus === 'open' ? 'dashboardOpen' : 'dashboardClosed'}>Currently <strong>{openCloseStatus}</strong></h5>
-      {closeTime && 
+      { closeTime && 
         <h5 className='closesAt'> Closes at <strong>{formatTime(closeTime)} today</strong></h5>
       }
 
@@ -629,19 +762,32 @@ function DashboardContent({
 
       <h5 className="currentCapacity">Current occupancy: <strong>{storeData.currentCount}</strong>/{storeData.maxOccupants}</h5>
       <h2><strong>{Math.floor((storeData.currentCount / storeData.maxOccupants) * 100) }%</strong></h2>
+      
+      { !isClockedIn && storeData.currentCount + storeData.reservedCustomers >= storeData.maxOccupants ?
+        <CustomerQueue
+          storeData={storeData}
+          handleShow={handleShow}
+          setRunFunc={setRunFunc}
+          setModalTitle={setModalTitle}
+          setModalMessage={setModalMessage}
+          setPartyAmount={setPartyAmount}
+          partyError={partyError}
+          joinQueueAlert={joinQueueAlert}
+        /> : ''
+      }
       <Doughnut data = {donutData} />
+
 
       { isClockedIn && employeeStatus ?
         ''
         :
-        <Button className="refresh-btn" onClick={() => window.location.reload(false)}>
+        <Button className="submit-btn refresh-btn" onClick={() => window.location.reload(false)}>
         Refresh
         </Button>
       }
     </div>
   );
 }
-
 
 
 
@@ -660,40 +806,38 @@ function EmployeeContent({
   occupancyChangeValue,
   amountError,
   occupancySuccess,
-  openCloseStatus
+  storeData
 }) {
   // Here we can define state variables that will only be used by this component
   return (
     <div>
 
-      { isClockedIn ? 
-        <h5 className='dash-h5'>Change occupancy</h5> : ''
+      { isClockedIn &&
+        <h5 className='dash-h5'>Change occupancy</h5>
       }
 
-      { isClockedIn ?
+      { isClockedIn &&
         <button className='submit-btn decreaseCount' onClick={() => { setOccupancyChangeValue(prevCount => prevCount-1); }}>
           -
-        </button> : ''
+        </button>
       }
 
-      { isClockedIn ?
-        <Form.Control className='dashboard-amount' type="number" placeholder={occupancyChangeValue} readOnly onChange={evt => setOccupancyChangeValue(evt.target.value)}/> : ''
+      { isClockedIn &&
+        <Form.Control className='dashboard-amount' type="number" placeholder={occupancyChangeValue} readOnly onChange={evt => setOccupancyChangeValue(evt.target.value)}/>
       }
 
-      { isClockedIn ?
+      { isClockedIn &&
         <button className='submit-btn increaseCount' onClick={() => { setOccupancyChangeValue(prevCount => prevCount+1); }}>
-          +
-        </button> : ''
+            +
+        </button>
       }
 
       <br/>
 
-      { isClockedIn ? 
+      { isClockedIn &&
         <button className='secondary-btn changeOccupancy' onClick={() => { setRunFunc('changeOccupancy'); setModalTitle('Change occupancy by ' + occupancyChangeValue + ' ?'); setModalMessage('Are you sure?'); handleShow();} }>
           Change
         </button>
-        :
-        ''
       }
 
 
@@ -712,7 +856,7 @@ function EmployeeContent({
       ): ''}
 
 
-      { isClockedIn ?
+      { isClockedIn &&
         <VisitSearchBar 
           searchData={searchData}
           setSelectedVisit={setSelectedVisit}
@@ -724,31 +868,86 @@ function EmployeeContent({
           setModalTitle={setModalTitle}
           setModalMessage={setModalMessage}
         />
-        :
-        ''
       }
-
       <br/>
 
-      { openCloseStatus === 'open' ?
-        <p>Clock in/out below to switch views.</p>
-        :
-        ''
+
+
+      { isClockedIn &&
+        <EmployeeQueue 
+          storeData={storeData}
+        />
       }
 
-      { isClockedIn && openCloseStatus === 'open' ? 
+
+
+
+      <p>Clock in/out below to switch views.</p>
+
+      { isClockedIn ? 
         <Button className="clockOut-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock out?'); setModalMessage('Are you sure you want to clock out?'); handleShow();}}>Clock Out?</Button>
         :
         ''
       }
 
-      { !isClockedIn && openCloseStatus === 'open' ? 
+      { !isClockedIn ? 
         <Button className="clockIn-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock in?'); setModalMessage('Are you sure you want to clock in?'); handleShow();}}>Clock In?</Button>
         :
         ''
       }
 
     </div>
+  );
+}
+
+
+function CustomerQueue({ 
+  storeData,
+  handleShow,
+  setRunFunc,
+  setModalTitle,
+  setModalMessage,
+  setPartyAmount,
+  partyError,
+  joinQueueAlert
+}) {
+  return (
+    <>    
+      <Form.Label className='dash-partyLabel'>Enter your party size to join the queue <br/> (including yourself)</Form.Label>
+      <Form.Control className='dash-partySize' placeholder="Party size" onChange={evt => setPartyAmount(evt.target.value)}/>
+
+      <p className='dash-maxParty'>Max party allowed: <strong>{storeData.maxPartyAllowed}</strong></p>
+
+      <p className='dash-queueLength'>Customers waiting in line: <strong>{storeData.queue.length}</strong></p>
+
+      { partyError ? 
+        <Alert variant='warning'>{partyError}</Alert>
+        : ''
+      }
+
+      { joinQueueAlert ? 
+        <Alert variant='success'>{joinQueueAlert}</Alert>
+        : ''
+      }
+
+      <button className='secondary-btn joinQueue' onClick={() => { setRunFunc('joinQueue'); setModalTitle('Join the queue?'); setModalMessage('Would you like to join the current queue of ' + storeData.queue.length + ' people?'); handleShow();}} >
+          Join Queue?
+      </button>
+
+      <p>After joining the queue, you will you receive a <strong>text message</strong> once it&apos;s your turn to enter the store</p>
+
+    </>
+  );
+}
+
+
+function EmployeeQueue({ storeData }) {
+  return (
+    <>    
+      <p>{storeData._id}</p>
+      <h5>Hello</h5>
+
+    </>
   );
 }
 
@@ -833,16 +1032,37 @@ Dashboard.propTypes = {
 };
 
 
+EmployeeQueue.propTypes = {
+  storeData: PropTypes.object.isRequired
+};
+
+CustomerQueue.propTypes = {
+  partyError: PropTypes.string.isRequired,
+  storeData: PropTypes.object.isRequired,
+  handleShow: PropTypes.func.isRequired,
+  setRunFunc: PropTypes.func.isRequired,
+  setModalTitle: PropTypes.func.isRequired,
+  setModalMessage: PropTypes.func.isRequired,
+  setPartyAmount: PropTypes.func.isRequired,
+  joinQueueAlert: PropTypes.string.isRequired
+};
+
 DashboardContent.propTypes = {
   storeData: PropTypes.object.isRequired,
   openCloseStatus: PropTypes.string.isRequired,
   closeTime: PropTypes.string.isRequired,
   donutData: PropTypes.object.isRequired,
   formatTime: PropTypes.func.isRequired,
-  refreshPageData: PropTypes.func.isRequired,
   employeeRole: PropTypes.string,
   isClockedIn: PropTypes.bool.isRequired,
-  employeeStatus: PropTypes.bool.isRequired
+  employeeStatus: PropTypes.bool.isRequired,
+  handleShow: PropTypes.func.isRequired,
+  setRunFunc: PropTypes.func.isRequired,
+  setModalTitle: PropTypes.func.isRequired,
+  setModalMessage: PropTypes.func.isRequired,
+  setPartyAmount: PropTypes.func.isRequired,
+  partyError: PropTypes.string.isRequired,
+  joinQueueAlert: PropTypes.string.isRequired
 };
 
 
@@ -856,14 +1076,12 @@ EmployeeContent.propTypes = {
   searchData: PropTypes.array.isRequired,
   selectedVisit: PropTypes.string,
   setSelectedVisit: PropTypes.func.isRequired,
-  confirmVisitHandler: PropTypes.func.isRequired,
   errorMessage: PropTypes.string.isRequired,
   setOccupancyChangeValue: PropTypes.func.isRequired,
   occupancyChangeValue: PropTypes.number.isRequired,
   amountError: PropTypes.string.isRequired,
   occupancySuccess: PropTypes.string.isRequired,
-  employeeRole: PropTypes.string.isRequired,
-  openCloseStatus: PropTypes.string.isRequired
+  storeData: PropTypes.object.isRequired
 };
 
 

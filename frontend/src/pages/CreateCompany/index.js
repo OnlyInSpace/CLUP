@@ -3,7 +3,6 @@ import api from '../../services/api';
 import { Container, Button, Form, Alert } from 'react-bootstrap';
 import './createcompany.css';
 import { useHistory } from 'react-router-dom';
-import jwt from 'jsonwebtoken';
 import {
   refresh,
   protectPage
@@ -60,7 +59,7 @@ function CreateCompany() {
         let accessToken = localStorage.getItem('accessToken');
 
         // Decode to get data stored in cookie
-        let user = jwt.decode(accessToken);
+        let user = await protectPage(accessToken, refreshToken);
         // When we decode a cookie using jwt.decode, we get an object called userData with the user's data stored inside
         let ownerId = user._id;
 

@@ -3,7 +3,6 @@ import api from '../../services/api';
 import { Container, Button, Form, Row, Col, Alert } from 'react-bootstrap';
 import { Checkbox } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
-import jwt from 'jsonwebtoken';
 import './createstore.css';
 import PropTypes from 'prop-types';
 import {
@@ -186,8 +185,7 @@ function CreateStore() {
       } else {
         let accessToken = localStorage.getItem('accessToken');
 
-        // Decode to get data stored in cookie
-        let user = jwt.decode(accessToken);
+        let user = await protectPage(accessToken, refreshToken);
         let user_id = user._id;
 
         // Get company_id
