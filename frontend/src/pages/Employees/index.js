@@ -170,7 +170,7 @@ function Employees() {
         setRemoveAlert('');
       }, 4000);
         
-      await handleSubmit(true);
+      await handleSubmit();
 
     } catch (error) {
       console.log('Error in removeEmployeeHandler');
@@ -229,7 +229,7 @@ function Employees() {
         setAddAlert('');
       }, 4000);
       
-      await handleSubmit(true);
+      await handleSubmit();
       
     } catch (error) {
       console.log('error in addEmployeeHandler');
@@ -250,7 +250,7 @@ function Employees() {
         return;
       }
 
-      if (role === 'employee' || role === 'manager') {
+      if (role.toLowerCase() === 'employee' || role.toLowerCase() === 'manager') {
         let accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
         let headers = {
@@ -358,25 +358,27 @@ function Employees() {
 
 
   // Set store
-  async function handleSubmit(hide) {
+  async function handleSubmit() {
     console.log('handle submit');
     
-    if (!hide) {
-      setSelectedAlert('Store selected! Scroll down to see the employee page');
-      setTimeout(() => {
-        setSelectedAlert('');
-      }, 4300);
-    } 
-
-    let store_id;
     if (!selectedStore) {
       setErrorMessage('Please select a store.');
-    } else {
-      // Get the store's id from our generated search list 
-      const getStoreId = searchData.find( ({label}) => label === selectedStore);
-      store_id = getStoreId.value;
-      setSelectedStore_id(store_id);
-    }
+      setTimeout(() => {
+        setErrorMessage('');
+      }, 3000);
+      return;
+    } 
+
+    setSelectedAlert('Store selected! Scroll down to see the employee page');
+    setTimeout(() => {
+      setSelectedAlert('');
+    }, 8300);
+
+    let store_id;
+    // Get the store's id from our generated search list 
+    const getStoreId = searchData.find( ({label}) => label === selectedStore);
+    store_id = getStoreId.value;
+    setSelectedStore_id(store_id);
 
     let accessToken = localStorage.getItem('accessToken');
 
@@ -502,14 +504,15 @@ function Employees() {
         <h4>Employees</h4>
         <p>Please select a store to view its employees</p>
         <Select
-          classname="searchBar"
+          classname="searchBar employee-plz"
           styles={customStyles}
           options={searchData}
           onChange = {evt => setSelectedStore(evt.label)}
         />
+        
         <p>Selected store: <br/> <strong>{selectedStore}</strong></p>
 
-        <Button className="secondary-btn" onClick={() => handleSubmit(false)}>
+        <Button className="secondary-btn" onClick={() => handleSubmit()}>
           Select Store
         </Button>
         <br/>
@@ -577,13 +580,13 @@ function EmployeesContent({
           <li>Before you can add an employee, make sure they register an account <a href='/user/register'> here </a>first.</li>
           <li>After adding an employee, have that employee go to the dashboard and refresh the page to see their changes.</li>          
         </ul>
-        <Col>
+        <Col md="auto">
           <Form.Label>Employee&apos;s Email</Form.Label>
           <Form.Control className='addEmployeeEmail' type="email" placeholder="Email" onChange={evt => setEmployeeEmail(evt.target.value)} />
         </Col>
-        <Col>
+        <Col md="auto">
           <Form.Label>Employee&apos;s Role</Form.Label>
-          <Form.Control className='select-dropdown' as="select" onChange={evt => setEmployeeRole(evt.target.value)}>
+          <Form.Control className='select-dropdown employeeRole' as="select" onChange={evt => setEmployeeRole(evt.target.value)}>
             <option value="">Role</option>
             <option value="employee">Employee</option>
             <option value="manager">Manager</option>

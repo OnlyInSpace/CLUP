@@ -53,7 +53,7 @@ body, input, button {
 .container {
     margin: auto;
     margin-top: 5em;
-    max-width: 407px;
+    max-width: 420px;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -118,7 +118,6 @@ body, input, button {
 
 /* white square behind everything */
 .content {
-    opacity: 0.95;
     background-color: white;
     margin-bottom: 2em;
     border-radius: 10px;

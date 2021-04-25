@@ -101,7 +101,10 @@ function FindStore() {
   const handleSubmit = async evt => {
     evt.preventDefault();
     if (!selectedStore) {
-      setErrorMessage('Please select a store.');
+      setErrorMessage('Please first select a store in the search bar.');
+      setTimeout(() => {
+        setErrorMessage('');
+      }, 7000);
       return;
     } else {
       // Get the store's id from our generated search list 
@@ -158,12 +161,12 @@ function FindStore() {
         />
 
         { preSelectedStore && !selectedStore ? 
-          <p>Selected store: <br/> <strong>{preSelectedStore}</strong></p>
+          <p>Select a new store below </p>
           : ''
         }
 
         { selectedStore && 
-        <p>Selected store: <br/> <strong>{selectedStore}</strong></p>
+          <p>Select a new store below <br/> <strong>{selectedStore}</strong></p>
         }
 
         <Button className="secondary-btn findstore" onClick={handleSubmit}>
@@ -181,7 +184,7 @@ function FindStore() {
         { preSelectedStore ?
         /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
           <Alert className="alertBox clickDashBtn" variant='success'>
-            <strong>Store selected. All other pages are viewable.</strong>
+            <strong>{preSelectedStore} is currently selected. All other pages are viewable.</strong>
           </Alert>
           : ''
         }
@@ -189,7 +192,7 @@ function FindStore() {
         { preSelectedStore ? ''
           :
           <Alert className="alertBox clickDashBtn" variant='warning'>
-            <strong>Select a store to view other pages and store&apos;s occupancy.</strong>
+            <strong>Select a store to start scheduling visits and view a store&apos;s occupancy.</strong>
           </Alert>
         }
 

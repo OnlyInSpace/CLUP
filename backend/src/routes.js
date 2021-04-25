@@ -7,6 +7,8 @@ const StoreController = require('./controllers/StoreController');
 const CompanyController = require('./controllers/CompanyController');
 const ChangeCountController = require('./controllers/ChangeCountController');
 const SetRoleController = require('./controllers/SetRoleController');
+const QueueController = require('./controllers/QueueController');
+
 // import jwt
 const jwt = require('jsonwebtoken');
 // import access token secret, refresh token secret, mongoDB ssl  
@@ -89,6 +91,15 @@ routes.delete('/myvisits/:visitId', verifyToken, VisitController.delete);
 // FindStore -  returns all stores 
 routes.get('/findstore', verifyToken, StoreController.getAllStores);
 
+// Customer queue - append, pop, and skip
+routes.put('/queue/append', verifyToken, QueueController.appendUser);
+routes.post('/queue/pop', verifyToken, QueueController.popUser);
+routes.put('/queue/skip', verifyToken, QueueController.skipUser);
+
+
+// Confirm a visit
+routes.delete('/confirmVisit/:visit_id', verifyToken, VisitController.confirmVisit);
+
 
 //***********QUERIES FOR GETTING DATA****************** */
 
@@ -113,7 +124,6 @@ routes.get('/stores/:company_id', verifyToken, StoreController.getOwnedStores);
 // Get store by id
 // returns store data
 routes.get('/store/:store_id', verifyToken, StoreController.getStoreById);
-
 
 
 module.exports = routes;

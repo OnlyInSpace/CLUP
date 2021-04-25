@@ -33,6 +33,8 @@ function ScheduleVisit() {
   const [open24hours, setOpen24Hours] = useState(false);
   // get store_id
   let store_id = localStorage.getItem('store');
+  // visit success alert
+  const [visitAlert, setVisitAlert] = useState('');
 
   const refreshToken = localStorage.getItem('refreshToken');
 
@@ -237,6 +239,13 @@ function ScheduleVisit() {
     // Prevent default event when button is clicked
     evt.preventDefault();
     try {
+      if (!scheduledDate) {
+        setErrorMessage('Please select a day.');
+        await delay(5000);
+        setErrorMessage('');
+        return;
+      }
+
       // Return hours and minutes in an array (Split the 24 time form: 15:36 into [15,36])
       const hoursMinutes =scheduledTime.split(':');
       // Set our date hours and minutes
@@ -252,26 +261,36 @@ function ScheduleVisit() {
       // Validating the scheduled visit is scheduled within AT LEAST avgVisitLength + 15 mins
       let currentMins = Math.floor(Date.now() / 60000);
       // Add average visit time plus 15 minutes to current time so that we ensure user's have enough time to have a reserved spot.
-      currentMins += avgVisitLength;
-      currentMins += 15;
+      currentMins += avgVisitLength * 1.75;
       let scheduledMins = Math.floor(Date.parse(scheduledDate) / 60000);
 
 
       // VALIDATION CHECKS 
       let errorAlert = '';
-
+      console.log(scheduledDate);
+      
       // Last validation checks of party size
       const isInt = /^\d+$/.test(partyAmount);
-
+      
       const amount = parseInt(partyAmount);
-
+      
       if (!isInt || amount <= 0) {
-        errorAlert = 'Please enter a only digits greater than 0.';
+        setErrorMessage('Please enter a valid number for your party amount.');
+        await delay(6000);
+        setErrorMessage('');
+        return;
       } else if (amount > maxPartyAmount) {
-        errorAlert = 'The maximum allowed members in a party is ' + maxPartyAmount;
+        setErrorMessage('The maximum allowed members in a party is ' + maxPartyAmount);
+        await delay(7000);
+        setErrorMessage('');
+        return;
       } else if (scheduledMins < currentMins) { // If the scheduled time is not ahead of current time + avgVisitLength + 15 mins
-        errorAlert = 'Visits must be scheduled at least ' + (avgVisitLength + 15) + ' minutes from now';
+        setErrorMessage('Visits must be scheduled at least ' + (avgVisitLength + 15) + ' minutes from now');
+        await delay(8000);
+        setErrorMessage('');
+        return;
       }
+
       
       const scheduledDay = scheduledDate.getDay();
       let scheduledHours, businessDay, businessHoursMins, businessOpenHours, businessOpenMins, businessCloseHours, businessCloseMins;
@@ -325,11 +344,17 @@ function ScheduleVisit() {
           
           // Check if someone else has already scheduled for that exact time
           if (visitYear === scheduledYear && visitMonth === scheduledMonth && visitDay === scheduledDay && visitHours === scheduledHours && visitMins === scheduledMins ) {
-            errorAlert = 'Sorry, but someone else has already scheduled for this slot.';
+            setErrorMessage('Sorry, but someone else has already scheduled for this slot.');
+            await delay(6000);
+            setErrorMessage('');
+            return;
           }
           // Check if user has already scheduled for the same day
           if (visitUser === user_id && visitYear === scheduledYear && visitMonth === scheduledMonth && visitDay === scheduledDay) {
-            errorAlert = 'Sorry, but you can only schedule a visit once per day. You can cancel your visit in \'My visits\' below';
+            setErrorMessage('Sorry, but you can only schedule a visit once per day. You can cancel your visit in \'My visits\' below');
+            await delay(9000);
+            setErrorMessage('');
+            return;
           }
         }
       }
@@ -375,19 +400,31 @@ function ScheduleVisit() {
       // If user is trying to schedule a visit within the CLOSING hour, ensure they aren't too LATE
       } else if ( !open24hours && scheduledHours === businessCloseHours) { 
         if (scheduledMins > businessCloseMins) {
-          errorAlert = 'Sorry, you can\'t schedule near closing time.';
+          setErrorMessage('Sorry, you can\'t schedule near closing time.');
+          await delay(7000);
+          setErrorMessage('');
+          return;
         }
       // If user is trying to schedule a visit within the OPENING hour, ensure they aren't too EARLY  
       } else if ( !open24hours && scheduledHours === businessOpenHours) {
         if (scheduledMins < businessOpenMins) {
-          errorAlert = storeName + ' is closed for the time you\'re trying to schedule';
+          setErrorMessage(storeName + ' is closed for the time you\'re trying to schedule');
+          await delay(7000);
+          setErrorMessage('');
+          return;
         }
       // Ensure scheduled time is not too early  
       } else if ( !open24hours && (scheduledHours !== 0) && (scheduledHours < businessOpenHours)) { 
-        errorAlert = storeName + ' is closed for the time you\'re trying to schedule';
+        setErrorMessage(storeName + ' is closed for the time you\'re trying to schedule');
+        await delay(7000);
+        setErrorMessage('');
+        return;
       // Ensure scheduled time is not too late  
       } else if ( !open24hours && (businessCloseHours !== 0) && (scheduledHours > businessCloseHours) ) { 
-        errorAlert = 'Sorry, you can\'t schedule near closing time or after business hours.';
+        setErrorMessage('Sorry, you can\'t schedule near closing time or after business hours.');
+        await delay(7000);
+        setErrorMessage('');
+        return;
       }
 
       console.log('businessCloseMins:', businessCloseMins);
@@ -399,6 +436,8 @@ function ScheduleVisit() {
       
       if (errorAlert) {
         setErrorMessage(errorAlert);
+        await delay(7000);
+        setErrorMessage('');
         return;
       } else {
         // Create the visit
@@ -430,9 +469,13 @@ function ScheduleVisit() {
         console.log(response.data);
         // If visit was created, then send user back to dashboard
         if (visit_id) {
+          setVisitAlert('Visit Scheduled!');
+          await delay(1500);
           history.push('/myvisits');
         } else {
           setErrorMessage(response.data.message);
+          await delay(7000);
+          setErrorMessage('');
         }
       }
     } catch (error) {
@@ -441,6 +484,8 @@ function ScheduleVisit() {
   }
 
 
+  // Sleep function
+  const delay = ms => new Promise(res => setTimeout(res, ms));
   function goToDashboard() {
     history.push('/dashboard');
   }
@@ -484,6 +529,13 @@ function ScheduleVisit() {
         /* ^ is a ternary operator: Is party amount > 0? If no, then display the alert */
           <Alert className="alertBox myVisits" variant='warning'>
             {errorMessage}
+          </Alert>
+        ): ''}
+
+        {visitAlert ? (
+        /* ^ is a ternary operator: Is party amount > 0? If no, then display the alert */
+          <Alert className="alertBox myVisits" variant='success'>
+            Visit Scheduled!
           </Alert>
         ): ''}
         
@@ -563,6 +615,6 @@ VisitContent.propTypes = {
   scheduledTime: PropTypes.string.isRequired,
   setPartyAmount: PropTypes.func.isRequired,
   setScheduledDate: PropTypes.func.isRequired,
-  formattedTime: PropTypes.string.isRequired,
+  formattedTime: PropTypes.string,
   maxPartyAmount: PropTypes.number.isRequired
 };

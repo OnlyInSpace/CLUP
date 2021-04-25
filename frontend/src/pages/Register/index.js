@@ -35,7 +35,7 @@ function Register() {
         setErrorMessage('Required information is missing.');
         return;
       } else if (phoneNumber.length !== 10 || isNaN(phoneNumber)) { // Ensure phone number is valid
-        setErrorMessage('Invalid phone number. Please only enter nothing but numbers.');
+        setErrorMessage('Invalid phone number. Please enter a 10 digit number without any hyphens or parentheses.');
         return;
       } else if (password !== confirmPassword) { // Ensure passwords match
         setErrorMessage('Passwords don\'t match');

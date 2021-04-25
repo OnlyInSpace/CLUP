@@ -8,7 +8,7 @@ module.exports = {
   async createStore(req, res) {
     try {
       // console.log(req.body)
-      const {company_id, storeName, location, maxOccupants, maxPartyAllowed, avgVisitLength, open24hours, businessHours} = req.body;
+      const { company_id, storeName, location, maxOccupants, maxPartyAllowed, avgVisitLength, open24hours, businessHours } = req.body;
 
       // Check if store exists
       const existingStore = await Store.findOne({storeName: storeName, 'location.address1': location.address1, 'location.city': location.city});

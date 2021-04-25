@@ -3,7 +3,6 @@ import api from '../../services/api';
 import { Container, Button, Form, Row, Col, Alert } from 'react-bootstrap';
 import { Checkbox } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
-import jwt from 'jsonwebtoken';
 import './createstore.css';
 import PropTypes from 'prop-types';
 import {
@@ -66,6 +65,7 @@ function CreateStore() {
 
 
   console.log('Role:', userRole);
+  console.log('State:', state);
 
   // Set user's role
   useEffect(async () => {
@@ -186,8 +186,7 @@ function CreateStore() {
       } else {
         let accessToken = localStorage.getItem('accessToken');
 
-        // Decode to get data stored in cookie
-        let user = jwt.decode(accessToken);
+        let user = await protectPage(accessToken, refreshToken);
         let user_id = user._id;
 
         // Get company_id
@@ -619,7 +618,7 @@ function Selectstate({setState}) {
     <Col>
       <Form.Label className='labels'>State</Form.Label>
       <Form.Control as="select" onChange = {evt => setState(evt.target.value)}>
-        <option>Choose...</option>
+        <option value="">Choose...</option>
         <option value="AL">Alabama (AL)</option>
         <option value="AK">Alaska (AK)</option>
         <option value="AZ">Arizona (AZ)</option>

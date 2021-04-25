@@ -4,7 +4,6 @@ import {Container, Card, Button, Modal, Alert} from 'react-bootstrap';
 import './myvisits.css';
 import PropTypes from 'prop-types';
 import { withRouter, useHistory } from 'react-router-dom';
-import jwt from 'jsonwebtoken';
 import {
   protectPage
 } from '../verifyTokens/tokenFunctions';
@@ -78,8 +77,7 @@ function MyVisits() {
       let accessToken = localStorage.getItem('accessToken');
 
       // Decode to get data stored in cookie
-      let user = jwt.decode(accessToken);
-      // When we decode a cookie using jwt.decode, we get an object called userData with the user's data stored inside
+      let user = await protectPage(accessToken, refreshToken);
       let user_id = user._id;
       // Log the user here to see how it looks 
       // console.log('User:', user);
@@ -181,48 +179,6 @@ function MyVisits() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-
-      let getVisit = await api.get(`/visit/${visit_id}`, { headers });
-
-      if (getVisit.data.message === 'Access token expired') {
-        let user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return user to log in page.
-        if (!user) {
-          console.log('Please log in again.');
-          history.push('/login');
-        } else {
-          // overwrite response with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          getVisit = await api.get(`/visit/${visit_id}`, { headers });
-        }
-      }
-
-
-      // If reserved, then unreserve party amount in store occupancy
-      if (getVisit.data.reserved) {
-        let storeId = getVisit.data.store;
-        let amount = getVisit.data.partyAmount;
-
-        let response = await api.post('/count/decrease', { storeId, amount }, { headers });
-        if (response.data.message === 'Access token expired') {
-          let user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return user to log in page.
-          if (!user) {
-            console.log('Please log in again.');
-            history.push('/login');
-          } else {
-            // overwrite response with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            response = await api.post('/count/decrease', { storeId, amount }, { headers });
-          }
-        }
-      }
       
       // delete the visit
       // if an error occurs, then catch block will be triggered

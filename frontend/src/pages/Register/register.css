@@ -1,6 +1,5 @@
 /* white square behind everything */
 .registerContent {
-    opacity: 0.95;
     background-color: white;
     margin-bottom: 2em;
     border-radius: 10px;

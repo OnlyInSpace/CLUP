@@ -38,7 +38,7 @@ function ProtectedRoute({ component: Component, ...rest }) {
   return (
     <>
       {isLoading ? 
-        <h4 className='loadingText'>Loading . . .</h4>
+        ''
         :
         <Route
           {...rest}
@@ -47,7 +47,7 @@ function ProtectedRoute({ component: Component, ...rest }) {
               return <Component />;
             } else {
               return (
-                <Redirect to={{ pathname: '/', state: { from: props.location }}} />
+                <Redirect to={{ pathname: '/login', state: { from: props.location }}} />
               );
             }
           }}

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Doughnut } from 'react-chartjs-2';
-import { Container, Button, Modal, Alert, Form } from 'react-bootstrap';
+import { Container, Button, Modal, Alert, Form, Row, Col } from 'react-bootstrap';
 import Select from 'react-select';
 import './dashboard.css';
 import PropTypes from 'prop-types';
 import { withRouter, useHistory } from 'react-router-dom';
-import jwt from 'jsonwebtoken';
 import {
   refresh,
   protectPage
@@ -41,21 +40,48 @@ function Dashboard() {
   const [runFunc, setRunFunc] = useState(''); 
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
-  const refreshToken = localStorage.getItem('refreshToken');
-  const store_id = localStorage.getItem('store');
   const [occupancyChangeValue, setOccupancyChangeValue] = useState(0);
   const [amountError, setAmountError] = useState('');
   const [occupancySuccess, setOccupancySuccess] = useState('');
+  const [partyAmount, setPartyAmount] = useState('');
+  const [partyError, setPartyError] = useState('');
+  const [joinQueueAlert, setJoinQueueAlert] = useState('');
+
+  const [contentClass, setContentClass] = useState('content');
+
+  const [visitBarClass, setVisitBarClass] = useState(10);
+  const [visitBarClass02, setVisitBarClass02] = useState(10);
 
   let donutOptions;
+  const refreshToken = localStorage.getItem('refreshToken');
+  const store_id = localStorage.getItem('store');
+
+  console.log(displayContent);
 
   useEffect(async () => {
     try {
+      let log = 0;
       if (!store_id) {
         history.push('/findStore');
         return;
       }
+
       await refreshPageData();
+
+      // Ensure user has a store id
+      let accessToken = localStorage.getItem('accessToken');
+      let user = await protectPage(accessToken, refreshToken);
+      
+      const interval = setInterval(async () => {
+        if (user.clockedIn) {
+          log += 1;
+          console.log('refreshing data', log);
+          await refreshPageData();
+        }
+      }, 10000 );
+    
+      return () => clearInterval(interval);
+
     } catch (error) {
       console.log('response.data not found');
     }
@@ -139,147 +165,192 @@ function Dashboard() {
     return visitSearchList;
   }
 
+
   // Fetch page data again
   async function refreshPageData() {
-    // Ensure user has a store id
-    let accessToken = localStorage.getItem('accessToken');
-
-    let user = jwt.decode(accessToken);
-
-    if (!user) {
-      user = protectPage(accessToken, refreshToken);
-    }
-      
-    let headers = {
-      authorization: `Bearer ${accessToken}`
-    };
+    try {
+      // Ensure user has a store id
+      let accessToken = localStorage.getItem('accessToken');
+  
+      let user = await protectPage(accessToken, refreshToken);
+        
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
       // Get store object and verify the user's accessToken
-    let response = await api.get(`/store/${store_id}`, { headers });
-    // If token comes back as expired, refresh the token and make api call again
-    if (response.data.message === 'Access token expired') {
-      user = await protectPage(accessToken, refreshToken);
-      // If the access token or refresh token are unlegit, then return.
-      if (!user) {
-        console.log('Please log in again.');
-        history.push('/login');
+      let response = await api.get(`/store/${store_id}`, { headers });
+      // If token comes back as expired, refresh the token and make api call again
+      if (response.data.message === 'Access token expired') {
+        user = await protectPage(accessToken, refreshToken);
+        // If the access token or refresh token are unlegit, then return.
+        if (!user) {
+          console.log('Please log in again.');
+          history.push('/login');
+        } else {
+          // overwrite response with the new access token.
+          let newAccessToken = localStorage.getItem('accessToken');
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          response = await api.get(`/store/${store_id}`, { headers });
+        }
+      }
+
+
+
+      if (response.data.queue.length > 0 && user.clockedIn) {
+        setContentClass('content dashboardContent');
+        setVisitBarClass(6);
+        setVisitBarClass02(8);
       } else {
-        // overwrite response with the new access token.
-        let newAccessToken = localStorage.getItem('accessToken');
-        headers = {
-          authorization: `Bearer ${newAccessToken}`
-        };
-        response = await api.get(`/store/${store_id}`, { headers });
+        setContentClass('content smallDashContent');
       }
-    }
-
-    setIsClockedIn(user.clockedIn);
-
-    // Else we know at this point, the user's token is verified
-    // Set our store data to be displayed
-    setStoreData(response.data);  
-
-
-    // Set our donut chart data
-    const vacantSpots = response.data.maxOccupants - response.data.currentCount;
-    donutOptions = {
-      datasets: [{
-        // data: [20, 40], //0a6096
-        data: [response.data.currentCount, vacantSpots],
-        backgroundColor: ['#0a6096', '#b2b8c2'],
-        hoverBorderColor: ['#000000', 'grey'],
-        hoverBorderWidth: 2,
-        borderWidth: 3
-      }],
-      labels: ['Customers Present', 'Vacant Spots']
-    };
-    setDonutData(donutOptions);
-    setDisplayContent(true);
+      setIsClockedIn(user.clockedIn);
+  
+  
+      // Else we know at this point, the user's token is verified
+      // Set our store data to be displayed
+      setStoreData(response.data);  
+      setDisplayContent(true);
+  
+  
+      // Set our donut chart data
+      const vacantSpots = response.data.maxOccupants - (response.data.currentCount);
+      let filledSpots = response.data.currentCount + response.data.reservedCustomers;
+      if (filledSpots > response.data.maxOccupants) {
+        filledSpots = response.data.maxOccupants;
+      }
+      donutOptions = {
+        datasets: [{
+          // data: [20, 40], //0a6096
+          data: [filledSpots, vacantSpots],
+          backgroundColor: ['#0a6096', '#b2b8c2'],
+          hoverBorderColor: ['#000000', 'grey'],
+          hoverBorderWidth: 2,
+          borderWidth: 3
+        }],
+        labels: ['Customers Present', 'Vacant Spots']
+      };
+      setDonutData(donutOptions);                
+  
+  
+      /**        BUSINESS HOURS VALIDATION CHECKS           ***/
+      // Convert business hours to an array of objects
+      const businessHours = Object.keys(response.data.businessHours).map(key => {
+        return response.data.businessHours[key];
+      });
+  
+      const currentTime = new Date();
+      const today = currentTime.getDay();
+      const businessDay = businessHours[today];
+      setCloseTime(businessDay.close);
+      let currentHour = parseInt(currentTime.getHours());
+      let currentMins = parseInt(currentTime.getMinutes());
+      let businessHoursMins = businessDay.open.split(':');
+      let businessOpenHours = parseInt(businessHoursMins[0]);
+      let businessOpenMins = parseInt(businessHoursMins[1]);
+      businessHoursMins = businessDay.close.split(':');
+      let businessCloseHours = parseInt(businessHoursMins[0]);
+      let businessCloseMins = parseInt(businessHoursMins[1]);
+  
+  
+      // When a business opens during the day and closes after midnight add 23 hours to closeHours
+      if (businessOpenHours > businessCloseHours) {
+        if ( (currentHour >= 0) && (currentHour <= businessCloseHours) ) {
+          currentHour += 23;
+        }
+        businessCloseHours += 23;
+      }
+  
+      if (businessOpenHours < businessCloseHours) {
+        if (currentHour > businessCloseHours || currentHour < businessOpenHours ) {
+          setOpenCloseStatus('closed');
+        }
+      }
+  
+      // If currentHour is within the CLOSING hour, ensure current time is not too LATE
+      if (currentHour === businessCloseHours) {
+        if (currentMins > businessCloseMins) {
+          setOpenCloseStatus('closed');
+        }
+      }
+  
+      // If currentHour is within the OPENING hour, ensure current time is not too EARLY
+      if (currentHour === businessOpenHours) {
+        if (currentMins < businessOpenMins) {
+          setOpenCloseStatus('closed');
+        }
+      }
+        
+      // Ensure current time is not too early
+      if ( (currentHour !== 0) && (currentHour < businessOpenHours)) {
+        setOpenCloseStatus('closed');
+      }
               
-
-
-    /**        BUSINESS HOURS VALIDATION CHECKS           ***/
-    // Convert business hours to an array of objects
-    const businessHours = Object.keys(response.data.businessHours).map(key => {
-      return response.data.businessHours[key];
-    });
-
-    const currentTime = new Date();
-    const today = currentTime.getDay();
-    const businessDay = businessHours[today];
-    setCloseTime(businessDay.close);
-    let currentHour = parseInt(currentTime.getHours());
-    let currentMins = parseInt(currentTime.getMinutes());
-    let businessHoursMins = businessDay.open.split(':');
-    let businessOpenHours = parseInt(businessHoursMins[0]);
-    let businessOpenMins = parseInt(businessHoursMins[1]);
-    businessHoursMins = businessDay.close.split(':');
-    let businessCloseHours = parseInt(businessHoursMins[0]);
-    let businessCloseMins = parseInt(businessHoursMins[1]);
-
-    // When a business opens during the day and closes after midnight add 23 hours to closeHours
-    if (businessOpenHours > businessCloseHours) {
-      if ( (currentHour >= 0) && (currentHour <= businessCloseHours) ) {
-        currentHour += 23;
-      }
-      businessCloseHours += 23;
-    }
-
-    // If currentHour is within the CLOSING hour, ensure current time is not too LATE
-    if (currentHour === businessCloseHours) {
-      if (currentMins > businessCloseMins) {
+      // Ensure current time is not too late
+      if ( (businessCloseHours !== 0) && (currentHour > businessCloseHours) ) {
         setOpenCloseStatus('closed');
       }
-    }
-      
-    // If currentHour is within the OPENING hour, ensure current time is not too EARLY
-    if (currentHour === businessOpenHours) {
-      if (currentMins < businessOpenMins) {
+  
+      // Ensure the store is open
+      if (!businessDay.open) {
         setOpenCloseStatus('closed');
+      }  
+  
+      if (response.data.open24hours) {
+        setOpenCloseStatus('open');
       }
-    }
-      
-    // Ensure current time is not too early
-    if ( (currentHour !== 0) && (currentHour < businessOpenHours)) {
-      setOpenCloseStatus('closed');
-    }
+  
+      /**        END            ***/
+
+      /********************Validation checks for employee view********************/
+      if (user.role !== 'employee' && user.role !== 'manager' && user.role !== 'owner' ) {
+        return;
+      }
+      // Get store's company_id
+      const storeCompany_id = response.data.company_id;
+      // If the user's business_id does not mach store_id or company_id then return.
+      if (user.business_id === store_id || user.business_id === storeCompany_id) {
+        setEmployeeStatus(true);
+        setEmployeeRole(user.role);
+      } else if (user.clockedIn === true) {
+        console.log('PLEASEE');
+        // Clock user in or out
+        setIsClockedIn(false);
+        let user_id = user._id;
+        let getUser = await api.post('/clockOut', {user_id}, { headers });
+        // If token comes back as expired, refresh the token and make api call again
+        if (getUser.data.message === 'Access token expired') {
+          user = await protectPage(accessToken, refreshToken);
+          user_id = user._id;
+          // If the access token or refresh token are unlegit, then return.
+          if (!user) {
+            console.log('no user!');
+            history.push('/login');
+          } else {
+          // overwrite storeList with the new access token.
+            let newAccessToken = localStorage.getItem('accessToken');
+            headers = {
+              authorization: `Bearer ${newAccessToken}`
+            };
+            getUser = await api.post('/clockOut', {user_id}, { headers });
+          }
+        }
+      } else {
+        return; 
+      }
+      /*******************     END       **************** */
+              
+      //set our search data
+      setSearchData(await getStoreVisits());
             
-    // Ensure current time is not too late
-    if ( (businessCloseHours !== 0) && (currentHour > businessCloseHours) ) {
-      setOpenCloseStatus('closed');
+      
+    } catch (error) {
+      console.log('error in refreshPageData');
     }
-
-    // Ensure the store is open
-    if (!businessDay.open) {
-      setOpenCloseStatus('closed');
-    }  
-
-    if (response.data.open24hours) {
-      setOpenCloseStatus('open');
-    }
-
-    /**        END            ***/
-
-
-    /********************Validation checks for employee view********************/
-    if (user.role !== 'employee' && user.role !== 'manager' && user.role !== 'owner' ) {
-      return;
-    }
-    // Get store's company_id
-    const storeCompany_id = response.data.company_id;
-
-    // If the user's business_id does not mach store_id or company_id then return.
-    if (user.business_id === store_id || user.business_id === storeCompany_id) {
-      setEmployeeStatus(true);
-      setEmployeeRole(user.role);
-    } else {
-      return; 
-    }
-    /*******************     END       **************** */
-
-    //set our search data
-    setSearchData(await getStoreVisits());
 
   }
+
 
   // Function to format 24 hour time to 12 hour
   function formatTime(time) {
@@ -371,12 +442,11 @@ function Dashboard() {
         setErrorMessage('Please select a visit to confirm.');
         setTimeout(() => {
           setErrorMessage('');
-        }, 3000);
+        }, 100000);
         handleClose();
         return;
       }
       let accessToken = localStorage.getItem('accessToken');
-      let refreshToken = localStorage.getItem('refreshToken');
 
       // Get the store's id from our generated search list 
       const getVisitId = searchData.find( ({label}) => label === selectedVisit);
@@ -387,7 +457,9 @@ function Dashboard() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      let response = await api.delete(`/myvisits/${visit_id}`, { headers });
+
+      let response = await api.delete(`/confirmVisit/${visit_id}`, { headers });
+
       // If token comes back as expired, refresh the token and make api call again
       if (response.data.message === 'Access token expired') {
         let user = await protectPage(accessToken, refreshToken);
@@ -401,9 +473,29 @@ function Dashboard() {
           headers = {
             authorization: `Bearer ${newAccessToken}`
           };
-          response = await api.delete(`/myvisits/${visit_id}`, { headers });
+          response = await api.delete(`/confirmVisit/${visit_id}`, { headers });
         }
       }
+            
+      if (response.data.message === 'Visit is not reserved.') {
+        setErrorMessage('You cannot confirm a visit not yet reserved.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 5000);
+        setSelectedVisit('');
+        handleClose();
+        return;
+      } else if (response.data.message === 'Store will overflow.') {
+        setErrorMessage('Store occupancy would overflow, please wait until more customers leave.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 7000);
+        setSelectedVisit('');
+        handleClose();
+        return;
+      }
+
+
       
       // Set our delete alert for 5 seconds
       setDeleteAlert('Visit confirmed.');
@@ -413,73 +505,71 @@ function Dashboard() {
       
       setSelectedVisit('');
       setShow(false);
-      response = await getStoreVisits();
-      setSearchData(response);
-      // Sleep function
-      await delay(1500);
+
+      // // Sleep function
+      // await delay(1500);
 
       await refreshPageData();
 
       // window.location.reload(false);
     } catch (error) {
-      history.push('/login');
-      console.log(error);
+      handleClose();
+      console.log('error in confirmVisit handler');
     }
   }
-
-  // Sleep function
-  const delay = ms => new Promise(res => setTimeout(res, ms));
 
 
   async function handleModal() {
     if (runFunc === 'handleClockInOut') {
-      console.log('running changeRole');
       await handleClockInOut();
     } else if (runFunc === 'confirmVisitHandler') {
-      console.log('running removeEmployee');
       await confirmVisitHandler();
+    } else if (runFunc === 'joinQueue') {
+      await joinQueue();
+    } else if (runFunc === 'popQueue') {
+      await popQueue();
     } else if (runFunc === 'changeOccupancy') {
-
-      if (occupancyChangeValue === 0) {
-        setAmountError('Please enter a valid amount.');
-        setTimeout(() => {
-          setAmountError('');
-        }, 15000);
-        handleClose();
-        return;
-      }
-
-      if (occupancyChangeValue > 0) {
-        if ((storeData.currentCount + occupancyChangeValue) > storeData.maxOccupants) {
-          setAmountError('Occupancy would overflow, please have the customer the join queue.');
-          setTimeout(() => {
-            setAmountError('');
-          }, 9000);
-          handleClose();
-          return;
-        } else {
-          await changeOccupancy();
-        }
-      }
-
-      if (occupancyChangeValue < 0) {
-        if (storeData.currentCount + occupancyChangeValue < 0) {
-          setAmountError('Current occupancy cannot be less than zero. Please enter a different amount');
-          setTimeout(() => {
-            setAmountError('');
-          }, 9000);
-          handleClose();
-          return;
-        } else {
-          await changeOccupancy();
-        }
-      }
+      await changeOccupancy();
+    } else if (runFunc === 'skipCustomer') {
+      await skipCustomer();
+    } else if (runFunc === 'cancelVisit') {
+      await cancelVisit();
     }
-
   }
 
 
   async function changeOccupancy() {
+    if (occupancyChangeValue === 0) {
+      setAmountError('Please enter a valid amount.');
+      setTimeout(() => {
+        setAmountError('');
+      }, 4000);
+      handleClose();
+      return;
+    }
+
+    if (occupancyChangeValue > 0) {
+      if ((storeData.currentCount + occupancyChangeValue) > storeData.maxOccupants) {
+        setAmountError('Occupancy would overflow, please have the customer join queue.');
+        setTimeout(() => {
+          setAmountError('');
+        }, 9000);
+        handleClose();
+        return;
+      }
+    }
+
+    if (occupancyChangeValue < 0) {
+      if (storeData.currentCount + occupancyChangeValue < 0) {
+        setAmountError('Current occupancy cannot be less than zero. Please enter a different amount');
+        setTimeout(() => {
+          setAmountError('');
+        }, 9000);
+        handleClose();
+        return;
+      }
+    }
+
     let accessToken = localStorage.getItem('accessToken');
 
 
@@ -519,9 +609,272 @@ function Dashboard() {
     await refreshPageData();
   }
 
+
+  async function joinQueue() {
+    try {
+      // Last validation checks of party size
+      const isInt = /^\d+$/.test(partyAmount);
+      const amount = parseInt(partyAmount);
+
+      if (!isInt || amount <= 0) {
+        setPartyError('Please enter a valid number for your party.');
+        setTimeout(() => {
+          setPartyError('');
+        }, 5000);
+        handleClose();
+        return;
+      } else if (amount > storeData.maxPartyAllowed) {
+        setPartyError('Max party allowed is ' + storeData.maxPartyAllowed);
+        setTimeout(() => {
+          setPartyError('');
+        }, 5000);
+        handleClose();
+        return;
+      }
+
+      let accessToken = localStorage.getItem('accessToken');
+      let user = await protectPage(accessToken, refreshToken);
+  
+
+      let customer = {
+        user_id: user._id,
+        phoneNumber: user.phoneNumber,
+        partyAmount: partyAmount,
+        minsLate: 0,
+        startTime: Date.now(),
+        alerted: false
+      };
+
+      // Clock user in or out
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+  
+      let joinQueue = await api.put('/queue/append', { customer, store_id }, { headers });
+
+      // If token comes back as expired, refresh the token and make api call again
+      if (joinQueue.data.message === 'Access token expired') {
+        user = await protectPage(accessToken, refreshToken);
+        customer = {
+          user_id: user._id,
+          phoneNumber: user.phoneNumber,
+          partyAmount: partyAmount,
+          timesSkipped: 0
+        };
+        // If the access token or refresh token are unlegit, then return.
+        if (!user) {
+          console.log('no user!');
+          history.push('/login');
+        } else {
+          // overwrite storeList with the new access token.
+          let newAccessToken = localStorage.getItem('accessToken');
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          joinQueue = await api.put('/queue/append', { customer, store_id }, { headers });
+        }
+      }
+
+      // set alert if user is in queue
+      if (joinQueue.data.message === 'User exists in queue.') {
+        setPartyError('You are already in the queue. Look out for a text message from us once it\'s your turn. \nYour cell: ' + customer.phoneNumber);
+        handleClose();
+        return;
+      }
+
+      // Set our delete alert for 5 seconds
+      setJoinQueueAlert('You\'ve joined the queue! We will send you a text message once it\'s your turn.' +
+                        '\nYour cell: ' + customer.phoneNumber);
+
+      handleClose();
+   
+      // refresh page
+      await refreshPageData();
+      
+    } catch (error) {
+      handleClose();
+      console.log('error in joinQueue');
+    }
+  }
+
+
+  async function popQueue() {
+    try {
+
+      let accessToken = localStorage.getItem('accessToken');
+      let user = await protectPage(accessToken, refreshToken);
+  
+      // Clock user in or out
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+  
+      let popQueue = await api.post('/queue/pop', { store_id }, { headers });
+
+      // If token comes back as expired, refresh the token and make api call again
+      if (popQueue.data.message === 'Access token expired') {
+        user = await protectPage(accessToken, refreshToken);
+        // If the access token or refresh token are unlegit, then return.
+        if (!user) {
+          console.log('no user!');
+          history.push('/login');
+        } else {
+          // overwrite storeList with the new access token.
+          let newAccessToken = localStorage.getItem('accessToken');
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          popQueue = await api.post('/queue/pop', { store_id }, { headers });
+        }
+      }
+
+      if (popQueue.data.message === 'Store would overflow.') {
+        setErrorMessage('Occupancy would overflow, please wait for more customers to leave.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 3000);
+      }
+  
+      // Set our delete alert for 5 seconds
+      setJoinQueueAlert('Line moved forward.');
+      setTimeout(() => {
+        setJoinQueueAlert('');
+      }, 2500);
+  
+      handleClose();
+   
+      // refresh page
+      if (popQueue.data.queue.length === 0) {
+        await delay(2000);
+        window.location.reload(false);      
+      }
+
+      await refreshPageData();
+      
+    } catch (error) {
+      handleClose();
+      console.log('error in popQueue');
+    }
+  }
+
+
+  async function skipCustomer() {
+    try {
+
+      let accessToken = localStorage.getItem('accessToken');
+  
+      // Clock user in or out
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+  
+      let skipCustomer = await api.put('/queue/skip', { store_id }, { headers });
+
+      // If token comes back as expired, refresh the token and make api call again
+      if (skipCustomer.data.message === 'Access token expired') {
+        let user = await protectPage(accessToken, refreshToken);
+        // If the access token or refresh token are unlegit, then return.
+        if (!user) {
+          console.log('no user!');
+          history.push('/login');
+        } else {
+          // overwrite storeList with the new access token.
+          let newAccessToken = localStorage.getItem('accessToken');
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          skipCustomer = await api.put('/queue/skip', { store_id }, { headers });
+        }
+      }
+
+      // Set our delete alert for 5 seconds
+      setDeleteAlert('Customer skipped.');
+      setTimeout(() => {
+        setDeleteAlert('');
+      }, 2000);
+  
+      handleClose();
+
+      if (skipCustomer.data.queue.length === 0) {
+        await delay(1500);
+        window.location.reload(false);      
+      }
+
+      await refreshPageData();
+      
+    } catch (error) {
+      handleClose();
+      console.log('error in skipCustomer');
+    }
+  }
+
+
+  async function cancelVisit() {
+    try {
+
+      if (!selectedVisit) {
+        setErrorMessage('Please select a visit to confirm.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 100000);
+        handleClose();
+        return;
+      }
+
+      let accessToken = localStorage.getItem('accessToken');
+  
+      // Get the store's id from our generated search list 
+      const getVisitId = searchData.find( ({label}) => label === selectedVisit);
+      const visit_id = getVisitId.value;
+
+      // Clock user in or out
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+  
+      let cancelVisit = await api.delete(`/myvisits/${visit_id}`, { headers });
+
+      // If token comes back as expired, refresh the token and make api call again
+      if (cancelVisit.data.message === 'Access token expired') {
+        let user = await protectPage(accessToken, refreshToken);
+        // If the access token or refresh token are unlegit, then return.
+        if (!user) {
+          console.log('no user!');
+          history.push('/login');
+        } else {
+          // overwrite storeList with the new access token.
+          let newAccessToken = localStorage.getItem('accessToken');
+          headers = {
+            authorization: `Bearer ${newAccessToken}`
+          };
+          cancelVisit = await api.delete(`/myvisits/${visit_id}`, { headers });
+        }
+      }
+
+      // Set our delete alert for 5 seconds
+      setDeleteAlert('Visit canceled.');
+      setTimeout(() => {
+        setDeleteAlert('');
+      }, 2000);
+  
+      setSelectedVisit('');
+      handleClose();
+
+      await refreshPageData();
+      
+    } catch (error) {
+      handleClose();
+      console.log('error in popQueue');
+    }
+  }
+
+
+  // Sleep function
+  const delay = ms => new Promise(res => setTimeout(res, ms));
+
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
-    <Container>
+    <Container className='dashboard'>
       {/* Modal */}
       <Modal show={show} onHide={handleClose} centered>
         <Modal.Header closeButton>
@@ -532,16 +885,16 @@ function Dashboard() {
           <Button variant="primary" onClick={() => handleModal()}>
             Yes
           </Button>
-          <Button variant="secondary" onClick={handleClose}>
+          <Button variant="secondary" onClick={() => { handleClose(); setSelectedVisit(''); }}>
             No
           </Button>
         </Modal.Footer>
       </Modal>
       {/* End of Modal */}
 
-      <div className='content'>
+      <div className={contentClass}>
         { !displayContent && 
-        <NoStoreID/>
+          <NoStoreID />
         }
 
         { displayContent && 
@@ -551,40 +904,50 @@ function Dashboard() {
           closeTime={closeTime}
           donutData={donutData}
           formatTime={formatTime}
-          refreshPageData={refreshPageData}
+          employeeRole={employeeRole}
           isClockedIn={isClockedIn}
           employeeStatus={employeeStatus}
-          employeeRole={employeeRole}
-        />
-        }
-
-        { employeeStatus &&
-        <EmployeeContent
-          searchData={searchData}
-          setSelectedVisit={setSelectedVisit}
-          selectedVisit={selectedVisit}
-          confirmVisitHandler={confirmVisitHandler}
-          errorMessage={errorMessage}
-          deleteAlert={deleteAlert}
-          isClockedIn={isClockedIn}
           handleShow={handleShow}
           setRunFunc={setRunFunc}
           setModalTitle={setModalTitle}
           setModalMessage={setModalMessage}
-          setOccupancyChangeValue={setOccupancyChangeValue}
-          occupancyChangeValue={occupancyChangeValue}
-          amountError={amountError}
-          occupancySuccess={occupancySuccess}
-          employeeRole={employeeRole}
-          openCloseStatus={openCloseStatus}
+          setPartyAmount={setPartyAmount}
+          partyError={partyError}
+          joinQueueAlert={joinQueueAlert}
         />
+        }
+
+        { employeeStatus && openCloseStatus === 'open' ?
+          <EmployeeContent
+            searchData={searchData}
+            setSelectedVisit={setSelectedVisit}
+            selectedVisit={selectedVisit}
+            errorMessage={errorMessage}
+            deleteAlert={deleteAlert}
+            isClockedIn={isClockedIn}
+            handleShow={handleShow}
+            setRunFunc={setRunFunc}
+            setModalTitle={setModalTitle}
+            setModalMessage={setModalMessage}
+            setOccupancyChangeValue={setOccupancyChangeValue}
+            occupancyChangeValue={occupancyChangeValue}
+            amountError={amountError}
+            occupancySuccess={occupancySuccess}
+            storeData={storeData}
+            visitBarClass={visitBarClass}
+            visitBarClass02={visitBarClass02}
+          />
+          :
+          ''
         }
       </div>
 
     </Container>
   );
 }
+
 export default withRouter(Dashboard);
+
 
 
 function DashboardContent({
@@ -595,17 +958,25 @@ function DashboardContent({
   formatTime,
   employeeRole,
   isClockedIn,
-  employeeStatus
+  employeeStatus,
+  handleShow,
+  setRunFunc,
+  setModalTitle,
+  setModalMessage,
+  setPartyAmount,
+  partyError,
+  joinQueueAlert
 }) {
   // Here we can define state variables that will only be used by this component
   let history = useHistory();
+  const [checkLine, setCheckLine] = useState(false);
 
   return (
     <div>
       <h2>{storeData.storeName}</h2>
       <h5 className='dashboardAddress'>{storeData.location.address1} {storeData.location.address2}</h5>
       <h5 className={openCloseStatus === 'open' ? 'dashboardOpen' : 'dashboardClosed'}>Currently <strong>{openCloseStatus}</strong></h5>
-      {closeTime && 
+      { closeTime && 
         <h5 className='closesAt'> Closes at <strong>{formatTime(closeTime)} today</strong></h5>
       }
 
@@ -616,21 +987,48 @@ function DashboardContent({
       }
 
       <h5 className="currentCapacity">Current occupancy: <strong>{storeData.currentCount}</strong>/{storeData.maxOccupants}</h5>
-      <h2><strong>{Math.floor((storeData.currentCount / storeData.maxOccupants) * 100) }%</strong></h2>
-      <Doughnut data = {donutData} />
+
+      <h2><strong>{Math.floor(((storeData.currentCount) / storeData.maxOccupants) * 100) }%</strong></h2>
+      
+      <div className='donutChart'>
+        <Doughnut data = {donutData} />  
+      </div>
+
+      { !isClockedIn && (storeData.queue.length > 0 || storeData.currentCount + storeData.reservedCustomers >= storeData.maxOccupants) ?
+        <p className='theresAline'>You can join a <br/> queue to get better priority</p>
+        : ''
+      }
+
+      { !isClockedIn && !checkLine && storeData.currentCount + storeData.reservedCustomers >= storeData.maxOccupants ?
+        <button onClick={() => setCheckLine(true)} className='secondary-btn checkLine'>Check line</button>
+        : ''
+      }
+
+      { checkLine && !isClockedIn && storeData.currentCount + storeData.reservedCustomers >= storeData.maxOccupants ?
+        <CustomerQueue
+          storeData={storeData}
+          handleShow={handleShow}
+          setRunFunc={setRunFunc}
+          setModalTitle={setModalTitle}
+          setModalMessage={setModalMessage}
+          setPartyAmount={setPartyAmount}
+          partyError={partyError}
+          joinQueueAlert={joinQueueAlert}
+        /> : ''
+      }
+
+    
 
       { isClockedIn && employeeStatus ?
         ''
         :
-        <Button className="refresh-btn" onClick={() => window.location.reload(false)}>
+        <Button className="submit-btn refresh-btn" onClick={() => window.location.reload(false)}>
         Refresh
         </Button>
       }
     </div>
   );
 }
-
-
 
 
 function EmployeeContent({
@@ -648,40 +1046,40 @@ function EmployeeContent({
   occupancyChangeValue,
   amountError,
   occupancySuccess,
-  openCloseStatus
+  storeData,
+  visitBarClass,
+  visitBarClass02
 }) {
   // Here we can define state variables that will only be used by this component
   return (
     <div>
 
-      { isClockedIn ? 
-        <h5 className='dash-h5'>Change occupancy</h5> : ''
+      { isClockedIn &&
+        <h5 className='dash-h5'>Change occupancy</h5>
       }
 
-      { isClockedIn ?
+      { isClockedIn &&
         <button className='submit-btn decreaseCount' onClick={() => { setOccupancyChangeValue(prevCount => prevCount-1); }}>
           -
-        </button> : ''
+        </button>
       }
 
-      { isClockedIn ?
-        <Form.Control className='dashboard-amount' type="number" placeholder={occupancyChangeValue} readOnly onChange={evt => setOccupancyChangeValue(evt.target.value)}/> : ''
+      { isClockedIn &&
+        <Form.Control className='dashboard-amount' type="number" placeholder={occupancyChangeValue} readOnly onChange={evt => setOccupancyChangeValue(evt.target.value)}/>
       }
 
-      { isClockedIn ?
+      { isClockedIn &&
         <button className='submit-btn increaseCount' onClick={() => { setOccupancyChangeValue(prevCount => prevCount+1); }}>
-          +
-        </button> : ''
+            +
+        </button>
       }
 
       <br/>
 
-      { isClockedIn ? 
+      { isClockedIn &&
         <button className='secondary-btn changeOccupancy' onClick={() => { setRunFunc('changeOccupancy'); setModalTitle('Change occupancy by ' + occupancyChangeValue + ' ?'); setModalMessage('Are you sure?'); handleShow();} }>
           Change
         </button>
-        :
-        ''
       }
 
 
@@ -699,8 +1097,8 @@ function EmployeeContent({
         </Alert>
       ): ''}
 
-
-      { isClockedIn ?
+      <Row>
+        { isClockedIn &&
         <VisitSearchBar 
           searchData={searchData}
           setSelectedVisit={setSelectedVisit}
@@ -711,26 +1109,39 @@ function EmployeeContent({
           setRunFunc={setRunFunc}
           setModalTitle={setModalTitle}
           setModalMessage={setModalMessage}
+          visitBarClass={visitBarClass}
+          isClockedIn={isClockedIn}
+          storeData={storeData}
+          visitBarClass02={visitBarClass02}
         />
-        :
-        ''
-      }
+        }
+        <br/>
 
-      <br/>
 
-      { openCloseStatus === 'open' ?
-        <p>Clock in/out below to switch views.</p>
-        :
-        ''
-      }
+        { isClockedIn && storeData.queue.length > 0 ?
+          <EmployeeQueue 
+            storeData={storeData}
+            handleShow={handleShow}
+            setRunFunc={setRunFunc}
+            setModalTitle={setModalTitle}
+            setModalMessage={setModalMessage}
+          /> : ''
+        }
 
-      { isClockedIn && openCloseStatus === 'open' ? 
+      </Row>
+
+
+
+
+      <p>Clock in/out below to switch views.</p>
+
+      { isClockedIn ? 
         <Button className="clockOut-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock out?'); setModalMessage('Are you sure you want to clock out?'); handleShow();}}>Clock Out?</Button>
         :
         ''
       }
 
-      { !isClockedIn && openCloseStatus === 'open' ? 
+      { !isClockedIn ? 
         <Button className="clockIn-btn" onClick={() => { setRunFunc('handleClockInOut'); setModalTitle('Clock in?'); setModalMessage('Are you sure you want to clock in?'); handleShow();}}>Clock In?</Button>
         :
         ''
@@ -739,6 +1150,81 @@ function EmployeeContent({
     </div>
   );
 }
+
+
+function CustomerQueue({ 
+  storeData,
+  handleShow,
+  setRunFunc,
+  setModalTitle,
+  setModalMessage,
+  setPartyAmount,
+  partyError,
+  joinQueueAlert
+}) {
+  return (
+    <>    
+      <p className='dash-queueLength'>Customers waiting in queue: <strong>{storeData.queue.length}</strong></p>
+      <Form.Label className='dash-partyLabel'>Enter your party size to join the queue <br/> (including yourself)</Form.Label>
+      <Form.Control className='dash-partySize' placeholder="Party size" onChange={evt => setPartyAmount(evt.target.value)}/>
+
+      <p className='dash-maxParty'>Max party allowed: <strong>{storeData.maxPartyAllowed}</strong></p>
+
+
+      { partyError ? 
+        <Alert className='dash-alerts' variant='warning'>
+          {partyError}
+        </Alert>
+        : ''
+      }
+
+      { joinQueueAlert ? 
+        <Alert variant='success'>{joinQueueAlert}</Alert>
+        : ''
+      }
+
+      <button className='secondary-btn joinQueue' onClick={() => { setRunFunc('joinQueue'); setModalTitle('Join the queue?'); setModalMessage('Would you like to join the current queue of ' + storeData.queue.length + ' people?'); handleShow();}} >
+        Join Queue?
+      </button>
+
+      <p>After joining the queue, <br/>  you will receive a <strong>text message</strong> <br/> once it&apos;s your turn to enter the store.</p>
+
+    </>
+  );
+}
+
+
+function EmployeeQueue({ 
+  storeData,
+  handleShow,
+  setRunFunc,
+  setModalTitle,
+  setModalMessage
+}) {
+
+  const queue = storeData.queue;
+  const head = queue[0];
+  
+  return (
+    <> 
+      <Col className='employeeQueue' xs={8} md={6}>
+        <h5 className='dash-custmersInLine'>Customers in queue: {queue.length}</h5>   
+        <div className='dash-border'>
+          <p>Next in line:</p>
+          <p className='queue-head'>{head.phoneNumber} - Party of <strong>{head.partyAmount}</strong></p>
+          <p className='queue-head'><strong>{-head.minsLate}</strong> minutes late</p>
+          <button className='submit-btn dash-skip' onClick={() => { setRunFunc('skipCustomer'); setModalTitle('Skip this person?'); setModalMessage('Would you like to skip the line forward?'); handleShow();}}>
+            Skip
+          </button>
+          <button className='secondary-btn dash-moveForward' onClick={() => { setRunFunc('popQueue'); setModalTitle('Move the line forward?'); setModalMessage('Would you like to move the line forward?'); handleShow();}}>
+            Move Forward
+          </button>
+        </div>
+      </Col>
+    </>
+  );
+}
+
 
 // Custom stylin for our searchbar
 // Custom stylin for our searchbar
@@ -773,36 +1259,54 @@ function VisitSearchBar({
   handleShow,
   setRunFunc,
   setModalTitle,
-  setModalMessage }) {
+  setModalMessage,
+  visitBarClass,
+  isClockedIn,
+  storeData,
+  visitBarClass02
+}) {
   return (
-    <div>
-      {selectedVisit &&
+    <>
+      <Col className='dash-visitSelect' xs={visitBarClass02} md={visitBarClass}>
+        {selectedVisit &&
         <h6 className='selectedVisit'>Visit selected:<br/><strong> {selectedVisit}</strong></h6>
-      }
-      <h5>Today&apos;s Visits</h5>
-      <Select
-        key={`unique_select_key_${selectedVisit}`}
-        value={selectedVisit || ''}
-        classname="searchBar"
-        styles={customStyles}
-        options={searchData}
-        onChange = {evt => setSelectedVisit(evt.label)}
-      />
-      <Button className="secondary-btn" onClick={() => { setRunFunc('confirmVisitHandler'); setModalTitle('Confirm visit?'); setModalMessage('Are you sure you want to confirm this visit?'); handleShow();}}>
-        Confirm Visit
-      </Button>
-      { errorMessage ? 
-        <Alert className="alertBox" variant='warning'>
-          {errorMessage}
-        </Alert>
-        : ''
-      }
-      { deleteAlert &&
-      <Alert variant="success">
-        Visit confirmed
-      </Alert>
-      }
-    </div>
+        }
+        <h5>Today&apos;s Visits</h5>
+        { isClockedIn && storeData.reservedCustomers > 0 ? 
+          <p>Upcoming visits: <strong>{storeData.reservedCustomers}</strong></p>
+          : ''  
+        }
+        { isClockedIn && storeData.lateVisits > 0 ? 
+          <p className='lateVisits'>Visits 15 mins or more late: <strong>{storeData.lateVisits}</strong></p>
+          : ''  
+        }
+        <Select
+          key={`unique_select_key_${selectedVisit}`}
+          value={selectedVisit || ''}
+          classname="searchBar"
+          styles={customStyles}
+          options={searchData}
+          onChange = {evt => setSelectedVisit(evt.label)}
+        />
+        <button className="submit-btn cancelVisit" onClick={() => { setRunFunc('cancelVisit'); setModalTitle('Cancel this visit?'); setModalMessage('Are you sure you want to cancel this visit?'); handleShow();}}>
+            Cancel
+        </button>
+        <button className="secondary-btn confirmVisit" onClick={() => { setRunFunc('confirmVisitHandler'); setModalTitle(selectedVisit); setModalMessage('Are you sure you want to confirm this visit?'); handleShow();}}>
+            Confirm Visit
+        </button>
+        { errorMessage ? 
+          <Alert className="alertBox dash-warning" variant='warning'>
+            {errorMessage}
+          </Alert>
+          : ''
+        }
+        { deleteAlert &&
+            <Alert variant="success">
+              {deleteAlert}
+            </Alert>
+        }
+      </Col>
+    </>
   );
 }
 
@@ -821,16 +1325,43 @@ Dashboard.propTypes = {
 };
 
 
+EmployeeQueue.propTypes = {
+  storeData: PropTypes.object.isRequired,
+  handleShow: PropTypes.func.isRequired,
+  setRunFunc: PropTypes.func.isRequired,
+  setModalTitle: PropTypes.func.isRequired,
+  setModalMessage: PropTypes.func.isRequired
+};
+
+
+CustomerQueue.propTypes = {
+  partyError: PropTypes.string.isRequired,
+  storeData: PropTypes.object.isRequired,
+  handleShow: PropTypes.func.isRequired,
+  setRunFunc: PropTypes.func.isRequired,
+  setModalTitle: PropTypes.func.isRequired,
+  setModalMessage: PropTypes.func.isRequired,
+  setPartyAmount: PropTypes.func.isRequired,
+  joinQueueAlert: PropTypes.string.isRequired
+};
+
+
 DashboardContent.propTypes = {
   storeData: PropTypes.object.isRequired,
   openCloseStatus: PropTypes.string.isRequired,
   closeTime: PropTypes.string.isRequired,
   donutData: PropTypes.object.isRequired,
   formatTime: PropTypes.func.isRequired,
-  refreshPageData: PropTypes.func.isRequired,
   employeeRole: PropTypes.string,
   isClockedIn: PropTypes.bool.isRequired,
-  employeeStatus: PropTypes.bool.isRequired
+  employeeStatus: PropTypes.bool.isRequired,
+  handleShow: PropTypes.func.isRequired,
+  setRunFunc: PropTypes.func.isRequired,
+  setModalTitle: PropTypes.func.isRequired,
+  setModalMessage: PropTypes.func.isRequired,
+  setPartyAmount: PropTypes.func.isRequired,
+  partyError: PropTypes.string.isRequired,
+  joinQueueAlert: PropTypes.string.isRequired
 };
 
 
@@ -844,14 +1375,14 @@ EmployeeContent.propTypes = {
   searchData: PropTypes.array.isRequired,
   selectedVisit: PropTypes.string,
   setSelectedVisit: PropTypes.func.isRequired,
-  confirmVisitHandler: PropTypes.func.isRequired,
   errorMessage: PropTypes.string.isRequired,
   setOccupancyChangeValue: PropTypes.func.isRequired,
   occupancyChangeValue: PropTypes.number.isRequired,
   amountError: PropTypes.string.isRequired,
   occupancySuccess: PropTypes.string.isRequired,
-  employeeRole: PropTypes.string.isRequired,
-  openCloseStatus: PropTypes.string.isRequired
+  storeData: PropTypes.object.isRequired,
+  visitBarClass: PropTypes.number.isRequired,
+  visitBarClass02: PropTypes.number.isRequired
 };
 
 
@@ -865,5 +1396,9 @@ VisitSearchBar.propTypes = {
   handleShow: PropTypes.func.isRequired,
   setRunFunc: PropTypes.func.isRequired,
   setModalTitle: PropTypes.func.isRequired,
-  setModalMessage: PropTypes.func.isRequired
+  setModalMessage: PropTypes.func.isRequired,
+  visitBarClass: PropTypes.number.isRequired,
+  isClockedIn: PropTypes.bool.isRequired,
+  storeData: PropTypes.object.isRequired,
+  visitBarClass02: PropTypes.number.isRequired
 };
