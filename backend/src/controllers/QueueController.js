@@ -6,12 +6,7 @@ module.exports = {
   async appendUser(req, res) {
     try {
       const { customer, store_id } = req.body;
-      console.log('customer:', customer);
-
-
       const store = await Store.findById(store_id);
-
-
       const queue = store.queue;
 
       let cont = true;
@@ -45,9 +40,18 @@ module.exports = {
 
   async popUser(req, res) {
     try {
-      let { store_id } = req.body;
+      const { store_id } = req.body;
 
-      Store.findByIdAndUpdate(store_id, { $pop : {'queue': -1 } },
+      const store = await Store.findById(store_id);
+      const head = store.queue[0];
+      console.log(head);
+
+      if (store.currentCount + parseInt(head.partyAmount) > store.maxOccupants) {
+        return res.json({message: 'Store would overflow.'});
+      }
+
+      // await Store.
+      Store.findByIdAndUpdate(store_id, { $pop : {'queue': -1 } }, { new: true },
         function(err, result) {
           if (err) {
             res.send(err);
@@ -58,8 +62,27 @@ module.exports = {
       );
 
     } catch (error) {
-      return res.status(400).json({message: 'Error popping user to queue'});
+      return res.status(400).json({message: 'Error popping user from queue'});
     }
   },
+
+  async skipUser(req, res) {
+    try {
+      const { store_id } = req.body;
+
+      Store.findByIdAndUpdate(store_id, { $pop : {'queue': -1 } }, { new: true },
+        function(err, result) {
+          if (err) {
+            res.send(err);
+          } else {
+            res.send(result);
+          }
+        }
+      );
+
+    } catch (error) {
+      return res.status(400).json({message: 'Error popping user from queue'});
+    }
+  }
   
 };

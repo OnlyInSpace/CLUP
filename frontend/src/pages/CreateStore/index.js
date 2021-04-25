@@ -65,6 +65,7 @@ function CreateStore() {
 
 
   console.log('Role:', userRole);
+  console.log('State:', state);
 
   // Set user's role
   useEffect(async () => {
@@ -617,7 +618,7 @@ function Selectstate({setState}) {
     <Col>
       <Form.Label className='labels'>State</Form.Label>
       <Form.Control as="select" onChange = {evt => setState(evt.target.value)}>
-        <option>Choose...</option>
+        <option value="">Choose...</option>
         <option value="AL">Alabama (AL)</option>
         <option value="AK">Alaska (AK)</option>
         <option value="AZ">Arizona (AZ)</option>

@@ -9,6 +9,10 @@ const VisitSchema = new mongoose.Schema({
   store: String,
   // User id tied to the visit
   user: String,
+  late: {
+    type: Boolean,
+    default: false
+  },
   reserved: {
     type: Boolean,
     default: false

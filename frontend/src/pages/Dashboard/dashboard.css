@@ -4,8 +4,8 @@
 }
 
 button.refresh-btn {
-    margin-top: 1em;
-    width: 7.5em;
+    width: 7em;
+    margin-bottom: 4px;
 }
 
 
@@ -76,6 +76,9 @@ button.refresh-btn {
     margin-top: -1em;
 }
 
+.donutChart {
+    margin-bottom: 1em;
+}
 
 .alertBox.amountError {
     margin-top: -1em;
@@ -111,6 +114,11 @@ button.refresh-btn {
     display: block;
 }
 
+.theresAline {
+    margin-top: 1em;
+}
+
+
 .dash-partySize {
     margin: 0 auto;
     text-align: center;
@@ -118,7 +126,7 @@ button.refresh-btn {
 }
 
 .dash-partyLabel {
-    margin-top: 1em;
+    margin-top: 0em;
 }
 
 .dash-maxParty {
@@ -127,4 +135,108 @@ button.refresh-btn {
 
 .dash-queueLength {
     margin-top: -1em;
+}
+
+
+.dash-moveForward {
+    margin-bottom: 1em;
+}
+
+.dash-custmersInLine {
+    margin-top: .5em;
+}
+
+.queue-head {
+    margin-top: -.5em;
+}
+
+.checkLine {
+    margin-right: 1em;
+}
+
+.dash-border {
+    border: 1px solid rgb(0, 0, 0);
+    max-width: 18em;
+    margin: 0 auto;
+    padding-top: 1em;
+    margin-bottom: 1.5em;
+    margin-top: 1em;
+}
+
+.content.dashboardContent {
+    width: 95%; 
+    max-width: 47em !important;
+    /* max-width: 20em; */
+}
+
+.lateVisits {
+    margin-top: -.5em;
+}
+
+.content.smallDashContent {
+    max-width: 24em;
+}
+
+@media screen and (max-width: 767px) {
+    .content.dashboardContent {
+        width: 25em; 
+        padding: 0;
+        padding-top: 2em;
+        padding-bottom: 2em;
+    }
+}
+
+.container.dashboard {
+    max-width: 40em;
+}
+
+
+.employeeQueue{
+    margin: 0 auto;
+    margin-top: -.5em;
+    /* max-width: 17em; */
+}
+
+.dash-visitSelect {
+    margin: 0 auto;
+}
+
+.dash-visitSelect.smallerBar > .css-2b097c-container {
+    /* width: 14em; */
+    /* margin-left: -2.5em; */
+}
+
+.confirmVisit {
+    margin-bottom: 1.5em;
+}
+
+.dash-alerts {
+    margin: 0 auto;
+    max-width: 16em;
+}
+
+.chartjs-render-monitor {
+    margin: 0 auto;
+    max-width: 300px;
+    max-height: 150px;
+}
+
+.alertBox.dash-warning {
+    margin-top: 0em;
+}
+
+.dash-skip {
+    margin-right: .25em;
+}
+
+.dash-skip:hover {
+    background-color: var(--darkRed) !important;
+}
+
+.cancelVisit:hover {
+    background-color: var(--darkRed) !important;
+}
+
+.cancelVisit {
+    margin-right: 1em;
 }

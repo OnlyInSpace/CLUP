@@ -1,6 +1,5 @@
 /* white square behind everything */
 .loginContent {
-    opacity: 0.95;
     background-color: rgb(255, 255, 255);
     margin-bottom: 2em;
     border-radius: 10px;

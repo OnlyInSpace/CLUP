@@ -91,12 +91,14 @@ routes.delete('/myvisits/:visitId', verifyToken, VisitController.delete);
 // FindStore -  returns all stores 
 routes.get('/findstore', verifyToken, StoreController.getAllStores);
 
-// Customer queue - append and pop
-routes.post('/queue/append', verifyToken, QueueController.appendUser);
+// Customer queue - append, pop, and skip
+routes.put('/queue/append', verifyToken, QueueController.appendUser);
 routes.post('/queue/pop', verifyToken, QueueController.popUser);
+routes.put('/queue/skip', verifyToken, QueueController.skipUser);
+
 
 // Confirm a visit
-routes.post('/confirmVisit', verifyToken, VisitController.confirmVisit);
+routes.delete('/confirmVisit/:visit_id', verifyToken, VisitController.confirmVisit);
 
 
 //***********QUERIES FOR GETTING DATA****************** */
@@ -122,7 +124,6 @@ routes.get('/stores/:company_id', verifyToken, StoreController.getOwnedStores);
 // Get store by id
 // returns store data
 routes.get('/store/:store_id', verifyToken, StoreController.getStoreById);
-
 
 
 module.exports = routes;

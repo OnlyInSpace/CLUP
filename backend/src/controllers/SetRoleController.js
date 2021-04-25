@@ -57,6 +57,7 @@ module.exports = {
     }
   },
 
+  
   async changeRole(req, res) {
     try {
       let { email, role } = req.body;
