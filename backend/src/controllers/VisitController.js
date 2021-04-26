@@ -85,7 +85,7 @@ module.exports = {
         // decrement reserved
         await Store.findByIdAndUpdate(visit.store, {$inc: {'reservedCustomers': -visit.partyAmount}});
         // increment store occupancy
-        await Store.findByIdAndUpdate(visit.store, {$inc: {'currentCount': visit.partyAmount}})
+        await Store.findByIdAndUpdate(visit.store, {$inc: {'currentCount': visit.partyAmount}});
         // delete visit 
         await Visit.findByIdAndDelete(visit_id);
         return res.sendStatus(204);

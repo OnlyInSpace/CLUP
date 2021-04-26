@@ -13,7 +13,7 @@ const Store = require('./models/Store');
 
 // Twilio setup
 const accountSid = 'AC0ea3fddea1f7c73c4c6e52f781faa95e'; 
-const authToken = '89db29b03877c0aadc1867cacf5103c5'; 
+const authToken = 'f6f1c2f2eaf3c0adc21bb3463d1ee1ef'; 
 const client = require('twilio')(accountSid, authToken); 
 
 
@@ -52,9 +52,8 @@ cron.schedule('*/1 * * * *', async () => {
     visits.forEach(visit => updateVisits(visit));
 
     // Send SMS alerts
-    const stores = await Store.find({})
-    stores.forEach(store => sendSMS(store))
-
+    const stores = await Store.find({});
+    stores.forEach(store => sendSMS(store));
 
     console.log('running a task every minute');
   } catch (error) {
@@ -129,11 +128,11 @@ async function sendSMS(store) {
 
       // Calculate time difference
       let timeDifference = startTime - currentTime;
-
+      
       // set their minsLate to the time difference
       await Store.updateOne(
-        {_id: store._id, "queue.phoneNumber": head.phoneNumber },
-        { $set: { "queue.$.minsLate": timeDifference} }
+        {_id: store._id, 'queue.phoneNumber': head.phoneNumber },
+        { $set: { 'queue.$.minsLate': timeDifference} }
       );
 
     }
@@ -142,28 +141,28 @@ async function sendSMS(store) {
     if (!head.alerted) {
       // Update their alerted property to true
       const setAlerted = await Store.updateOne(
-        {_id: store._id, "queue.phoneNumber": head.phoneNumber },
-        { $set: { "queue.$.alerted": true} }
+        {_id: store._id, 'queue.phoneNumber': head.phoneNumber },
+        { $set: { 'queue.$.alerted': true} }
       );
 
       console.log('sending message');
       // Send text message to first person in queue
       if (setAlerted) {
         client.messages 
-        .create({ 
+          .create({ 
             body: '\nCLUP ALERT: \n\nYou are next in line at ' + store.storeName + 
                   '\n\nPlease walk into the entrance of the store within 15 minutes of getting this message or you might lose your spot!' + 
                   '\n\nHave a nice day,\nThank you',  
             messagingServiceSid: 'MGb2a42db17b3508e4802e24b44a94bcd3',      
             to: '+1' + head.phoneNumber 
-        }) 
-        .then(message => console.log(message.sid)) 
-        .done();
+          }) 
+          .then(message => console.log(message.sid)) 
+          .done();
 
         // Once alerted, set their start time to the current time
         await Store.updateOne(
-          {_id: store._id, "queue.phoneNumber": head.phoneNumber },
-          { $set: { "queue.$.startTime": Date.now()} }
+          {_id: store._id, 'queue.phoneNumber': head.phoneNumber },
+          { $set: { 'queue.$.startTime': Date.now()} }
         );
       }
     }

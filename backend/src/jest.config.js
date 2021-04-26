@@ -1,5 +1,5 @@
 module.exports = {
-    testEnvironment: 'node'
+  testEnvironment: 'node'
 };
 
-jest.setTimeout(30000)
+jest.setTimeout(30000);

@@ -168,7 +168,7 @@ app.post('/logout', async function (req, res) {
 app.get('/verifyAccessToken', async function (req, res) {
   // Verify accessToken is legit
   if (req.headers.authorization) {
-    const accessToken = req.headers.authorization.split(" ")[1];
+    const accessToken = req.headers.authorization.split(' ')[1];
     // Verify the token is legit and unexpired! If it is, then go ahead and return success = true
     jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
       if (user) {
@@ -192,7 +192,7 @@ app.get('/verifyAccessToken', async function (req, res) {
     }); 
 
   } else { 
-    console.log('no token in auth headers (from authServer.js)')
+    console.log('no token in auth headers (from authServer.js)');
     return res.sendStatus(401);
   }
 });
@@ -209,7 +209,7 @@ app.get('/refresh', async function (req, res) {
   // If the refresh token is valid, create a new accessToken and return it.
   jwt.verify(refreshToken, process.env.JWT_REFRESH, (err, refresh) => {
     if (refresh) {
-      console.log('refreshing  token!')
+      console.log('refreshing  token!');
       // Set our userData
       const userData = {
         _id: user._id,

@@ -22,7 +22,7 @@ function verifyToken(req, res, next) {
 
   if (req.headers.authorization) {
     // Get token from headers.authorization
-    const token = req.headers.authorization.split(" ")[1];
+    const token = req.headers.authorization.split(' ')[1];
     // Verify the token is legit! and if so, set req.user to user and call next()
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
       if (user) {

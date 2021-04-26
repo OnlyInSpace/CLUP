@@ -442,7 +442,7 @@ function Dashboard() {
         setErrorMessage('Please select a visit to confirm.');
         setTimeout(() => {
           setErrorMessage('');
-        }, 100000);
+        }, 6000);
         handleClose();
         return;
       }
@@ -736,9 +736,9 @@ function Dashboard() {
       }
   
       // Set our delete alert for 5 seconds
-      setJoinQueueAlert('Line moved forward.');
+      setDeleteAlert('Line moved forward.');
       setTimeout(() => {
-        setJoinQueueAlert('');
+        setDeleteAlert('');
       }, 2500);
   
       handleClose();
@@ -876,7 +876,7 @@ function Dashboard() {
   return (
     <Container className='dashboard'>
       {/* Modal */}
-      <Modal show={show} onHide={handleClose} centered>
+      <Modal show={show} onHide={() => { handleClose(); setSelectedVisit(''); }} centered>
         <Modal.Header closeButton>
           <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
@@ -1217,7 +1217,7 @@ function EmployeeQueue({
             Skip
           </button>
           <button className='secondary-btn dash-moveForward' onClick={() => { setRunFunc('popQueue'); setModalTitle('Move the line forward?'); setModalMessage('Would you like to move the line forward?'); handleShow();}}>
-            Move Forward
+            Check In
           </button>
         </div>
       </Col>
@@ -1289,10 +1289,10 @@ function VisitSearchBar({
           onChange = {evt => setSelectedVisit(evt.label)}
         />
         <button className="submit-btn cancelVisit" onClick={() => { setRunFunc('cancelVisit'); setModalTitle('Cancel this visit?'); setModalMessage('Are you sure you want to cancel this visit?'); handleShow();}}>
-            Cancel
+            Cancel Visit
         </button>
         <button className="secondary-btn confirmVisit" onClick={() => { setRunFunc('confirmVisitHandler'); setModalTitle(selectedVisit); setModalMessage('Are you sure you want to confirm this visit?'); handleShow();}}>
-            Confirm Visit
+            Confirm
         </button>
         { errorMessage ? 
           <Alert className="alertBox dash-warning" variant='warning'>
