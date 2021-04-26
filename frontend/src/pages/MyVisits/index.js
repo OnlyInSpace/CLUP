@@ -38,8 +38,13 @@ function MyVisits() {
   // Get user's visits
   useEffect(() => {
     (async () => {
-      const result = await getVisits();
-      setVisitCards(result);
+      try {
+        const result = await getVisits();
+        setVisitCards(result);
+      } catch (error) {
+        console.log(error);
+        console.log('error in useEffect');
+      }
     })();
   }, []);
 

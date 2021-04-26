@@ -79,7 +79,7 @@ app.post('/user/register', async function (req, res) {
       };
 
       // Sign both access and refresh token with different secrets
-      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '20s' });
+      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '2s' });
       const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '365d' });
       // Update refreshToken in MongoDB for user
       await User.findOneAndUpdate({email: user.email}, {refreshToken: refreshToken});
@@ -129,7 +129,7 @@ app.post('/login', async function (req, res) {
         clockedIn: user.clockedIn
       };
 
-      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '20s'});
+      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '2s'});
       const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '365d'});
       // Update refreshToken in MongoDB for user
       await User.findOneAndUpdate({email: user.email}, {refreshToken: refreshToken});
@@ -220,7 +220,7 @@ app.get('/refresh', async function (req, res) {
         clockedIn: user.clockedIn
       };
       // Create new access token
-      const newAccessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '20s' });
+      const newAccessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '2s' });
       return res.json({
         success: true, 
         newAccessToken

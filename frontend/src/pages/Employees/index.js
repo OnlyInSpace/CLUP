@@ -52,78 +52,80 @@ function Employees() {
   
   const refreshToken = localStorage.getItem('refreshToken');
 
-  useEffect(async () => {
-    try {
-      let accessToken = localStorage.getItem('accessToken');
+  useEffect(() => {
+    (async () => {
+      try {
+        let accessToken = localStorage.getItem('accessToken');
 
-      const user = await protectPage(accessToken, refreshToken);
-
-      if (user.role !== 'manager' && user.role !== 'owner') {
-        history.push('/dashboard');
-      }
-      
-      const company_id = user.business_id;
-
-      let routeName = `/stores/${company_id}`;
-
-      if (user.role === 'manager') {
-        routeName = `/store/${company_id}`;
-      }
-
-      let headers = {
-        authorization: `Bearer ${accessToken}`
-      };
-      let storeList = await api.get(routeName, { headers });
-
-      // If token comes back as expired, refresh the token and make api call again
-      if (storeList.data.message === 'Access token expired') {
         const user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return.
-        if (!user) {
-          setErrorMessage('Please log in again.');
-          console.log('no user!');
-          history.push('/login');
-        } else {
+
+        if (user.role !== 'manager' && user.role !== 'owner') {
+          history.push('/dashboard');
+        }
+      
+        const company_id = user.business_id;
+
+        let routeName = `/stores/${company_id}`;
+
+        if (user.role === 'manager') {
+          routeName = `/store/${company_id}`;
+        }
+
+        let headers = {
+          authorization: `Bearer ${accessToken}`
+        };
+        let storeList = await api.get(routeName, { headers });
+
+        // If token comes back as expired, refresh the token and make api call again
+        if (storeList.data.message === 'Access token expired') {
+          const user = await protectPage(accessToken, refreshToken);
+          // If the access token or refresh token are unlegit, then return.
+          if (!user) {
+            setErrorMessage('Please log in again.');
+            console.log('no user!');
+            history.push('/login');
+          } else {
           // Return store by company_id
           // overwrite storeList with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          storeList = await api.get(routeName, { headers });
+            let newAccessToken = localStorage.getItem('accessToken');
+            headers = {
+              authorization: `Bearer ${newAccessToken}`
+            };
+            storeList = await api.get(routeName, { headers });
+          }
         }
-      }
 
-      let formattedData;
+        let formattedData;
 
-      if (user.role === 'manager') {
-        const storeName = storeList.data.storeName;
-        const storeCity = storeList.data.location.city;
-        const storeState = storeList.data.location.state;
-        const storeAddress1 = storeList.data.location.address1;
-        const storeAddress2 = storeList.data.location.address2;
-        const storeId = storeList.data._id;
-        const label = storeName + ' - ' + storeCity + ', ' + storeState + ' ' + storeAddress1 + ' ' + storeAddress2;
-        formattedData = [{label, value: storeId}];
-      } else {
-        // populate our search list
-        formattedData = storeList.data.map(store => {
-          const storeName = store.storeName;
-          const storeCity = store.location.city;
-          const storeState = store.location.state;
-          const storeAddress1 = store.location.address1;
-          const storeAddress2 = store.location.address2;
-          const storeId = store._id;
+        if (user.role === 'manager') {
+          const storeName = storeList.data.storeName;
+          const storeCity = storeList.data.location.city;
+          const storeState = storeList.data.location.state;
+          const storeAddress1 = storeList.data.location.address1;
+          const storeAddress2 = storeList.data.location.address2;
+          const storeId = storeList.data._id;
           const label = storeName + ' - ' + storeCity + ', ' + storeState + ' ' + storeAddress1 + ' ' + storeAddress2;
-          return {label, value: storeId};
-        });
+          formattedData = [{label, value: storeId}];
+        } else {
+        // populate our search list
+          formattedData = storeList.data.map(store => {
+            const storeName = store.storeName;
+            const storeCity = store.location.city;
+            const storeState = store.location.state;
+            const storeAddress1 = store.location.address1;
+            const storeAddress2 = store.location.address2;
+            const storeId = store._id;
+            const label = storeName + ' - ' + storeCity + ', ' + storeState + ' ' + storeAddress1 + ' ' + storeAddress2;
+            return {label, value: storeId};
+          });
+        }
+
+        setSearchData(formattedData);
+
+      } catch (error) {
+        console.log(error);
       }
-
-      setSearchData(formattedData);
-
-    } catch (error) {
-      console.log(error);
-    }
+    })();
   }, []);
 
 

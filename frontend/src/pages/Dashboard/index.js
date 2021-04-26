@@ -58,33 +58,36 @@ function Dashboard() {
 
   console.log(displayContent);
 
-  useEffect(async () => {
-    try {
-      let log = 0;
-      if (!store_id) {
-        history.push('/findStore');
-        return;
-      }
-
-      await refreshPageData();
-
-      // Ensure user has a store id
-      let accessToken = localStorage.getItem('accessToken');
-      let user = await protectPage(accessToken, refreshToken);
-      
-      const interval = setInterval(async () => {
-        if (user.clockedIn) {
-          log += 1;
-          console.log('refreshing data', log);
-          await refreshPageData();
+  useEffect(() => {
+    (async () => {
+      try {
+        let log = 0;
+        if (!store_id) {
+          history.push('/findStore');
+          return;
         }
-      }, 10000 );
-    
-      return () => clearInterval(interval);
 
-    } catch (error) {
-      console.log('response.data not found');
-    }
+        await refreshPageData();
+
+        // Ensure user has a store id
+        let accessToken = localStorage.getItem('accessToken');
+        let user = await protectPage(accessToken, refreshToken);
+      
+        const interval = setInterval(async () => {
+          if (user.clockedIn) {
+            log += 1;
+            console.log('refreshing data', log);
+            await refreshPageData();
+          }
+        }, 10000 );
+    
+        return () => clearInterval(interval);
+
+      } catch (error) {
+        console.log('response.data not found');
+      }
+    })();
+
   }, []);
     
 
@@ -103,6 +106,7 @@ function Dashboard() {
       if (!user) {
         console.log('no user!');
         history.push('/login');
+        return;
       } else {
         // overwrite storeList with the new access token.
         let newAccessToken = localStorage.getItem('accessToken');
@@ -186,6 +190,7 @@ function Dashboard() {
         if (!user) {
           console.log('Please log in again.');
           history.push('/login');
+          return;
         } else {
           // overwrite response with the new access token.
           let newAccessToken = localStorage.getItem('accessToken');
@@ -314,19 +319,20 @@ function Dashboard() {
         setEmployeeStatus(true);
         setEmployeeRole(user.role);
       } else if (user.clockedIn === true) {
-        console.log('PLEASEE');
         // Clock user in or out
         setIsClockedIn(false);
+
         let user_id = user._id;
         let getUser = await api.post('/clockOut', {user_id}, { headers });
         // If token comes back as expired, refresh the token and make api call again
         if (getUser.data.message === 'Access token expired') {
-          user = await protectPage(accessToken, refreshToken);
-          user_id = user._id;
+          let userData = await protectPage(accessToken, refreshToken);
+          user_id = userData._id;
           // If the access token or refresh token are unlegit, then return.
-          if (!user) {
+          if (!userData) {
             console.log('no user!');
             history.push('/login');
+            return;
           } else {
           // overwrite storeList with the new access token.
             let newAccessToken = localStorage.getItem('accessToken');
@@ -406,6 +412,7 @@ function Dashboard() {
         if (!user) {
           console.log('no user!');
           history.push('/login');
+          return;
         } else {
           // overwrite storeList with the new access token.
           let newAccessToken = localStorage.getItem('accessToken');
@@ -467,6 +474,7 @@ function Dashboard() {
         if (!user) {
           console.log('Please log in again');
           history.push('/login');
+          return;
         } else {
           // overwrite response with the new access token.
           let newAccessToken = localStorage.getItem('accessToken');
@@ -478,7 +486,7 @@ function Dashboard() {
       }
             
       if (response.data.message === 'Visit is not reserved.') {
-        setErrorMessage('You cannot confirm a visit not yet reserved.');
+        setErrorMessage('This is not an upcoming visit.');
         setTimeout(() => {
           setErrorMessage('');
         }, 5000);
@@ -587,6 +595,7 @@ function Dashboard() {
       if (!user) {
         console.log('no user!');
         history.push('/login');
+        return;
       } else {
         // overwrite storeList with the new access token.
         let newAccessToken = localStorage.getItem('accessToken');
@@ -654,17 +663,20 @@ function Dashboard() {
 
       // If token comes back as expired, refresh the token and make api call again
       if (joinQueue.data.message === 'Access token expired') {
-        user = await protectPage(accessToken, refreshToken);
+        const userData = await protectPage(accessToken, refreshToken);
         customer = {
-          user_id: user._id,
-          phoneNumber: user.phoneNumber,
+          user_id: userData._id,
+          phoneNumber: userData.phoneNumber,
           partyAmount: partyAmount,
-          timesSkipped: 0
+          minsLate: 0,
+          startTime: Date.now(),
+          alerted: false
         };
         // If the access token or refresh token are unlegit, then return.
-        if (!user) {
+        if (!userData) {
           console.log('no user!');
           history.push('/login');
+          return;
         } else {
           // overwrite storeList with the new access token.
           let newAccessToken = localStorage.getItem('accessToken');
@@ -733,6 +745,8 @@ function Dashboard() {
         setTimeout(() => {
           setErrorMessage('');
         }, 3000);
+        handleClose();
+        return;
       }
   
       // Set our delete alert for 5 seconds
@@ -1212,7 +1226,7 @@ function EmployeeQueue({
         <div className='dash-border'>
           <p>Next in line:</p>
           <p className='queue-head'>{head.phoneNumber} - Party of <strong>{head.partyAmount}</strong></p>
-          <p className='queue-head'><strong>{-head.minsLate}</strong> minutes late</p>
+          <p className='queue-head'><strong>{(-head.minsLate).toString()}</strong> minutes late</p>
           <button className='submit-btn dash-skip' onClick={() => { setRunFunc('skipCustomer'); setModalTitle('Skip this person?'); setModalMessage('Would you like to skip the line forward?'); handleShow();}}>
             Skip
           </button>

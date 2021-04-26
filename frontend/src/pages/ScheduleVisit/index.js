@@ -165,7 +165,7 @@ function ScheduleVisit() {
   function renderBusinessHours(day, index) {
     if (open24hours) {
       return (
-        <div>
+        <div key={index}>
           <p>Open 24/7</p>
         </div>
       );
@@ -186,13 +186,15 @@ function ScheduleVisit() {
             {day.open && 
                 <p className="scheduleVisitClosed"><strong>&nbsp;---</strong></p>
             }
-
-            <p className="scheduleVisitClosed"> <strong>{formatTime(day.open)}</strong></p>
-
+            {day.open &&
+              <p className="scheduleVisitClosed"> <strong>{formatTime(day.open)}</strong></p>
+            }
             {day.close && 
                 <p className="scheduleVisitClosed"> <strong>to </strong></p>
             }
-            <p className="scheduleVisitClosed"><strong>{formatTime(day.close)}</strong></p>
+            {day.close && 
+              <p className="scheduleVisitClosed"><strong>{formatTime(day.close)}</strong></p>
+            }
           </li>
         </Col>
       </Row>

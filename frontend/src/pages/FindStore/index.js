@@ -24,72 +24,74 @@ function FindStore() {
   console.log(searchData);
 
   
-  useEffect(async () => {
-    try {
-      let accessToken = localStorage.getItem('accessToken');
-      let refreshToken = localStorage.getItem('refreshToken');
-      let headers = {
-        authorization: `Bearer ${accessToken}`
-      };
+  useEffect(() => {
+    (async () => {
+      try {
+        let accessToken = localStorage.getItem('accessToken');
+        let refreshToken = localStorage.getItem('refreshToken');
+        let headers = {
+          authorization: `Bearer ${accessToken}`
+        };
 
-      if (store_id) {
-        let storeData = await api.get(`/store/${store_id}`, { headers });
+        if (store_id) {
+          let storeData = await api.get(`/store/${store_id}`, { headers });
   
+          // If token comes back as expired, refresh the token and make api call again
+          if (storeData.data.message === 'Access token expired') {
+            const user = await protectPage(accessToken, refreshToken);
+            // If the access token or refresh token are unlegit, then return.
+            if (!user) {
+              console.log('no user!');
+              history.push('/login');
+            } else {
+            // overwrite storeData with the new access token.
+              let newAccessToken = localStorage.getItem('accessToken');
+              accessToken = newAccessToken;
+              headers = {
+                authorization: `Bearer ${newAccessToken}`
+              };
+              storeData = await api.get(`/store/${store_id}`, { headers });
+            }
+          }
+          setPreSelectedStore(storeData.data.storeName);
+        }
+
+        let storeList = await api.get('/store', { headers });
+
         // If token comes back as expired, refresh the token and make api call again
-        if (storeData.data.message === 'Access token expired') {
+        if (storeList.data.message === 'Access token expired') {
           const user = await protectPage(accessToken, refreshToken);
           // If the access token or refresh token are unlegit, then return.
           if (!user) {
+            setErrorMessage('Please log in again.');
             console.log('no user!');
             history.push('/login');
           } else {
-            // overwrite storeData with the new access token.
+          // overwrite storeList with the new access token.
             let newAccessToken = localStorage.getItem('accessToken');
-            accessToken = newAccessToken;
             headers = {
               authorization: `Bearer ${newAccessToken}`
             };
-            storeData = await api.get(`/store/${store_id}`, { headers });
+            storeList = await api.get('/store', { headers });
           }
         }
-        setPreSelectedStore(storeData.data.storeName);
-      }
-
-      let storeList = await api.get('/store', { headers });
-
-      // If token comes back as expired, refresh the token and make api call again
-      if (storeList.data.message === 'Access token expired') {
-        const user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return.
-        if (!user) {
-          setErrorMessage('Please log in again.');
-          console.log('no user!');
-          history.push('/login');
-        } else {
-          // overwrite storeList with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          storeList = await api.get('/store', { headers });
-        }
-      }
-      // populate our search list
-      const formattedData = storeList.data.map(store => {
-        const storeName = store.storeName;
-        const storeCity = store.location.city;
-        const storeState = store.location.state;
-        const storeAddress1 = store.location.address1;
-        const storeAddress2 = store.location.address2;
-        const storeId = store._id;
-        const label = storeName + ' - ' + storeCity + ', ' + storeState + ' - \r\n' + storeAddress1 + ' ' + storeAddress2;
-        return {label, value: storeId};
-      });
-      setSearchData(formattedData);
+        // populate our search list
+        const formattedData = storeList.data.map(store => {
+          const storeName = store.storeName;
+          const storeCity = store.location.city;
+          const storeState = store.location.state;
+          const storeAddress1 = store.location.address1;
+          const storeAddress2 = store.location.address2;
+          const storeId = store._id;
+          const label = storeName + ' - ' + storeCity + ', ' + storeState + ' - \r\n' + storeAddress1 + ' ' + storeAddress2;
+          return {label, value: storeId};
+        });
+        setSearchData(formattedData);
         
-    } catch (error) {
-      console.log(error);
-    }
+      } catch (error) {
+        console.log(error);
+      }
+    })();
   }, []);
 
 
@@ -124,7 +126,6 @@ function FindStore() {
   function goToDashboard() {
     history.push('/dashboard');
   }
-
   
   // Custom stylin for our searchbar
   const customStyles = {
@@ -199,6 +200,14 @@ function FindStore() {
         { preSelectedStore ? 
           <button className="submit-btn dashboard" onClick={goToDashboard}>
           ← Dashboard
+          </button>
+          :
+          <br/>
+        }
+
+        { preSelectedStore ? 
+          <button className="submit-btn findStore-visit" onClick={() => history.push('/visit/schedule')}>
+                  ← Schedule a Visit
           </button>
           :
           <br/>

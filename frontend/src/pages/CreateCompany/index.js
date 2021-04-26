@@ -20,23 +20,26 @@ function CreateCompany() {
   // Check user's role. If they are already an owner, then send them to the create store page
   const refreshToken = localStorage.getItem('refreshToken');
 
-  useEffect(async () => {
-    try {
-      let accessToken = localStorage.getItem('accessToken');
-      // Get user data and refresh token if needed.
-      let user = await protectPage(accessToken, refreshToken);
-      if (!user) {
-        console.log('Please log in again.');
-        history.push('/login');
-      }     
+  useEffect(() => {
+    (async () => {
+      try {
+        let accessToken = localStorage.getItem('accessToken');
+        // Get user data and refresh token if needed.
+        let user = await protectPage(accessToken, refreshToken);
+        if (!user) {
+          console.log('Please log in again.');
+          history.push('/login');
+          return;
+        }     
 
-      if (user.role === 'owner') {
-        history.push('/store/create');
+        if (user.role === 'owner') {
+          history.push('/store/create');
+        }
+
+      } catch (error) {
+        console.log(error);
       }
-
-    } catch (error) {
-      console.log(error);
-    }
+    })();
   }, []);
 
 
