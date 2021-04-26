@@ -15,18 +15,14 @@ function MyVisits() {
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  // For backend
-  const [errMessage, setErrMessage] = useState('');
-
   // For deleting a visit
   const [visit_id, setVisit_id] = useState('');
   // Set our visit cards to an empty array state variable
   const [visitCards, setVisitCards] = useState([]);
   const [deleteAlert, setDeleteAlert] = useState('');
   const refreshToken = localStorage.getItem('refreshToken');
+  let accessToken = localStorage.getItem('accessToken');
 
-
-    
   // Below can be used for error checking if database cards aren't working
   // const customCards = [{
   //     storeName: "Sick Store",
@@ -78,10 +74,10 @@ function MyVisits() {
   // Function to return all visits tied to user
   const getVisits = async () => {
     try {
-      let accessToken = localStorage.getItem('accessToken');
 
-      // Decode to get data stored in cookie
       let user = await protectPage(accessToken, refreshToken);
+      accessToken = localStorage.getItem('accessToken');
+      // Decode to get data stored in cookie
       let user_id = user._id;
       // Log the user here to see how it looks 
       // console.log('User:', user);
@@ -91,25 +87,6 @@ function MyVisits() {
         authorization: `Bearer ${accessToken}`
       };
       let response = await api.get(`/myvisits/${user_id}`, { headers });
-      // If token comes back as expired, refresh the token and make api call again
-      if (response.data.message === 'Access token expired') {
-        user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return.
-        if (!user) {
-          setErrMessage('Please log in again.');
-          console.log(errMessage);
-          history.push('/login');
-        } else {
-          // overwrite response with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          user_id = user._id;
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          response = await api.get(`/myvisits/${user_id}`, { headers });
-        }
-      }
-
 
       // Create a userVisits array of objects
       // Here .map means for every object in userVisits
@@ -137,24 +114,6 @@ function MyVisits() {
   
         // Get store name
         response = await api.get(`/store/${visit.store}`, { headers });
-        // If token comes back as expired, refresh the token and make api call again
-        if (response.data.message === 'Access token expired') {
-          user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            console.log('Please log in again.');
-            history.push('/login');
-          } else {
-          // overwrite response with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            user_id = user._id;
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            response = await api.get(`/store/${visit.store}`, { headers });
-          }
-        }
-
         const sName = response.data.storeName;
   
         // append object to the getCards array
@@ -178,7 +137,8 @@ function MyVisits() {
 
   const deleteVisitHandler = async (visit_id) => {
     try {
-      let accessToken = localStorage.getItem('accessToken');
+      await protectPage(accessToken, refreshToken);
+      accessToken = localStorage.getItem('accessToken');
       // get visit to check if party amount is reserved
       let headers = {
         authorization: `Bearer ${accessToken}`
@@ -187,22 +147,6 @@ function MyVisits() {
       // delete the visit
       // if an error occurs, then catch block will be triggered
       let response = await api.delete(`/myvisits/${visit_id}`, { headers });
-      // If token comes back as expired, refresh the token and make api call again
-      if (response.data.message === 'Access token expired') {
-        let user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return user to log in page.
-        if (!user) {
-          console.log('Please log in again.');
-          history.push('/login');
-        } else {
-          // overwrite response with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          response = await api.delete(`/myvisits/${visit_id}`, { headers });
-        }
-      }
       
       // Set our delete alert for 5 seconds
       setDeleteAlert('Visit canceled.');

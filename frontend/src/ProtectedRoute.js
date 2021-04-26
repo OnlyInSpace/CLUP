@@ -19,7 +19,7 @@ function ProtectedRoute({ component: Component, ...rest }) {
   const refreshToken = localStorage.getItem('refreshToken');
   
   useEffect(() => {
-    if (accessToken && refreshToken && accessToken !== 'undefined' && refreshToken !== 'undefined') {
+    if (refreshToken) {
       (async () => {
         if (accessToken && refreshToken) {
           if (await protectPage(accessToken, refreshToken)) {

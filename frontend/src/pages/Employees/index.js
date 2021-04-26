@@ -51,52 +51,32 @@ function Employees() {
   //   { id: 3, firstName: 'Luis', lastName: 'Flounder', email: 'luis@test.com', role: 'owner' }];
   
   const refreshToken = localStorage.getItem('refreshToken');
+  let accessToken = localStorage.getItem('accessToken');
 
   useEffect(() => {
     (async () => {
       try {
-        let accessToken = localStorage.getItem('accessToken');
-
+        
         const user = await protectPage(accessToken, refreshToken);
-
         if (user.role !== 'manager' && user.role !== 'owner') {
           history.push('/dashboard');
         }
-      
+        
         const company_id = user.business_id;
-
+        
         let routeName = `/stores/${company_id}`;
-
+        
         if (user.role === 'manager') {
           routeName = `/store/${company_id}`;
         }
-
+        
+        accessToken = localStorage.getItem('accessToken');
         let headers = {
           authorization: `Bearer ${accessToken}`
         };
         let storeList = await api.get(routeName, { headers });
-
-        // If token comes back as expired, refresh the token and make api call again
-        if (storeList.data.message === 'Access token expired') {
-          const user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            setErrorMessage('Please log in again.');
-            console.log('no user!');
-            history.push('/login');
-          } else {
-          // Return store by company_id
-          // overwrite storeList with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            storeList = await api.get(routeName, { headers });
-          }
-        }
-
+        // format search data
         let formattedData;
-
         if (user.role === 'manager') {
           const storeName = storeList.data.storeName;
           const storeCity = storeList.data.location.city;
@@ -137,29 +117,12 @@ function Employees() {
 
   async function removeEmployeeHandler(email) {
     try {
-      let accessToken = localStorage.getItem('accessToken');
-      const refreshToken = localStorage.getItem('refreshToken');
+      await protectPage(accessToken, refreshToken);
+      accessToken = localStorage.getItem('accessToken');    
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
       let removeEmployee = await api.post('/removeEmployee', { email }, { headers });
-  
-      // If token comes back as expired, refresh the token and make api call again
-      if (removeEmployee.data.message === 'Access token expired') {
-        const user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return.
-        if (!user) {
-          console.log('no user!');
-          history.push('/login');
-        } else {
-          // overwrite removeEmployee with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          removeEmployee = await api.post('/removeEmployee', { email }, { headers });
-        }
-      } 
       
       console.log('removed:', removeEmployee.data);
 
@@ -171,7 +134,7 @@ function Employees() {
         setRemoveAlert('');
       }, 4000);
         
-      await handleSubmit();
+      await populateTable();
 
     } catch (error) {
       console.log('Error in removeEmployeeHandler');
@@ -192,31 +155,13 @@ function Employees() {
         return;
       }
         
-      let accessToken = localStorage.getItem('accessToken');
-      
+      await protectPage(accessToken, refreshToken);
+      accessToken = localStorage.getItem('accessToken');
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
       let addEmployee = await api.post('/addEmployee', { 'email': employeeEmail, 'role': employeeRole, 'firstName': employeeFirstname, 'lastName': employeeLastname, 'store_id': selectedStore_id, company_id }, { headers });
-  
-      // If token comes back as expired, refresh the token and make api call again
-      if (addEmployee.data.message === 'Access token expired') {
-        const user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return.
-        if (!user) {
-          console.log('no user!');
-          history.push('/login');
-        } else {
-          // overwrite addEmployee with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          accessToken = newAccessToken;
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          addEmployee = await api.post('/addEmployee', { 'email': employeeEmail, 'role': employeeRole, 'firstName': employeeFirstname, 'lastName': employeeLastname, 'store_id': selectedStore_id, company_id }, { headers });
-        }
-      } 
-      
+
       if (addEmployee.data.message) {
         setAddInfoAlert(addEmployee.data.message);
         setTimeout(() => {
@@ -230,7 +175,7 @@ function Employees() {
         setAddAlert('');
       }, 4000);
       
-      await handleSubmit();
+      await populateTable();
       
     } catch (error) {
       console.log('error in addEmployeeHandler');
@@ -252,36 +197,22 @@ function Employees() {
       }
 
       if (role.toLowerCase() === 'employee' || role.toLowerCase() === 'manager') {
-        let accessToken = localStorage.getItem('accessToken');
-        const refreshToken = localStorage.getItem('refreshToken');
+        await protectPage(accessToken, refreshToken);
+        accessToken = localStorage.getItem('accessToken');
         let headers = {
           authorization: `Bearer ${accessToken}`
         };
         let changeRole = await api.post('/changeRole', { email, role }, { headers });
-          
-        // If token comes back as expired, refresh the token and make api call again
-        if (changeRole.data.message === 'Access token expired') {
-          const user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            console.log('no user!');
-            history.push('/login');
-          } else {
-            // overwrite changeRole with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            changeRole = await api.post('/changeRole', { email, role }, { headers });
-          }
-        } 
               
         setShow(false);
         
         console.log(changeRole.data);
         
         if (changeRole.data.user) {
-          setRemoveAlert('Employee\'s role successfully changed. Refreshing page');
+          setRemoveAlert('Employee\'s role successfully changed. Refreshing table');
+          setTimeout(() => {
+            setRemoveAlert('');
+          }, 5000);
         } else if (changeRole.data.message) {
           setInfoAlert(changeRole.data.message);
           setTimeout(() => {
@@ -293,9 +224,6 @@ function Employees() {
 
         await delay(2300);
 
-        // refresh page
-        window.location.reload(false);
-
       } else {
         setInfoAlert('Sorry, you need to enter either \'employee\' or \'manager\' in the textbox to change their role.');
         setTimeout(() => {
@@ -304,6 +232,7 @@ function Employees() {
         setShow(false);
         return;
       }
+      await populateTable();
     } catch (error) {
       console.log('Error in changeRoleHandler');
     }
@@ -339,9 +268,9 @@ function Employees() {
         <td>{employee.email}</td>
         <td className={className}>
           <InputGroup className="mb-3">
-            <FormControl onClick={() => { setRunFunc('changeRoleHandler'); setModalTitle('Change role?'); setModalMessage('Are you sure you want to change their role?'); }} onChange={evt => setChangeRole(evt.target.value)} placeholder={employee.role} placearia-describedby="basic-addon1" />
+            <FormControl onChange={evt => setChangeRole(evt.target.value)} placeholder={employee.role} placearia-describedby="basic-addon1" />
             <InputGroup.Append>
-              <Button onClick={() => { setEmployeeEmail(employee.email); setRunFunc('changeRoleHandler'); setModalTitle('Change role?'); setModalMessage('Are you sure you want to change their role?'); handleShow(); }} variant="outline-secondary" className='changeRole-btn'>
+              <Button onClick={() => { setEmployeeEmail(employee.email); setRunFunc('changeRoleHandler'); setModalTitle('Change role to ' + changeRole + '?'); setModalMessage('Are you sure you want to change their role?'); handleShow(); }} variant="outline-secondary" className='changeRole-btn'>
                 Change
               </Button>
             </InputGroup.Append>
@@ -357,10 +286,7 @@ function Employees() {
   }; 
 
 
-  // Set store
-  async function handleSubmit() {
-    console.log('handle submit');
-    
+  async function selectStore() {
     if (!selectedStore) {
       setErrorMessage('Please select a store.');
       setTimeout(() => {
@@ -368,76 +294,41 @@ function Employees() {
       }, 3000);
       return;
     } 
-
+  
     setSelectedAlert('Store selected! Scroll down to see the employee page');
     setTimeout(() => {
       setSelectedAlert('');
     }, 8300);
-
-    let store_id;
+  
     // Get the store's id from our generated search list 
     const getStoreId = searchData.find( ({label}) => label === selectedStore);
-    store_id = getStoreId.value;
+    let store_id = getStoreId.value;
     setSelectedStore_id(store_id);
-
-    let accessToken = localStorage.getItem('accessToken');
-
+    await protectPage(accessToken, refreshToken);
+    accessToken = localStorage.getItem('accessToken');
     let headers = {
       authorization: `Bearer ${accessToken}`
     };
     let storeData = await api.get(`/store/${store_id}`, { headers });
-
-    // If token comes back as expired, refresh the token and make api call again
-    if (storeData.data.message === 'Access token expired') {
-      const user = await protectPage(accessToken, refreshToken);
-      // If the access token or refresh token are unlegit, then return.
-      if (!user) {
-        console.log('no user!');
-        history.push('/login');
-      } else {
-        // overwrite storeData with the new access token.
-        let newAccessToken = localStorage.getItem('accessToken');
-        accessToken = newAccessToken;
-        headers = {
-          authorization: `Bearer ${newAccessToken}`
-        };
-        storeData = await api.get(`/store/${store_id}`, { headers });
-      }
-    }
-
+  
     console.log(storeData.data);
-
-
     setCompany_id(storeData.data.company_id);
+    await populateTable();
+  }
 
 
+  // populate table
+  async function populateTable() {
+    // Get the store's id from our generated search list 
+    const getStoreId = searchData.find( ({label}) => label === selectedStore);
+    let store_id = getStoreId.value;
+    await protectPage(accessToken, refreshToken);
+    accessToken = localStorage.getItem('accessToken');
+    let headers = {
+      authorization: `Bearer ${accessToken}`
+    };
     let getEmployees = await api.get(`/getEmployees/${store_id}`, { headers }); 
-    // If token comes back as expired, refresh the token and make api call again
-    if (getEmployees.data.message === 'Access token expired') {
-      const user = await protectPage(accessToken, refreshToken);
-      // If the access token or refresh token are unlegit, then return.
-      if (!user) {
-        console.log('no user!');
-        history.push('/login');
-      } else { 
-        // overwrite getEmployees with the new access token.
-        let newAccessToken = localStorage.getItem('accessToken');
-        accessToken = newAccessToken;
-        headers = {
-          authorization: `Bearer ${newAccessToken}`
-        };
-        getEmployees = await api.get(`/store/${store_id}`, { headers });
-      }
-    }
-
     let employeesList = getEmployees.data;
-
-    console.log('EmployeesList:', employeesList);
-
-    if (!employeesList) {
-      console.log('No employees');
-      return;
-    }
 
     let id = 0;
     const employeeTable = employeesList.map(employee => {
@@ -455,8 +346,6 @@ function Employees() {
     //   { id: 1, firstName: 'Martha', lastName: 'Henry', email: 'martha@test.com', role: 'manager' },
     //   { id: 2, firstName: 'Larry', lastName: 'Lenford', email: 'larry@test.com', role: 'employee' },
     //   { id: 3, firstName: 'Luis', lastName: 'Flounder', email: 'luis@test.com', role: 'owner' }];
-
-
   }
 
   // Custom stylin for our searchbar
@@ -503,6 +392,14 @@ function Employees() {
       <div className="employeesContent">
         <h4>Employees</h4>
         <p>Please select a store to view its employees</p>
+
+        {selectedAlert ?
+        /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+          <Alert className="alertBox" variant='success'>
+            {selectedAlert}
+          </Alert>
+          : ''}
+
         <Select
           classname="searchBar employee-plz"
           styles={customStyles}
@@ -512,7 +409,7 @@ function Employees() {
         
         <p>Selected store: <br/> <strong>{selectedStore}</strong></p>
 
-        <Button className="secondary-btn" onClick={() => handleSubmit()}>
+        <Button className="secondary-btn" onClick={() => selectStore()}>
           Select Store
         </Button>
         <br/>
@@ -520,12 +417,6 @@ function Employees() {
         ← Dashboard
         </button>
 
-        {selectedAlert ?
-        /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
-          <Alert className="alertBox" variant='success'>
-            {selectedAlert}
-          </Alert>
-          : ''}
 
         {errorMessage ?
         /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
@@ -634,12 +525,12 @@ function EmployeesContent({
         <li>You can only change 1 employee&apos;s role at a time</li>
         <li>There are 2 Roles: 
           <ol className='nestedEmployees-ul'>
-            <li><strong>employee</strong> - able to change store occupancy and confirm customer visits. They cannot view this page</li>
-            <li><strong>manager</strong> - able to do the same as an employee but can view this page to add employees, change their roles, or remove them from the store</li>
+            <li><strong>employee</strong> - able to change store occupancy and confirm customer visits. They cannot access this page.</li>
+            <li><strong>manager</strong> - able to do the same as an employee but can view this page to add employees, change employee roles, or remove them from the store</li>
           </ol>
         </li>
         <li>Removing an employee revokes all of their powers and removes any link between the employee and store</li>
-        <li>If an employee transfers to another store, make sure to re-add them to that new store and they will automatically be removed and transferred from their old store</li>
+        <li>If an employee transfers to another store, make sure to re-add them to that new store and they will automatically be removed from the old store and transferred to the new one.</li>
       </ul>
 
       {removeAlert ? (

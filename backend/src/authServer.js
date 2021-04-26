@@ -185,7 +185,7 @@ app.get('/verifyAccessToken', async function (req, res) {
         });
       } else { // else token doesnt exist or could be unlegit, return 403 forbidden status back to frontend and have user login again
         console.log('\naccess token verify failed in authServer.\n');
-        console.log('\nuser:', user);
+        console.log('\nuser:', user, typeof(user));
         console.log('\nheaders:', req.headers.authorization);
         return res.status(403).json({ err, message: 'User not authenticated' });
       }
