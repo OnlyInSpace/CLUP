@@ -119,7 +119,7 @@ app.post('/login', async function (req, res) {
 
     // Else if user exists and the password matches what's in the database
     // Then create userResponse object to be stored in cookies
-    if (user && await bcrypt.compare(password, user.password)) {
+    if (await bcrypt.compare(password, user.password)) {
       const userData = {
         _id: user._id,
         email: user.email,

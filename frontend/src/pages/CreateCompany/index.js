@@ -76,7 +76,7 @@ function CreateCompany() {
         const comapnyId = response.data._id || false;
 
         // Set user's role to owner so that they are able to now create stores.
-        response = await api.post('/role/owner', { user_id: ownerId }, { headers });
+        await api.post('/role/owner', { user_id: ownerId }, { headers });
         
         // Set user's business_id to the company's id
         response = await api.post('/business_id', { user_id: ownerId, business_id: comapnyId }, { headers });

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import {Container, Button, Alert} from 'react-bootstrap';
 import Select from 'react-select';
-import PropTypes from 'prop-types';
 import { withRouter, useHistory } from 'react-router-dom';
 import {
   protectPage
@@ -196,8 +195,3 @@ function FindStore() {
   );
 }
 export default withRouter(FindStore); 
-
-// In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
-FindStore.propTypes = {
-  history: PropTypes.object.isRequired
-};

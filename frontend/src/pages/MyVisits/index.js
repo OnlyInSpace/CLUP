@@ -146,7 +146,7 @@ function MyVisits() {
       
       // delete the visit
       // if an error occurs, then catch block will be triggered
-      let response = await api.delete(`/myvisits/${visit_id}`, { headers });
+      await api.delete(`/myvisits/${visit_id}`, { headers });
       
       // Set our delete alert for 5 seconds
       setDeleteAlert('Visit canceled.');
@@ -154,7 +154,7 @@ function MyVisits() {
         setDeleteAlert('');
       }, 5000);
       setShow(false);
-      response = await getVisits();
+      const response = await getVisits();
       setVisitCards(response);
     } catch (error) {
       history.push('/login');

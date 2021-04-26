@@ -572,9 +572,6 @@ function EmployeesContent({
 }
 
 // In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
-Employees.propTypes = {
-  history: PropTypes.object.isRequired
-};
 
 EmployeesContent.propTypes = {
   setEmployeeRole: PropTypes.func.isRequired,

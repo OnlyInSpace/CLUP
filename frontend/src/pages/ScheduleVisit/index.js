@@ -553,11 +553,6 @@ function VisitContent({
 
 
 // The following is required for ESLINT standards
-// In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
-ScheduleVisit.propTypes = {
-  history: PropTypes.object.isRequired
-};
-
 VisitContent.propTypes = {
   handleSubmit: PropTypes.func.isRequired,
   handleTimeChange: PropTypes.func.isRequired,

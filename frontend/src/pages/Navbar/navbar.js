@@ -3,7 +3,6 @@ import { useLocation } from 'react-router';
 import { Navbar, NavDropdown, Nav, Button, Form } from 'react-bootstrap';
 import './navbar.css';
 import { useHistory, withRouter } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import api from '../../services/api';
 import auth from '../../services/auth';
 
@@ -170,7 +169,3 @@ function NavigationBar() {
 }
 
 export default withRouter(NavigationBar);
-
-NavigationBar.propTypes = {
-  handleLogout: PropTypes.func
-};

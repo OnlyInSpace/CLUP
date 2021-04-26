@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Button, Form, Alert } from 'react-bootstrap';
 import './register.css';
-import PropTypes from 'prop-types';
 import { useHistory, withRouter } from 'react-router-dom';
 import auth from '../../services/auth';
 import logo from '../Login/logo.png';
@@ -120,8 +119,3 @@ function Register() {
   );
 }
 export default withRouter(Register);
-
-// In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
-Register.propTypes = {
-  history: PropTypes.object.isRequired
-};
