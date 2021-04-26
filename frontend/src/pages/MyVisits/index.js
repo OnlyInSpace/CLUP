@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import api from '../../services/api';
 import {Container, Card, Button, Modal, Alert} from 'react-bootstrap';
 import './myvisits.css';
-import PropTypes from 'prop-types';
 import { withRouter, useHistory } from 'react-router-dom';
 import {
   protectPage
@@ -301,8 +300,3 @@ function MyVisits() {
   );
 }
 export default withRouter(MyVisits);
-
-// In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
-MyVisits.propTypes = {
-  history: PropTypes.object.isRequired
-};

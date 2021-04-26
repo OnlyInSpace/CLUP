@@ -327,19 +327,19 @@ function Dashboard() {
         // If token comes back as expired, refresh the token and make api call again
         if (getUser.data.message === 'Access token expired') {
           let userData = await protectPage(accessToken, refreshToken);
-          user_id = userData._id;
           // If the access token or refresh token are unlegit, then return.
           if (!userData) {
             console.log('no user!');
             history.push('/login');
             return;
           } else {
-          // overwrite storeList with the new access token.
+            // overwrite storeList with the new access token.
+            user_id = userData._id;
             let newAccessToken = localStorage.getItem('accessToken');
             headers = {
               authorization: `Bearer ${newAccessToken}`
             };
-            getUser = await api.post('/clockOut', {user_id}, { headers });
+            await api.post('/clockOut', {user_id}, { headers });
           }
         }
       } else {
@@ -602,7 +602,7 @@ function Dashboard() {
         headers = {
           authorization: `Bearer ${newAccessToken}`
         };
-        getStore = await api.post('/changeCount', { store_id, 'amount': occupancyChangeValue }, { headers });
+        await api.post('/changeCount', { store_id, 'amount': occupancyChangeValue }, { headers });
       }
     }
 
@@ -664,14 +664,6 @@ function Dashboard() {
       // If token comes back as expired, refresh the token and make api call again
       if (joinQueue.data.message === 'Access token expired') {
         const userData = await protectPage(accessToken, refreshToken);
-        customer = {
-          user_id: userData._id,
-          phoneNumber: userData.phoneNumber,
-          partyAmount: partyAmount,
-          minsLate: 0,
-          startTime: Date.now(),
-          alerted: false
-        };
         // If the access token or refresh token are unlegit, then return.
         if (!userData) {
           console.log('no user!');
@@ -682,6 +674,14 @@ function Dashboard() {
           let newAccessToken = localStorage.getItem('accessToken');
           headers = {
             authorization: `Bearer ${newAccessToken}`
+          };
+          customer = {
+            user_id: userData._id,
+            phoneNumber: userData.phoneNumber,
+            partyAmount: partyAmount,
+            minsLate: 0,
+            startTime: Date.now(),
+            alerted: false
           };
           joinQueue = await api.put('/queue/append', { customer, store_id }, { headers });
         }
@@ -714,8 +714,7 @@ function Dashboard() {
     try {
 
       let accessToken = localStorage.getItem('accessToken');
-      let user = await protectPage(accessToken, refreshToken);
-  
+
       // Clock user in or out
       let headers = {
         authorization: `Bearer ${accessToken}`
@@ -725,9 +724,9 @@ function Dashboard() {
 
       // If token comes back as expired, refresh the token and make api call again
       if (popQueue.data.message === 'Access token expired') {
-        user = await protectPage(accessToken, refreshToken);
+        const userData = await protectPage(accessToken, refreshToken);
         // If the access token or refresh token are unlegit, then return.
-        if (!user) {
+        if (!userData) {
           console.log('no user!');
           history.push('/login');
         } else {
@@ -861,7 +860,7 @@ function Dashboard() {
           headers = {
             authorization: `Bearer ${newAccessToken}`
           };
-          cancelVisit = await api.delete(`/myvisits/${visit_id}`, { headers });
+          await api.delete(`/myvisits/${visit_id}`, { headers });
         }
       }
 
@@ -1033,7 +1032,7 @@ function DashboardContent({
 
     
 
-      { isClockedIn && employeeStatus ?
+      { isClockedIn && employeeStatus && openCloseStatus === 'open' ?
         ''
         :
         <Button className="submit-btn refresh-btn" onClick={() => window.location.reload(false)}>
@@ -1334,11 +1333,6 @@ function NoStoreID() {
 }
 
 
-Dashboard.propTypes = {
-  history: PropTypes.object.isRequired
-};
-
-
 EmployeeQueue.propTypes = {
   storeData: PropTypes.object.isRequired,
   handleShow: PropTypes.func.isRequired,
@@ -1405,7 +1399,6 @@ VisitSearchBar.propTypes = {
   searchData: PropTypes.array.isRequired,
   selectedVisit: PropTypes.string,
   setSelectedVisit: PropTypes.func.isRequired,
-  confirmVisitHandler: PropTypes.func,
   errorMessage: PropTypes.string.isRequired,
   handleShow: PropTypes.func.isRequired,
   setRunFunc: PropTypes.func.isRequired,

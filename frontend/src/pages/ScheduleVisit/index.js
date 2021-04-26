@@ -400,7 +400,8 @@ function ScheduleVisit() {
         }
         businessCloseHours += 23;
       // If user is trying to schedule a visit within the CLOSING hour, ensure they aren't too LATE
-      } else if ( !open24hours && scheduledHours === businessCloseHours) { 
+      }
+      if ( !open24hours && scheduledHours === businessCloseHours) { 
         if (scheduledMins > businessCloseMins) {
           setErrorMessage('Sorry, you can\'t schedule near closing time.');
           await delay(7000);

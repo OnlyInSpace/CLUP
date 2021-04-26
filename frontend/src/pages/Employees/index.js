@@ -154,7 +154,6 @@ function Employees() {
         } else {
           // overwrite removeEmployee with the new access token.
           let newAccessToken = localStorage.getItem('accessToken');
-          accessToken = newAccessToken;
           headers = {
             authorization: `Bearer ${newAccessToken}`
           };
@@ -270,7 +269,6 @@ function Employees() {
           } else {
             // overwrite changeRole with the new access token.
             let newAccessToken = localStorage.getItem('accessToken');
-            accessToken = newAccessToken;
             headers = {
               authorization: `Bearer ${newAccessToken}`
             };
