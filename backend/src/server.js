@@ -90,13 +90,14 @@ async function updateVisits(visit) {
 
     // if time of visit is within avg visit length plus 15 minutes, then reserve user's party by incrementing current count by partyAmount
     if (!visit.reserved && timeDifference <= visitLengthOffset ) {
-      await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'reservedCustomers': visit.partyAmount}});
+      await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'upcomingVisits': 1}});
       await Visit.findOneAndUpdate({_id: visit._id}, {'reserved': true});
     }
   
     // If timeOfVisit is -15 minutes or more late, then mark visit as late in the database and increment late visits
     if (!visit.late && timeDifference <= -15) {
       await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'lateVisits': 1}});
+      await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'upcomingVisits': -1}});
       await Visit.findByIdAndUpdate({_id: visit._id}, {'late': true});
     }
   } catch (error) {

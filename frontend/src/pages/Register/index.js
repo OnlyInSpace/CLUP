@@ -13,6 +13,7 @@ function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [registerAlert, setRegisterAlert] = useState('');
   
 
   // Function that will talk to server api
@@ -57,6 +58,8 @@ function Register() {
         localStorage.removeItem('store');
         localStorage.setItem('accessToken', accessToken, { secure: true });
         localStorage.setItem('refreshToken', refreshToken, { secure: true });
+        setRegisterAlert('Account created! Redirecting. . . ');
+        await delay(2000);
         history.push('/findstore');
       } else { // Else if 
         setErrorMessage(response.data.message);
@@ -67,6 +70,8 @@ function Register() {
     }
   };
     
+  // Sleep function
+  const delay = ms => new Promise(res => setTimeout(res, ms));
 
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
@@ -102,6 +107,12 @@ function Register() {
             <span>Create your account</span>
           </Button>
           {errorMessage ? (
+          /* ^^^^^^^^^^^^^^^^ is a ternary operator: is errorMessage undefined? If no, then display the alert*/
+            <Alert className="alertBox" variant='warning'>
+              {errorMessage}
+            </Alert>
+          ): ''}
+          {registerAlert ? (
           /* ^^^^^^^^^^^^^^^^ is a ternary operator: is errorMessage undefined? If no, then display the alert*/
             <Alert className="alertBox" variant='warning'>
               {errorMessage}

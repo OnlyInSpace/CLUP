@@ -3,7 +3,6 @@ import { useLocation } from 'react-router';
 import { Navbar, NavDropdown, Nav, Button, Form } from 'react-bootstrap';
 import './navbar.css';
 import { useHistory, withRouter } from 'react-router-dom';
-import api from '../../services/api';
 import auth from '../../services/auth';
 
 import {
@@ -19,6 +18,7 @@ function NavigationBar() {
   const refreshToken = localStorage.getItem('refreshToken');
 
   const store_id = localStorage.getItem('store');
+  let accessToken = localStorage.getItem('accessToken');
 
   let isAuth = true;
 
@@ -26,7 +26,6 @@ function NavigationBar() {
   useEffect(() => {
     (async () => {
       try {
-        let accessToken = localStorage.getItem('accessToken');
 
         if (!accessToken || !refreshToken) {
           isAuth = false;
@@ -48,31 +47,6 @@ function NavigationBar() {
           console.log('no store_id found');
           return;
         }
-
-        let headers = {
-          authorization: `Bearer ${accessToken}`
-        };
-        // Get store data
-        let response = await api.get(`/store/${store_id}`, { headers });
-
-        // If token comes back as expired, refresh the token and make api call again
-        if (response.data.message === 'Access token expired') {
-          user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            console.log('Please log in again.');
-            history.push('/login');
-          } else {
-          // overwrite response with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            await api.get(`/store/${store_id}`, { headers });
-          }
-        }
-
-        // setStoreCompany_id(response.data.company_id);
 
       } catch (error) {
         console.log(error);
@@ -102,8 +76,7 @@ function NavigationBar() {
   const logoutHandler = async (evt) => {
     try {
       evt.preventDefault();
-      let accessToken = localStorage.getItem('accessToken');
-      let refreshToken = localStorage.getItem('refreshToken');
+
 
       // Verify user token, refresh if have to, and get their data
       let user = await protectPage(accessToken, refreshToken);

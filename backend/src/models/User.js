@@ -8,14 +8,6 @@ const UserSchema = new mongoose.Schema({
   refreshToken: String,
   firstName: String,
   lastName: String,
-  queuePin: {
-    type: Number,
-    default: 0
-  },
-  timesSkipped: {
-    type: Number,
-    default: 0
-  },
   clockedIn: {
     type: Boolean,
     default: false

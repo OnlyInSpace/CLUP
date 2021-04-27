@@ -1102,7 +1102,7 @@ function VisitSearchBar({
         }
         <h5>Today&apos;s Visits</h5>
         { isClockedIn && storeData.reservedCustomers > 0 ? 
-          <p>Upcoming visits: <strong>{storeData.reservedCustomers}</strong></p>
+          <p>Upcoming visits: <strong>{storeData.upcomingVisits}</strong></p>
           : ''  
         }
         { isClockedIn && storeData.lateVisits > 0 ? 
