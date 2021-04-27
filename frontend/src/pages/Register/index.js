@@ -114,8 +114,8 @@ function Register() {
           ): ''}
           {registerAlert ? (
           /* ^^^^^^^^^^^^^^^^ is a ternary operator: is errorMessage undefined? If no, then display the alert*/
-            <Alert className="alertBox" variant='warning'>
-              {errorMessage}
+            <Alert className="alertBox" variant='success'>
+              {registerAlert}
             </Alert>
           ): ''}
           <Form.Group>
