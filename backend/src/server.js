@@ -120,6 +120,10 @@ async function sendSMS(store) {
     // head of queue
     let head = store.queue[0];
 
+    if (head.phoneNumber === '1234567891') {
+      return;
+    }
+
     // If head of queue has been alerted, set their minsLate to (current time - their start time)
     if (head.alerted) {
       // get current time and convert to minutes

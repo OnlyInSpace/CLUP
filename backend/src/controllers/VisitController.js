@@ -46,7 +46,7 @@ module.exports = {
 
       // If visit is reserved, make sure to decrement reserved partyAmount
       if ( visit.reserved ) {
-        await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'reservedCustomers': -visit.partyAmount}});
+        await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'upcomingVisits': -1}});
       }
       if ( visit.late ) {
         await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'lateVisits': -1}});
@@ -81,9 +81,9 @@ module.exports = {
         // if visit is late, decrement late visits
         if ( visit.late ) {
           await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'lateVisits': -1}});
+          // decrement reserved
+          await Store.findByIdAndUpdate(visit.store, {$inc: {'upcomingVisits': -1}});
         }
-        // decrement reserved
-        await Store.findByIdAndUpdate(visit.store, {$inc: {'reservedCustomers': -visit.partyAmount}});
         // increment store occupancy
         await Store.findByIdAndUpdate(visit.store, {$inc: {'currentCount': visit.partyAmount}});
         // delete visit 
