@@ -84,16 +84,13 @@ module.exports = {
           // decrement reserved
           await Store.findByIdAndUpdate(visit.store, {$inc: {'upcomingVisits': -1}});
         }
-        // increment store occupancy
-        await Store.findByIdAndUpdate(visit.store, {$inc: {'currentCount': visit.partyAmount}});
-        // delete visit 
-        await Visit.findByIdAndDelete(visit_id);
-        return res.sendStatus(204);
-      } else {
-        console.log('VISIT NOT RESERVED!');
-        return res.json({message: 'Visit is not reserved.'});
       }
-            
+      // increment store occupancy
+      await Store.findByIdAndUpdate(visit.store, {$inc: {'currentCount': visit.partyAmount}});
+      // delete visit 
+      await Visit.findByIdAndDelete(visit_id);
+      return res.sendStatus(204);
+      
     } catch (error) {
       return res.status(400).json({message: 'Confirm visit error'});
 

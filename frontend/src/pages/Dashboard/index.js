@@ -70,16 +70,11 @@ function Dashboard() {
 
         await refreshPageData();
 
-        // Ensure user has a store id
-        let user = await protectPage(accessToken, refreshToken);
-        accessToken = localStorage.getItem('accessToken');
       
         const interval = setInterval(async () => {
-          if (user.clockedIn) {
-            log += 1;
-            console.log('refreshing data', log);
-            await refreshPageData();
-          }
+          log += 1;
+          console.log('refreshing data', log);
+          await refreshPageData();
         }, 10000 );
     
         return () => clearInterval(interval);
@@ -401,7 +396,7 @@ function Dashboard() {
         setErrorMessage('This is not an upcoming visit.');
         setTimeout(() => {
           setErrorMessage('');
-        }, 5000);
+        }, 6000);
         setSelectedVisit('');
         handleClose();
         return;
@@ -409,7 +404,7 @@ function Dashboard() {
         setErrorMessage('Store occupancy would overflow, please wait until more customers leave.');
         setTimeout(() => {
           setErrorMessage('');
-        }, 7000);
+        }, 10000);
         setSelectedVisit('');
         handleClose();
         return;
@@ -828,7 +823,7 @@ function DashboardContent({
         : ''
       }
 
-      { !isClockedIn && !checkLine && storeData.currentCount + storeData.reservedCustomers >= storeData.maxOccupants ?
+      { !isClockedIn && !checkLine && (storeData.queue.length > 0 || storeData.currentCount + storeData.reservedCustomers >= storeData.maxOccupants) ?
         <button onClick={() => setCheckLine(true)} className='secondary-btn checkLine'>Check queue</button>
         : ''
       }
