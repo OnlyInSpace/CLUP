@@ -40,7 +40,6 @@ function NavigationBar() {
           return;
         }   
 
-
         setUserRole(user.role);
 
         if (!store_id) {

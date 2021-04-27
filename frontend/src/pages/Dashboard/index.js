@@ -186,7 +186,7 @@ function Dashboard() {
   
       // Set our donut chart data
       const vacantSpots = response.data.maxOccupants - (response.data.currentCount);
-      let filledSpots = response.data.currentCount + response.data.reservedCustomers;
+      let filledSpots = response.data.currentCount;
       if (filledSpots > response.data.maxOccupants) {
         filledSpots = response.data.maxOccupants;
       }
@@ -661,7 +661,7 @@ function Dashboard() {
         setErrorMessage('Please select a visit to confirm.');
         setTimeout(() => {
           setErrorMessage('');
-        }, 100000);
+        }, 10000);
         handleClose();
         return;
       }
