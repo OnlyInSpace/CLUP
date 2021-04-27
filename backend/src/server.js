@@ -13,7 +13,7 @@ const Store = require('./models/Store');
 
 // Twilio setup
 const accountSid = 'AC0ea3fddea1f7c73c4c6e52f781faa95e'; 
-const authToken = 'f6f1c2f2eaf3c0adc21bb3463d1ee1ef'; 
+const authToken = '8bef6e0919178da4379fde875463e79a'; 
 const client = require('twilio')(accountSid, authToken); 
 
 

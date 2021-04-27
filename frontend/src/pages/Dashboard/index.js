@@ -829,7 +829,7 @@ function DashboardContent({
       }
 
       { !isClockedIn && !checkLine && storeData.currentCount + storeData.reservedCustomers >= storeData.maxOccupants ?
-        <button onClick={() => setCheckLine(true)} className='secondary-btn checkLine'>Check line</button>
+        <button onClick={() => setCheckLine(true)} className='secondary-btn checkLine'>Check queue</button>
         : ''
       }
 
