@@ -828,7 +828,7 @@ function DashboardContent({
         : ''
       }
 
-      { checkLine && !isClockedIn && storeData.currentCount + storeData.reservedCustomers >= storeData.maxOccupants ?
+      { checkLine && !isClockedIn && ( storeData.queue.length > 0 || storeData.currentCount + storeData.reservedCustomers >= storeData.maxOccupants ) ?
         <CustomerQueue
           storeData={storeData}
           handleShow={handleShow}
