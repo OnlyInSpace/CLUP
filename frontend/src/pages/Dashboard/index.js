@@ -57,7 +57,6 @@ function Dashboard() {
   let accessToken = localStorage.getItem('accessToken');
   const store_id = localStorage.getItem('store');
 
-  console.log(displayContent);
 
   useEffect(() => {
     (async () => {
@@ -75,7 +74,7 @@ function Dashboard() {
           log += 1;
           console.log('refreshing data', log);
           await refreshPageData();
-        }, 10000 );
+        }, 100000 );
     
         return () => clearInterval(interval);
 
@@ -145,7 +144,7 @@ function Dashboard() {
     }
 
 
-    console.log('VISITS:', visitSearchList);
+    // console.log('VISITS:', visitSearchList);
 
     return visitSearchList;
   }
@@ -738,10 +737,11 @@ function Dashboard() {
           setPartyAmount={setPartyAmount}
           partyError={partyError}
           joinQueueAlert={joinQueueAlert}
+          refreshPageData={refreshPageData}
         />
         }
 
-        { employeeStatus && openCloseStatus === 'open' ?
+        { employeeStatus ?
           <EmployeeContent
             searchData={searchData}
             setSelectedVisit={setSelectedVisit}
@@ -789,15 +789,16 @@ function DashboardContent({
   setModalMessage,
   setPartyAmount,
   partyError,
-  joinQueueAlert
+  joinQueueAlert,
+  refreshPageData
 }) {
   // Here we can define state variables that will only be used by this component
   let history = useHistory();
   const [checkLine, setCheckLine] = useState(false);
 
   return (
-    <div>
-      <h2>{storeData.storeName}</h2>
+    <>
+      <h2 className='dash-storeName'>{storeData.storeName}</h2>
       <h5 className='dashboardAddress'>{storeData.location.address1} {storeData.location.address2}</h5>
       <h5 className={openCloseStatus === 'open' ? 'dashboardOpen' : 'dashboardClosed'}>Currently <strong>{openCloseStatus}</strong></h5>
       { closeTime && 
@@ -846,11 +847,11 @@ function DashboardContent({
       { isClockedIn && employeeStatus && openCloseStatus === 'open' ?
         ''
         :
-        <Button className="submit-btn refresh-btn" onClick={() => window.location.reload(false)}>
+        <Button className="submit-btn refresh-btn" onClick={() => refreshPageData()}>
         Refresh
         </Button>
       }
-    </div>
+    </>
   );
 }
 
@@ -1180,7 +1181,8 @@ DashboardContent.propTypes = {
   setModalMessage: PropTypes.func.isRequired,
   setPartyAmount: PropTypes.func.isRequired,
   partyError: PropTypes.string.isRequired,
-  joinQueueAlert: PropTypes.string.isRequired
+  joinQueueAlert: PropTypes.string.isRequired,
+  refreshPageData: PropTypes.func.isRequired
 };
 
 

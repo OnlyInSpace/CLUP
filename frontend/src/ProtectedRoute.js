@@ -11,8 +11,6 @@ function ProtectedRoute({ component: Component, ...rest }) {
   const [isAuth, setIsAuth] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  console.log('Protect:', isAuth);
-
   // Verify user has a refresh token
   
   const accessToken = localStorage.getItem('accessToken');

@@ -18,45 +18,6 @@ import LandingPage from './pages/LandingPage';
 
 
 function Routes() {
-  // const [isAuth, setIsAuth] = useState(false);
-
-  // Verify user has a refresh token
-  // let isAuth = false;
-  // const [isAuth, setIsAuth] = useState(false);
-
-  // const accessToken = localStorage.getItem('accessToken');
-  // const refreshToken = localStorage.getItem('refreshToken');
-
-  // async function operation() {
-  //   return new Promise(function(resolve, reject) {
-  //     const user = protectPage(accessToken,refreshToken);
-  //     // may be a heavy db call or http request?
-  //     resolve(user); // successfully fill promise
-  //   });
-  // }
-
-  // async function makeCall() {
-  //   let user = await operation();
-  //   if (user) {
-  //     isAuth = true;
-  //   }
-  // }
-
-  // makeCall();
-
-  // (async () => {
-  //   if (accessToken && refreshToken) {
-  //     if (await protectPage(accessToken, refreshToken)) {
-  //       // isAuth = true;
-  //       setIsAuth(true);
-  //     }
-  //   }
-  // })();
-
-  // isAuth = true;
-
-  // console.log(isAuth);
-
   return(
     <BrowserRouter>
       <Navbar />
