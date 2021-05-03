@@ -166,7 +166,7 @@ button.refresh-btn {
 
 .content.dashboardContent {
     width: 95%; 
-    max-width: 47em !important;
+    max-width: 39em !important;
     /* max-width: 20em; */
 }
 
@@ -180,10 +180,14 @@ button.refresh-btn {
 
 @media screen and (max-width: 767px) {
     .content.dashboardContent {
-        width: 25em; 
-        padding: 0;
+        width: 29em;
         padding-top: 2em;
         padding-bottom: 2em;
+    }
+
+    .dash-storeName {
+        width: 10em;
+        margin: 0 auto;
     }
 }
 

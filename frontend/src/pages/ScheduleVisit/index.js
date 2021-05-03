@@ -37,11 +37,13 @@ function ScheduleVisit() {
   const [visitAlert, setVisitAlert] = useState('');
 
   const refreshToken = localStorage.getItem('refreshToken');
+  let accessToken = localStorage.getItem('accessToken');
 
   useEffect(() => {
     (async () => {
       try {
-        let accessToken = localStorage.getItem('accessToken');
+        await protectPage(accessToken, refreshToken);
+        accessToken = localStorage.getItem('accessToken');
 
         if (!store_id) {
           history.push('/findStore');
@@ -52,23 +54,6 @@ function ScheduleVisit() {
           authorization: `Bearer ${accessToken}`
         };
         let response = await api.get(`/store/${store_id}`, { headers });
-
-        // If token comes back as expired, refresh the token and make api call again
-        if (response.data.message === 'Access token expired') {
-          const user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            console.log('Please log in again.');
-            history.push('/login');
-          } else {
-            // overwrite response with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            response = await api.get(`/store/${store_id}`, { headers });
-          }
-        }
         
         if (!response.data) {
           return;
@@ -85,8 +70,6 @@ function ScheduleVisit() {
         } else if (!response.data.businessHours) {
           return;
         }
-
-
         
         // Convert business hours to an array of objects so we can .map
         let hours = Object.keys(response.data.businessHours).map(key => {
@@ -133,30 +116,14 @@ function ScheduleVisit() {
     })();
   }, []);
 
-  async function getStoreVisits(accessToken, refreshToken) {
+  async function getStoreVisits() {
     // Fetch a store's visits
-
+    await protectPage(accessToken, refreshToken);
+    accessToken = localStorage.getItem('accessToken');
     let headers = {
       authorization: `Bearer ${accessToken}`
     };
     let storeVisits = await api.get(`/visits/${store_id}`, { headers });
-
-    // If token comes back as expired, refresh the token and make api call again
-    if (storeVisits.data.message === 'Access token expired') {
-      const user = await protectPage(accessToken, refreshToken);
-      // If the access token or refresh token are unlegit, then return.
-      if (!user) {
-        console.log('no user!');
-        history.push('/login');
-      } else {
-        // overwrite storeList with the new access token.
-        let newAccessToken = localStorage.getItem('accessToken');
-        headers = {
-          authorization: `Bearer ${newAccessToken}`
-        };
-        storeVisits = await api.get(`/visits/${store_id}`, { headers });
-      }
-    }
     
     return storeVisits.data;
   }
@@ -165,7 +132,7 @@ function ScheduleVisit() {
   function renderBusinessHours(day, index) {
     if (open24hours) {
       return (
-        <div>
+        <div key={index}>
           <p>Open 24/7</p>
         </div>
       );
@@ -186,13 +153,15 @@ function ScheduleVisit() {
             {day.open && 
                 <p className="scheduleVisitClosed"><strong>&nbsp;---</strong></p>
             }
-
-            <p className="scheduleVisitClosed"> <strong>{formatTime(day.open)}</strong></p>
-
+            {day.open &&
+              <p className="scheduleVisitClosed"> <strong>{formatTime(day.open)}</strong></p>
+            }
             {day.close && 
                 <p className="scheduleVisitClosed"> <strong>to </strong></p>
             }
-            <p className="scheduleVisitClosed"><strong>{formatTime(day.close)}</strong></p>
+            {day.close && 
+              <p className="scheduleVisitClosed"><strong>{formatTime(day.close)}</strong></p>
+            }
           </li>
         </Col>
       </Row>
@@ -252,12 +221,12 @@ function ScheduleVisit() {
       scheduledDate.setHours(parseInt(hoursMinutes[0]));
       scheduledDate.setMinutes(parseInt(hoursMinutes[1]));
 
-      let accessToken = localStorage.getItem('accessToken');
       // Get userId from token stored in cookie
       let user = await protectPage(accessToken, refreshToken);
       let user_id = user._id;
       let phoneNumber = user.phoneNumber;
-
+      
+      accessToken = localStorage.getItem('accessToken');
       // Validating the scheduled visit is scheduled within AT LEAST avgVisitLength + 15 mins
       let currentMins = Math.floor(Date.now() / 60000);
       // Add average visit time plus 15 minutes to current time so that we ensure user's have enough time to have a reserved spot.
@@ -318,7 +287,7 @@ function ScheduleVisit() {
 
       //************ Ensuring that the scheduled visit doesnt already exist for the same day, month, and year  ******************/
       // Here we ensure that visits can only be scheduled once for each day of the week.
-      const storeVisits = await getStoreVisits(accessToken, refreshToken);
+      const storeVisits = await getStoreVisits();
 
       console.log('store visits:', storeVisits);
 
@@ -398,7 +367,8 @@ function ScheduleVisit() {
         }
         businessCloseHours += 23;
       // If user is trying to schedule a visit within the CLOSING hour, ensure they aren't too LATE
-      } else if ( !open24hours && scheduledHours === businessCloseHours) { 
+      }
+      if ( !open24hours && scheduledHours === businessCloseHours) { 
         if (scheduledMins > businessCloseMins) {
           setErrorMessage('Sorry, you can\'t schedule near closing time.');
           await delay(7000);
@@ -442,26 +412,6 @@ function ScheduleVisit() {
       } else {
         // Create the visit
         let response = await api.post('/visit/create', {phoneNumber, user_id, scheduledDate, partyAmount, store_id}, { headers });
-
-        // If token comes back as expired, refresh the token and make api call again
-        if (response.data.message === 'Access token expired') {
-          const user = await protectPage(accessToken, refreshToken);
-          console.log('user:', user);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            console.log('Please log in again.');
-            history.push('/login');
-          } else {
-            // overwrite response with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            user_id = user._id;
-            phoneNumber = user.phoneNumber;
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            response = await api.post('/visit/create', {phoneNumber, user_id, scheduledDate, partyAmount, store_id}, { headers });
-          }
-        }
 
         console.log('phone:', phoneNumber);
 
@@ -603,11 +553,6 @@ function VisitContent({
 
 
 // The following is required for ESLINT standards
-// In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
-ScheduleVisit.propTypes = {
-  history: PropTypes.object.isRequired
-};
-
 VisitContent.propTypes = {
   handleSubmit: PropTypes.func.isRequired,
   handleTimeChange: PropTypes.func.isRequired,

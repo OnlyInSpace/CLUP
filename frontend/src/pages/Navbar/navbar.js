@@ -3,8 +3,6 @@ import { useLocation } from 'react-router';
 import { Navbar, NavDropdown, Nav, Button, Form } from 'react-bootstrap';
 import './navbar.css';
 import { useHistory, withRouter } from 'react-router-dom';
-import PropTypes from 'prop-types';
-import api from '../../services/api';
 import auth from '../../services/auth';
 
 import {
@@ -20,68 +18,40 @@ function NavigationBar() {
   const refreshToken = localStorage.getItem('refreshToken');
 
   const store_id = localStorage.getItem('store');
+  let accessToken = localStorage.getItem('accessToken');
 
   let isAuth = true;
 
 
-  useEffect(async () => {
-    try {
-      let accessToken = localStorage.getItem('accessToken');
+  useEffect(() => {
+    (async () => {
+      try {
 
-      if (!accessToken || !refreshToken) {
-        isAuth = false;
-        return;
-      }
+        if (!accessToken || !refreshToken) {
+          isAuth = false;
+          return;
+        }
 
-      // if (accessToken === 'undefined') {
-      //   await refresh(refreshToken);
-      // }
+        // Get user data and refresh token if needed.
+        let user = await protectPage(accessToken, refreshToken);
 
-      // Get user data and refresh token if needed.
-      let user = await protectPage(accessToken, refreshToken);
-
-      if (!user) {
-        console.log('Please log in again.');
-        return;
-      }   
-
-
-      setUserRole(user.role);
-      // setUserCompany_id(user.business_id);
-
-      if (!store_id) {
-        console.log('no store_id found');
-        return;
-      }
-
-      let headers = {
-        authorization: `Bearer ${accessToken}`
-      };
-      // Get store data
-      let response = await api.get(`/store/${store_id}`, { headers });
-
-      // If token comes back as expired, refresh the token and make api call again
-      if (response.data.message === 'Access token expired') {
-        user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return.
         if (!user) {
           console.log('Please log in again.');
-          history.push('/login');
-        } else {
-          // overwrite response with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          response = await api.get(`/store/${store_id}`, { headers });
+          return;
+        }   
+
+        setUserRole(user.role);
+
+        if (!store_id) {
+          console.log('no store_id found');
+          return;
         }
+
+      } catch (error) {
+        console.log(error);
       }
+    })();
 
-      // setStoreCompany_id(response.data.company_id);
-
-    } catch (error) {
-      console.log(error);
-    }
   }, []);
 
   // Need to import history this way because Navbar is outside of <Switch> in routes.js which is what imports history for every other component/page
@@ -105,8 +75,7 @@ function NavigationBar() {
   const logoutHandler = async (evt) => {
     try {
       evt.preventDefault();
-      let accessToken = localStorage.getItem('accessToken');
-      let refreshToken = localStorage.getItem('refreshToken');
+
 
       // Verify user token, refresh if have to, and get their data
       let user = await protectPage(accessToken, refreshToken);
@@ -172,7 +141,3 @@ function NavigationBar() {
 }
 
 export default withRouter(NavigationBar);
-
-NavigationBar.propTypes = {
-  handleLogout: PropTypes.func
-};

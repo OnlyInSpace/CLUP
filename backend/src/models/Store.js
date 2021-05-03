@@ -12,6 +12,7 @@ const StoreSchema = new mongoose.Schema({
     default: 0
   },
   lateVisits: 0,
+  upcomingVisits: 0,
   location: {
     city: String,
     state: String,

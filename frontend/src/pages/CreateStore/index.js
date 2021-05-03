@@ -62,31 +62,36 @@ function CreateStore() {
   const [ userRole, setUserRole ] = useState(''); 
 
   const refreshToken = localStorage.getItem('refreshToken');
+  let accessToken = localStorage.getItem('accessToken');
+
 
 
   console.log('Role:', userRole);
   console.log('State:', state);
 
   // Set user's role
-  useEffect(async () => {
-    try {
-      let accessToken = localStorage.getItem('accessToken');
-      // Get user data and refresh token if needed.
-      let user = await protectPage(accessToken, refreshToken);
+  useEffect(() => {
+    (async () => {
+      try {
+        // Get user data and refresh token if needed.
+        let user = await protectPage(accessToken, refreshToken);
+        
+        if (!user) {
+          console.log('Please log in again.');
+          history.push('/login');
+          return;
+        }
 
-      if (user.role !== 'owner') {
-        history.push('/company/create');
-      }
-      if (!user) {
-        console.log('Please log in again.');
-        // history.push('/login');
-      }
+        if (user.role !== 'owner') {
+          history.push('/company/create');
+        }
            
-      setUserRole(user.role);
+        setUserRole(user.role);
 
-    } catch (error) {
-      console.log(error);
-    }
+      } catch (error) {
+        console.log(error);
+      }
+    })();
   }, []);
 
 
@@ -184,34 +189,16 @@ function CreateStore() {
         }, 7000);
         return;
       } else {
-        let accessToken = localStorage.getItem('accessToken');
-
+        
         let user = await protectPage(accessToken, refreshToken);
         let user_id = user._id;
-
+        
         // Get company_id
+        accessToken = localStorage.getItem('accessToken');
         let headers = {
           authorization: `Bearer ${accessToken}`
         };
         let response = await api.get(`/company/${user_id}`, { headers });
-        // If token comes back as expired, refresh the token and make api call again
-        if (response.data.message === 'Access token expired') {
-          const user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            console.log('Please log in again.');
-            history.push('/login');
-          } else {
-            // overwrite response with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            user_id = user._id;
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            response = await api.get(`/company/${user_id}`, { headers });
-          }
-        }
-
 
         // Get ready to create our store
         const company_id = response.data._id;
@@ -256,23 +243,6 @@ function CreateStore() {
 
         const location = {city, state, address1, address2, 'postalCode': postalCodeNum};
         response = await api.post('/store/create', { company_id, storeName, location, 'maxOccupants': maxOccupantsNum, 'maxPartyAllowed': maxPartyNum, 'avgVisitLength': avgVisitLengthNum, open24hours, businessHours }, { headers });
-
-        // If token comes back as expired, refresh the token and make api call again
-        if (response.data.message === 'Access token expired') {
-          const user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            console.log('Please log in again.');
-            history.push('/login');
-          } else {
-            // overwrite response with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            response = await api.post('/store/create', { company_id, storeName, location, 'maxOccupants': maxOccupantsNum, 'maxPartyAllowed': maxPartyNum, 'avgVisitLength': avgVisitLengthNum, open24hours, businessHours }, { headers });
-          }
-        }
 
         // Ensure store was created by getting its id
         const store_id = response.data._id || false;

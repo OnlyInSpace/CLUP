@@ -11,15 +11,13 @@ function ProtectedRoute({ component: Component, ...rest }) {
   const [isAuth, setIsAuth] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  console.log('Protect:', isAuth);
-
   // Verify user has a refresh token
   
   const accessToken = localStorage.getItem('accessToken');
   const refreshToken = localStorage.getItem('refreshToken');
   
   useEffect(() => {
-    if (accessToken && refreshToken && accessToken !== 'undefined' && refreshToken !== 'undefined') {
+    if (refreshToken) {
       (async () => {
         if (accessToken && refreshToken) {
           if (await protectPage(accessToken, refreshToken)) {

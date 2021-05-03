@@ -79,7 +79,7 @@ app.post('/user/register', async function (req, res) {
       };
 
       // Sign both access and refresh token with different secrets
-      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '20s' });
+      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '900s' });
       const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '365d' });
       // Update refreshToken in MongoDB for user
       await User.findOneAndUpdate({email: user.email}, {refreshToken: refreshToken});
@@ -119,7 +119,7 @@ app.post('/login', async function (req, res) {
 
     // Else if user exists and the password matches what's in the database
     // Then create userResponse object to be stored in cookies
-    if (user && await bcrypt.compare(password, user.password)) {
+    if (await bcrypt.compare(password, user.password)) {
       const userData = {
         _id: user._id,
         email: user.email,
@@ -129,7 +129,7 @@ app.post('/login', async function (req, res) {
         clockedIn: user.clockedIn
       };
 
-      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '20s'});
+      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '2s'});
       const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '365d'});
       // Update refreshToken in MongoDB for user
       await User.findOneAndUpdate({email: user.email}, {refreshToken: refreshToken});
@@ -185,7 +185,7 @@ app.get('/verifyAccessToken', async function (req, res) {
         });
       } else { // else token doesnt exist or could be unlegit, return 403 forbidden status back to frontend and have user login again
         console.log('\naccess token verify failed in authServer.\n');
-        console.log('\nuser:', user);
+        console.log('\nuser:', user, typeof(user));
         console.log('\nheaders:', req.headers.authorization);
         return res.status(403).json({ err, message: 'User not authenticated' });
       }
@@ -220,7 +220,7 @@ app.get('/refresh', async function (req, res) {
         clockedIn: user.clockedIn
       };
       // Create new access token
-      const newAccessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '20s' });
+      const newAccessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '900s' });
       return res.json({
         success: true, 
         newAccessToken
