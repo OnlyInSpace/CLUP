@@ -16,7 +16,7 @@ import {
 function ScheduleVisit() {
   let history = useHistory();
   const [maxPartyAmount, setMaxPartyAmount] = useState(0);
-  const [partyAmount, setPartyAmount] = useState(0);
+  const [partyAmount, setPartyAmount] = useState('');
   const [avgVisitLength, setAvgVisitLength] = useState(0);
   const [errorMessage, setErrorMessage] = useState(false);
   // Date of visit inluding the day and time
@@ -33,13 +33,17 @@ function ScheduleVisit() {
   const [open24hours, setOpen24Hours] = useState(false);
   // get store_id
   let store_id = localStorage.getItem('store');
+  // visit success alert
+  const [visitAlert, setVisitAlert] = useState('');
 
   const refreshToken = localStorage.getItem('refreshToken');
+  let accessToken = localStorage.getItem('accessToken');
 
   useEffect(() => {
     (async () => {
       try {
-        let accessToken = localStorage.getItem('accessToken');
+        await protectPage(accessToken, refreshToken);
+        accessToken = localStorage.getItem('accessToken');
 
         if (!store_id) {
           history.push('/findStore');
@@ -50,23 +54,6 @@ function ScheduleVisit() {
           authorization: `Bearer ${accessToken}`
         };
         let response = await api.get(`/store/${store_id}`, { headers });
-
-        // If token comes back as expired, refresh the token and make api call again
-        if (response.data.message === 'Access token expired') {
-          const user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            console.log('Please log in again.');
-            history.push('/login');
-          } else {
-            // overwrite response with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            response = await api.get(`/store/${store_id}`, { headers });
-          }
-        }
         
         if (!response.data) {
           return;
@@ -83,8 +70,6 @@ function ScheduleVisit() {
         } else if (!response.data.businessHours) {
           return;
         }
-
-
         
         // Convert business hours to an array of objects so we can .map
         let hours = Object.keys(response.data.businessHours).map(key => {
@@ -131,30 +116,14 @@ function ScheduleVisit() {
     })();
   }, []);
 
-  async function getStoreVisits(accessToken, refreshToken) {
+  async function getStoreVisits() {
     // Fetch a store's visits
-
+    await protectPage(accessToken, refreshToken);
+    accessToken = localStorage.getItem('accessToken');
     let headers = {
       authorization: `Bearer ${accessToken}`
     };
     let storeVisits = await api.get(`/visits/${store_id}`, { headers });
-
-    // If token comes back as expired, refresh the token and make api call again
-    if (storeVisits.data.message === 'Access token expired') {
-      const user = await protectPage(accessToken, refreshToken);
-      // If the access token or refresh token are unlegit, then return.
-      if (!user) {
-        console.log('no user!');
-        history.push('/login');
-      } else {
-        // overwrite storeList with the new access token.
-        let newAccessToken = localStorage.getItem('accessToken');
-        headers = {
-          authorization: `Bearer ${newAccessToken}`
-        };
-        storeVisits = await api.get(`/visits/${store_id}`, { headers });
-      }
-    }
     
     return storeVisits.data;
   }
@@ -163,7 +132,7 @@ function ScheduleVisit() {
   function renderBusinessHours(day, index) {
     if (open24hours) {
       return (
-        <div>
+        <div key={index}>
           <p>Open 24/7</p>
         </div>
       );
@@ -184,13 +153,15 @@ function ScheduleVisit() {
             {day.open && 
                 <p className="scheduleVisitClosed"><strong>&nbsp;---</strong></p>
             }
-
-            <p className="scheduleVisitClosed"> <strong>{formatTime(day.open)}</strong></p>
-
+            {day.open &&
+              <p className="scheduleVisitClosed"> <strong>{formatTime(day.open)}</strong></p>
+            }
             {day.close && 
                 <p className="scheduleVisitClosed"> <strong>to </strong></p>
             }
-            <p className="scheduleVisitClosed"><strong>{formatTime(day.close)}</strong></p>
+            {day.close && 
+              <p className="scheduleVisitClosed"><strong>{formatTime(day.close)}</strong></p>
+            }
           </li>
         </Col>
       </Row>
@@ -237,39 +208,58 @@ function ScheduleVisit() {
     // Prevent default event when button is clicked
     evt.preventDefault();
     try {
+      if (!scheduledDate) {
+        setErrorMessage('Please select a day.');
+        await delay(5000);
+        setErrorMessage('');
+        return;
+      }
+
       // Return hours and minutes in an array (Split the 24 time form: 15:36 into [15,36])
       const hoursMinutes =scheduledTime.split(':');
       // Set our date hours and minutes
       scheduledDate.setHours(parseInt(hoursMinutes[0]));
       scheduledDate.setMinutes(parseInt(hoursMinutes[1]));
 
-      let accessToken = localStorage.getItem('accessToken');
       // Get userId from token stored in cookie
       let user = await protectPage(accessToken, refreshToken);
       let user_id = user._id;
       let phoneNumber = user.phoneNumber;
-
+      
+      accessToken = localStorage.getItem('accessToken');
       // Validating the scheduled visit is scheduled within AT LEAST avgVisitLength + 15 mins
       let currentMins = Math.floor(Date.now() / 60000);
       // Add average visit time plus 15 minutes to current time so that we ensure user's have enough time to have a reserved spot.
-      currentMins += avgVisitLength;
-      currentMins += 15;
+      currentMins += avgVisitLength * 1.75;
       let scheduledMins = Math.floor(Date.parse(scheduledDate) / 60000);
 
 
       // VALIDATION CHECKS 
       let errorAlert = '';
-
+      console.log(scheduledDate);
+      
       // Last validation checks of party size
-      if (partyAmount <= 0) {
-        errorAlert = 'Please enter the number of members in your visiting party.';
-      } else if (isNaN(partyAmount)) {
-        errorAlert = 'Please enter a valid number for your party.';
-      } else if (partyAmount > maxPartyAmount) {
-        errorAlert = 'The maximum allowed members in a party is ' + maxPartyAmount;
+      const isInt = /^\d+$/.test(partyAmount);
+      
+      const amount = parseInt(partyAmount);
+      
+      if (!isInt || amount <= 0) {
+        setErrorMessage('Please enter a valid number for your party amount.');
+        await delay(6000);
+        setErrorMessage('');
+        return;
+      } else if (amount > maxPartyAmount) {
+        setErrorMessage('The maximum allowed members in a party is ' + maxPartyAmount);
+        await delay(7000);
+        setErrorMessage('');
+        return;
       } else if (scheduledMins < currentMins) { // If the scheduled time is not ahead of current time + avgVisitLength + 15 mins
-        errorAlert = 'Visits must be scheduled at least ' + (avgVisitLength + 15) + ' minutes from now';
+        setErrorMessage('Visits must be scheduled at least ' + (avgVisitLength + 15) + ' minutes from now');
+        await delay(8000);
+        setErrorMessage('');
+        return;
       }
+
       
       const scheduledDay = scheduledDate.getDay();
       let scheduledHours, businessDay, businessHoursMins, businessOpenHours, businessOpenMins, businessCloseHours, businessCloseMins;
@@ -297,7 +287,7 @@ function ScheduleVisit() {
 
       //************ Ensuring that the scheduled visit doesnt already exist for the same day, month, and year  ******************/
       // Here we ensure that visits can only be scheduled once for each day of the week.
-      const storeVisits = await getStoreVisits(accessToken, refreshToken);
+      const storeVisits = await getStoreVisits();
 
       console.log('store visits:', storeVisits);
 
@@ -323,11 +313,17 @@ function ScheduleVisit() {
           
           // Check if someone else has already scheduled for that exact time
           if (visitYear === scheduledYear && visitMonth === scheduledMonth && visitDay === scheduledDay && visitHours === scheduledHours && visitMins === scheduledMins ) {
-            errorAlert = 'Sorry, but someone else has already scheduled for this slot.';
+            setErrorMessage('Sorry, but someone else has already scheduled for this slot.');
+            await delay(6000);
+            setErrorMessage('');
+            return;
           }
           // Check if user has already scheduled for the same day
           if (visitUser === user_id && visitYear === scheduledYear && visitMonth === scheduledMonth && visitDay === scheduledDay) {
-            errorAlert = 'Sorry, but you can only schedule a visit once per day. You can cancel your visit in \'My visits\' below';
+            setErrorMessage('Sorry, but you can only schedule a visit once per day. You can cancel your visit in \'My visits\' below');
+            await delay(9000);
+            setErrorMessage('');
+            return;
           }
         }
       }
@@ -371,21 +367,34 @@ function ScheduleVisit() {
         }
         businessCloseHours += 23;
       // If user is trying to schedule a visit within the CLOSING hour, ensure they aren't too LATE
-      } else if ( !open24hours && scheduledHours === businessCloseHours) { 
+      }
+      if ( !open24hours && scheduledHours === businessCloseHours) { 
         if (scheduledMins > businessCloseMins) {
-          errorAlert = 'Sorry, you can\'t schedule near closing time.';
+          setErrorMessage('Sorry, you can\'t schedule near closing time.');
+          await delay(7000);
+          setErrorMessage('');
+          return;
         }
       // If user is trying to schedule a visit within the OPENING hour, ensure they aren't too EARLY  
       } else if ( !open24hours && scheduledHours === businessOpenHours) {
         if (scheduledMins < businessOpenMins) {
-          errorAlert = storeName + ' is closed for the time you\'re trying to schedule';
+          setErrorMessage(storeName + ' is closed for the time you\'re trying to schedule');
+          await delay(7000);
+          setErrorMessage('');
+          return;
         }
       // Ensure scheduled time is not too early  
       } else if ( !open24hours && (scheduledHours !== 0) && (scheduledHours < businessOpenHours)) { 
-        errorAlert = storeName + ' is closed for the time you\'re trying to schedule';
+        setErrorMessage(storeName + ' is closed for the time you\'re trying to schedule');
+        await delay(7000);
+        setErrorMessage('');
+        return;
       // Ensure scheduled time is not too late  
       } else if ( !open24hours && (businessCloseHours !== 0) && (scheduledHours > businessCloseHours) ) { 
-        errorAlert = 'Sorry, you can\'t schedule near closing time or after business hours.';
+        setErrorMessage('Sorry, you can\'t schedule near closing time or after business hours.');
+        await delay(7000);
+        setErrorMessage('');
+        return;
       }
 
       console.log('businessCloseMins:', businessCloseMins);
@@ -397,30 +406,12 @@ function ScheduleVisit() {
       
       if (errorAlert) {
         setErrorMessage(errorAlert);
+        await delay(7000);
+        setErrorMessage('');
         return;
       } else {
         // Create the visit
         let response = await api.post('/visit/create', {phoneNumber, user_id, scheduledDate, partyAmount, store_id}, { headers });
-
-        // If token comes back as expired, refresh the token and make api call again
-        if (response.data.message === 'Access token expired') {
-          const user = await protectPage(accessToken, refreshToken);
-          console.log('user:', user);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            console.log('Please log in again.');
-            history.push('/login');
-          } else {
-            // overwrite response with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            user_id = user._id;
-            phoneNumber = user.phoneNumber;
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            response = await api.post('/visit/create', {phoneNumber, user_id, scheduledDate, partyAmount, store_id}, { headers });
-          }
-        }
 
         console.log('phone:', phoneNumber);
 
@@ -428,9 +419,13 @@ function ScheduleVisit() {
         console.log(response.data);
         // If visit was created, then send user back to dashboard
         if (visit_id) {
+          setVisitAlert('Visit Scheduled!');
+          await delay(1500);
           history.push('/myvisits');
         } else {
           setErrorMessage(response.data.message);
+          await delay(7000);
+          setErrorMessage('');
         }
       }
     } catch (error) {
@@ -439,6 +434,8 @@ function ScheduleVisit() {
   }
 
 
+  // Sleep function
+  const delay = ms => new Promise(res => setTimeout(res, ms));
   function goToDashboard() {
     history.push('/dashboard');
   }
@@ -482,6 +479,13 @@ function ScheduleVisit() {
         /* ^ is a ternary operator: Is party amount > 0? If no, then display the alert */
           <Alert className="alertBox myVisits" variant='warning'>
             {errorMessage}
+          </Alert>
+        ): ''}
+
+        {visitAlert ? (
+        /* ^ is a ternary operator: Is party amount > 0? If no, then display the alert */
+          <Alert className="alertBox myVisits" variant='success'>
+            Visit Scheduled!
           </Alert>
         ): ''}
         
@@ -538,7 +542,7 @@ function VisitContent({
       <p>Maximum party size allowed: <strong>{maxPartyAmount}</strong></p>
       <Form.Group controlId="formPartyNumber">
         <Form.Label>Total number of members in your party <strong>(including you)</strong></Form.Label>
-        <Form.Control className='scheduleVisit-input' type="text" onChange = {evt => setPartyAmount(parseInt(evt.target.value))}/>
+        <Form.Control className='scheduleVisit-input' type="text" onChange = {evt => setPartyAmount(evt.target.value)}/>
       </Form.Group>
       <Button className="secondary-btn myVisits" onClick={handleSubmit}>
         Schedule Visit
@@ -549,11 +553,6 @@ function VisitContent({
 
 
 // The following is required for ESLINT standards
-// In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
-ScheduleVisit.propTypes = {
-  history: PropTypes.object.isRequired
-};
-
 VisitContent.propTypes = {
   handleSubmit: PropTypes.func.isRequired,
   handleTimeChange: PropTypes.func.isRequired,
@@ -561,6 +560,6 @@ VisitContent.propTypes = {
   scheduledTime: PropTypes.string.isRequired,
   setPartyAmount: PropTypes.func.isRequired,
   setScheduledDate: PropTypes.func.isRequired,
-  formattedTime: PropTypes.string.isRequired,
+  formattedTime: PropTypes.string,
   maxPartyAmount: PropTypes.number.isRequired
 };

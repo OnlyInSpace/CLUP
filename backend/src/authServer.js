@@ -79,7 +79,7 @@ app.post('/user/register', async function (req, res) {
       };
 
       // Sign both access and refresh token with different secrets
-      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '720s' });
+      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '900s' });
       const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '365d' });
       // Update refreshToken in MongoDB for user
       await User.findOneAndUpdate({email: user.email}, {refreshToken: refreshToken});
@@ -119,7 +119,7 @@ app.post('/login', async function (req, res) {
 
     // Else if user exists and the password matches what's in the database
     // Then create userResponse object to be stored in cookies
-    if (user && await bcrypt.compare(password, user.password)) {
+    if (await bcrypt.compare(password, user.password)) {
       const userData = {
         _id: user._id,
         email: user.email,
@@ -129,8 +129,8 @@ app.post('/login', async function (req, res) {
         clockedIn: user.clockedIn
       };
 
-      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '720s'});
-      const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '800d'});
+      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '2s'});
+      const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '365d'});
       // Update refreshToken in MongoDB for user
       await User.findOneAndUpdate({email: user.email}, {refreshToken: refreshToken});
 
@@ -168,7 +168,7 @@ app.post('/logout', async function (req, res) {
 app.get('/verifyAccessToken', async function (req, res) {
   // Verify accessToken is legit
   if (req.headers.authorization) {
-    const accessToken = req.headers.authorization.split(" ")[1];
+    const accessToken = req.headers.authorization.split(' ')[1];
     // Verify the token is legit and unexpired! If it is, then go ahead and return success = true
     jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
       if (user) {
@@ -178,21 +178,21 @@ app.get('/verifyAccessToken', async function (req, res) {
           user
         });
       } else if (err.message === 'jwt expired') { // else if jwt is expired, notify frontend so we can refresh it
-        console.log('Token expired, refreshing. . .');
+        console.log('Access token expired. . .');
         return res.json({
           success: false,
           message: 'Access token expired'
         });
       } else { // else token doesnt exist or could be unlegit, return 403 forbidden status back to frontend and have user login again
-        console.log('\nverify failed in authServer.\n');
-        console.log('\nuser:', user);
+        console.log('\naccess token verify failed in authServer.\n');
+        console.log('\nuser:', user, typeof(user));
         console.log('\nheaders:', req.headers.authorization);
         return res.status(403).json({ err, message: 'User not authenticated' });
       }
     }); 
 
   } else { 
-    console.log('no token in auth headers (from authServer.js)')
+    console.log('no token in auth headers (from authServer.js)');
     return res.sendStatus(401);
   }
 });
@@ -208,7 +208,8 @@ app.get('/refresh', async function (req, res) {
   }
   // If the refresh token is valid, create a new accessToken and return it.
   jwt.verify(refreshToken, process.env.JWT_REFRESH, (err, refresh) => {
-    if (!err) {
+    if (refresh) {
+      console.log('refreshing  token!');
       // Set our userData
       const userData = {
         _id: user._id,
@@ -219,16 +220,22 @@ app.get('/refresh', async function (req, res) {
         clockedIn: user.clockedIn
       };
       // Create new access token
-      const newAccessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '720s' });
+      const newAccessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '900s' });
       return res.json({
         success: true, 
         newAccessToken
       });
-    } else {
+    } else if (err.message === 'jwt expired') {
+      console.log('Refresh token expired. . .');
       return res.json({
         success: false,
-        message: 'Invalid refresh token'
+        message: 'Refresh token expired'
       });
+    } else {
+      console.log('\rrefresh token verify failed in authServer.\n');
+      console.log('\nuser:', user);
+      console.log('\nheaders:', req.headers.authorization);
+      return res.status(403).json({ err, message: 'User not authenticated' });
     }
   });
 });

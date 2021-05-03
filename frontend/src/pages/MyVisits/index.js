@@ -2,9 +2,7 @@ import React, {useEffect, useState} from 'react';
 import api from '../../services/api';
 import {Container, Card, Button, Modal, Alert} from 'react-bootstrap';
 import './myvisits.css';
-import PropTypes from 'prop-types';
 import { withRouter, useHistory } from 'react-router-dom';
-import jwt from 'jsonwebtoken';
 import {
   protectPage
 } from '../verifyTokens/tokenFunctions';
@@ -17,18 +15,14 @@ function MyVisits() {
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  // For backend
-  const [errMessage, setErrMessage] = useState('');
-
   // For deleting a visit
   const [visit_id, setVisit_id] = useState('');
   // Set our visit cards to an empty array state variable
   const [visitCards, setVisitCards] = useState([]);
   const [deleteAlert, setDeleteAlert] = useState('');
   const refreshToken = localStorage.getItem('refreshToken');
+  let accessToken = localStorage.getItem('accessToken');
 
-
-    
   // Below can be used for error checking if database cards aren't working
   // const customCards = [{
   //     storeName: "Sick Store",
@@ -39,8 +33,13 @@ function MyVisits() {
   // Get user's visits
   useEffect(() => {
     (async () => {
-      const result = await getVisits();
-      setVisitCards(result);
+      try {
+        const result = await getVisits();
+        setVisitCards(result);
+      } catch (error) {
+        console.log(error);
+        console.log('error in useEffect');
+      }
     })();
   }, []);
 
@@ -75,11 +74,10 @@ function MyVisits() {
   // Function to return all visits tied to user
   const getVisits = async () => {
     try {
-      let accessToken = localStorage.getItem('accessToken');
 
+      let user = await protectPage(accessToken, refreshToken);
+      accessToken = localStorage.getItem('accessToken');
       // Decode to get data stored in cookie
-      let user = jwt.decode(accessToken);
-      // When we decode a cookie using jwt.decode, we get an object called userData with the user's data stored inside
       let user_id = user._id;
       // Log the user here to see how it looks 
       // console.log('User:', user);
@@ -89,25 +87,6 @@ function MyVisits() {
         authorization: `Bearer ${accessToken}`
       };
       let response = await api.get(`/myvisits/${user_id}`, { headers });
-      // If token comes back as expired, refresh the token and make api call again
-      if (response.data.message === 'Access token expired') {
-        user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return.
-        if (!user) {
-          setErrMessage('Please log in again.');
-          console.log(errMessage);
-          history.push('/login');
-        } else {
-          // overwrite response with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          user_id = user._id;
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          response = await api.get(`/myvisits/${user_id}`, { headers });
-        }
-      }
-
 
       // Create a userVisits array of objects
       // Here .map means for every object in userVisits
@@ -135,24 +114,6 @@ function MyVisits() {
   
         // Get store name
         response = await api.get(`/store/${visit.store}`, { headers });
-        // If token comes back as expired, refresh the token and make api call again
-        if (response.data.message === 'Access token expired') {
-          user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return.
-          if (!user) {
-            console.log('Please log in again.');
-            history.push('/login');
-          } else {
-          // overwrite response with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            user_id = user._id;
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            response = await api.get(`/store/${visit.store}`, { headers });
-          }
-        }
-
         const sName = response.data.storeName;
   
         // append object to the getCards array
@@ -176,73 +137,16 @@ function MyVisits() {
 
   const deleteVisitHandler = async (visit_id) => {
     try {
-      let accessToken = localStorage.getItem('accessToken');
+      await protectPage(accessToken, refreshToken);
+      accessToken = localStorage.getItem('accessToken');
       // get visit to check if party amount is reserved
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-
-      let getVisit = await api.get(`/visit/${visit_id}`, { headers });
-
-      if (getVisit.data.message === 'Access token expired') {
-        let user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return user to log in page.
-        if (!user) {
-          console.log('Please log in again.');
-          history.push('/login');
-        } else {
-          // overwrite response with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          getVisit = await api.get(`/visit/${visit_id}`, { headers });
-        }
-      }
-
-
-      // If reserved, then unreserve party amount in store occupancy
-      if (getVisit.data.reserved) {
-        let storeId = getVisit.data.store;
-        let amount = getVisit.data.partyAmount;
-
-        let response = await api.post('/count/decrease', { storeId, amount }, { headers });
-        if (response.data.message === 'Access token expired') {
-          let user = await protectPage(accessToken, refreshToken);
-          // If the access token or refresh token are unlegit, then return user to log in page.
-          if (!user) {
-            console.log('Please log in again.');
-            history.push('/login');
-          } else {
-            // overwrite response with the new access token.
-            let newAccessToken = localStorage.getItem('accessToken');
-            headers = {
-              authorization: `Bearer ${newAccessToken}`
-            };
-            response = await api.post('/count/decrease', { storeId, amount }, { headers });
-          }
-        }
-      }
       
       // delete the visit
       // if an error occurs, then catch block will be triggered
-      let response = await api.delete(`/myvisits/${visit_id}`, { headers });
-      // If token comes back as expired, refresh the token and make api call again
-      if (response.data.message === 'Access token expired') {
-        let user = await protectPage(accessToken, refreshToken);
-        // If the access token or refresh token are unlegit, then return user to log in page.
-        if (!user) {
-          console.log('Please log in again.');
-          history.push('/login');
-        } else {
-          // overwrite response with the new access token.
-          let newAccessToken = localStorage.getItem('accessToken');
-          headers = {
-            authorization: `Bearer ${newAccessToken}`
-          };
-          response = await api.delete(`/myvisits/${visit_id}`, { headers });
-        }
-      }
+      await api.delete(`/myvisits/${visit_id}`, { headers });
       
       // Set our delete alert for 5 seconds
       setDeleteAlert('Visit canceled.');
@@ -250,7 +154,7 @@ function MyVisits() {
         setDeleteAlert('');
       }, 5000);
       setShow(false);
-      response = await getVisits();
+      const response = await getVisits();
       setVisitCards(response);
     } catch (error) {
       history.push('/login');
@@ -340,8 +244,3 @@ function MyVisits() {
   );
 }
 export default withRouter(MyVisits);
-
-// In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
-MyVisits.propTypes = {
-  history: PropTypes.object.isRequired
-};

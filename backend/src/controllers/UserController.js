@@ -55,7 +55,7 @@ module.exports = {
   async setClockOut(req, res) {
     try {
       const { user_id } = req.body;
-      const user = await User.findByIdAndUpdate(user_id, {clockedIn: false});
+      const user = await User.findByIdAndUpdate(user_id, {clockedIn: false}, { new: true });
   
       if (user) {
         return res.json(user);

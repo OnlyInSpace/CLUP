@@ -6,9 +6,13 @@ const StoreSchema = new mongoose.Schema({
   company_id: String,
   storeName: String,
   // Queue will hold array of userid's
-  queue: [{
-    type: String
-  }],
+  queue: [{}],
+  reservedCustomers: {
+    type: Number,
+    default: 0
+  },
+  lateVisits: 0,
+  upcomingVisits: 0,
   location: {
     city: String,
     state: String,

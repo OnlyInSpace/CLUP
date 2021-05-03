@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { } from 'react';
 import Dashboard from './pages/Dashboard/';
 import Register from './pages/Register';
 import CreateCompany from './pages/CreateCompany';
@@ -8,10 +8,14 @@ import FindStore from './pages/FindStore';
 import MyVisits from './pages/MyVisits';
 import Navbar from './pages/Navbar/navbar';
 import Employees from './pages/Employees';
-import {BrowserRouter, Switch, Route} from 'react-router-dom';
+import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import Login from './pages/Login/';
 import LandingPage from './pages/LandingPage';
+// import {
+//   protectPage
+// } from './pages/verifyTokens/tokenFunctions';
+
 
 function Routes() {
   return(

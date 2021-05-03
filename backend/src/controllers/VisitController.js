@@ -1,5 +1,6 @@
 const Visit = require('../models/Visit');
 const User = require('../models/User');
+const Store = require('../models/Store');
 
 module.exports = {
   // Create an async event
@@ -41,12 +42,57 @@ module.exports = {
   async delete(req, res) {
     const { visitId } = req.params;
     try {
+      const visit = await Visit.findById(visitId);
+
+      // If visit is reserved, make sure to decrement reserved partyAmount
+      if ( visit.reserved ) {
+        await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'upcomingVisits': -1}});
+      }
+      if ( visit.late ) {
+        await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'lateVisits': -1}});
+      }
+      // delete visit
       await Visit.findByIdAndDelete(visitId);
       // 204 code: server succesfully fulfilled the request Delete
       return res.sendStatus(204);
             
     } catch (error) {
       return res.status(400).json({message: 'No visit found with that ID'});
+
+    }
+  },
+
+
+  // Confirm a visit
+  async confirmVisit(req, res) {
+    const { visit_id } = req.params;
+    console.log(visit_id);
+    try {
+      const visit = await Visit.findById(visit_id);
+      const store = await Store.findById(visit.store);
+
+      if (visit.partyAmount + store.currentCount > store.maxOccupants) {
+        console.log('Store will overflow.');
+        return res.json({message: 'Store will overflow.'});
+      }
+
+      // If visit is reserved, make sure to decrement reserved partyAmount
+      if (visit.reserved ) {
+        // if visit is late, decrement late visits
+        if ( visit.late ) {
+          await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'lateVisits': -1}});
+          // decrement reserved
+          await Store.findByIdAndUpdate(visit.store, {$inc: {'upcomingVisits': -1}});
+        }
+      }
+      // increment store occupancy
+      await Store.findByIdAndUpdate(visit.store, {$inc: {'currentCount': visit.partyAmount}});
+      // delete visit 
+      await Visit.findByIdAndDelete(visit_id);
+      return res.sendStatus(204);
+      
+    } catch (error) {
+      return res.status(400).json({message: 'Confirm visit error'});
 
     }
   },
@@ -106,13 +152,13 @@ module.exports = {
   },
 
 
-  // Get all visits specific to only the user
+  // Get all visits specific to only a store
   async getStoreVisits(req, res) {
     // get user_id
     const { store_id } = req.params;
   
     try {
-      // Return all visits tied to user at that store
+      // Return all visits tied to that store
       const visits = await Visit.find({ 'store': store_id });
       // If visits exist, send the visits
       if (visits) {
@@ -124,7 +170,7 @@ module.exports = {
   },
 
 
-  // Get all visits specific to only the user
+  // Get all visits
   async getAllVisits(req, res) {
     // get user_id  
     try {

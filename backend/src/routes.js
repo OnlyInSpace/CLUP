@@ -7,6 +7,8 @@ const StoreController = require('./controllers/StoreController');
 const CompanyController = require('./controllers/CompanyController');
 const ChangeCountController = require('./controllers/ChangeCountController');
 const SetRoleController = require('./controllers/SetRoleController');
+const QueueController = require('./controllers/QueueController');
+
 // import jwt
 const jwt = require('jsonwebtoken');
 // import access token secret, refresh token secret, mongoDB ssl  
@@ -16,41 +18,11 @@ const routes = express.Router();
 
 
 // This is a middleware function which verifies every API database query made by users
-
-// function verifyToken(req, res, next) {
-//   // Get token from headers.authorization
-//   const token = req.header('accessToken');
-
-//   console.log('\n\n\nToken:', token);
-
-//   if (token) {
-//     // Verify the token is legit! and if so, set req.user to user and call next()
-//     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-//       if (user) {
-//         // If token is legit, set req.accessToken = user, so now we can call req.accessToken if we wanted to
-//         req.accessToken = user;
-//         // next() is required so the program can continue and now run the controller's api call
-//         next();  
-//       } else if (err.message === 'jwt expired') { // else if jwt is expired, notify our frontend so we can refresh it
-//         return res.json({
-//           success: false,
-//           message: 'Access token expired'
-//         });
-//       } else { // else token doesnt exist or could be unlegit, return 403 forbidden status back to frontend and have user login again
-//         console.log(err);
-//         return res.status(403).json({ err, message: 'User not authenticated' });
-//       }
-//     }); 
-//   } else {
-//     return res.sendStatus(401);
-//   }
-// }
-
 function verifyToken(req, res, next) {
 
   if (req.headers.authorization) {
     // Get token from headers.authorization
-    const token = req.headers.authorization.split(" ")[1];
+    const token = req.headers.authorization.split(' ')[1];
     // Verify the token is legit! and if so, set req.user to user and call next()
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
       if (user) {
@@ -102,9 +74,7 @@ routes.post('/store/create', verifyToken, StoreController.createStore);
 
 /* Customer count functions */
 // Increase Customer Count
-routes.post('/count/increase', verifyToken, ChangeCountController.increaseCount);
-// Decrease Customer Count
-routes.post('/count/decrease', verifyToken, ChangeCountController.decreaseCount);
+routes.post('/changeCount', verifyToken, ChangeCountController.changeCount);
 
 /* Visits */
 // Return all visits specific to currently logged in user
@@ -120,6 +90,15 @@ routes.delete('/myvisits/:visitId', verifyToken, VisitController.delete);
 
 // FindStore -  returns all stores 
 routes.get('/findstore', verifyToken, StoreController.getAllStores);
+
+// Customer queue - append, pop, and skip
+routes.put('/queue/append', verifyToken, QueueController.appendUser);
+routes.post('/queue/pop', verifyToken, QueueController.popUser);
+routes.put('/queue/skip', verifyToken, QueueController.skipUser);
+
+
+// Confirm a visit
+routes.delete('/confirmVisit/:visit_id', verifyToken, VisitController.confirmVisit);
 
 
 //***********QUERIES FOR GETTING DATA****************** */
@@ -145,7 +124,6 @@ routes.get('/stores/:company_id', verifyToken, StoreController.getOwnedStores);
 // Get store by id
 // returns store data
 routes.get('/store/:store_id', verifyToken, StoreController.getStoreById);
-
 
 
 module.exports = routes;

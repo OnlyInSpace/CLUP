@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Button, Form, Alert } from 'react-bootstrap';
 import './register.css';
-import PropTypes from 'prop-types';
 import { useHistory, withRouter } from 'react-router-dom';
 import auth from '../../services/auth';
 import logo from '../Login/logo.png';
@@ -14,6 +13,7 @@ function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [registerAlert, setRegisterAlert] = useState('');
   
 
   // Function that will talk to server api
@@ -35,7 +35,7 @@ function Register() {
         setErrorMessage('Required information is missing.');
         return;
       } else if (phoneNumber.length !== 10 || isNaN(phoneNumber)) { // Ensure phone number is valid
-        setErrorMessage('Invalid phone number. Please only enter nothing but numbers.');
+        setErrorMessage('Invalid phone number. Please enter a 10 digit number without any hyphens or parentheses.');
         return;
       } else if (password !== confirmPassword) { // Ensure passwords match
         setErrorMessage('Passwords don\'t match');
@@ -58,6 +58,8 @@ function Register() {
         localStorage.removeItem('store');
         localStorage.setItem('accessToken', accessToken, { secure: true });
         localStorage.setItem('refreshToken', refreshToken, { secure: true });
+        setRegisterAlert('Account created! Redirecting. . . ');
+        await delay(2000);
         history.push('/findstore');
       } else { // Else if 
         setErrorMessage(response.data.message);
@@ -68,6 +70,8 @@ function Register() {
     }
   };
     
+  // Sleep function
+  const delay = ms => new Promise(res => setTimeout(res, ms));
 
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
@@ -108,6 +112,12 @@ function Register() {
               {errorMessage}
             </Alert>
           ): ''}
+          {registerAlert ? (
+          /* ^^^^^^^^^^^^^^^^ is a ternary operator: is errorMessage undefined? If no, then display the alert*/
+            <Alert className="alertBox" variant='success'>
+              {registerAlert}
+            </Alert>
+          ): ''}
           <Form.Group>
             <p className="register-account">Already have an account?</p>
             <Button className="secondary-btn" onClick={() => history.push('/login')} type="button">
@@ -120,8 +130,3 @@ function Register() {
   );
 }
 export default withRouter(Register);
-
-// In order for our component to be properly reusable, we can require certain props so that they pop up in intellisense 
-Register.propTypes = {
-  history: PropTypes.object.isRequired
-};

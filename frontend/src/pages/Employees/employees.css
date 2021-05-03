@@ -1,26 +1,24 @@
 .addEmployeeEmail {
+    max-width: 12em;
     margin-bottom: 1.5em;
 }
 
-.employeeRoleField {
-    width: 300px !important;
+.employeeRole {
+    max-width: 8em;
 }
 
 .employeesContent .table {
-    width: 491px;
+    max-width: 491px;
     border: 2px solid var(--darkBlue);
 }
 
 .employeesContent {
-    width: 155%;
-    opacity: 0.9;
+    width: 35em;
     background-color: white;
     margin-bottom: 2em;
     border-radius: 10px;
     padding: 3em;
 }
-
-/* TODO: FIX CSS PADDING IN SCHEDULE VISIT, CHECK FOR MOBILE RESPONSIVNESS ON EVERYPAGE */
 
 .employeesContent > p {
     font-size: 1.25em;
@@ -29,6 +27,7 @@
 .employeesContent > select {
     max-width: 5em;
 }
+
 
 .changeRole-btn {
     font-size: 1em;

@@ -51,8 +51,9 @@ function Login() {
   };
 
   let refreshData = jwt.decode(localStorage.getItem('refreshToken'));
+  let accessData = jwt.decode(localStorage.getItem('accessToken'));  
 
-  if (refreshData) {
+  if (refreshData && accessData) {
     history.push('/dashboard');
   }
 

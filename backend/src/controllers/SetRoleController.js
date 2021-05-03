@@ -57,6 +57,7 @@ module.exports = {
     }
   },
 
+  
   async changeRole(req, res) {
     try {
       let { email, role } = req.body;
@@ -80,7 +81,7 @@ module.exports = {
       return res.json({user});
 
     } catch (error) {
-      return res.status(400).json({message: 'Error setting role to owner'});
+      return res.status(400).json({message: 'Error changing role'});
     }
   },
 
@@ -95,7 +96,7 @@ module.exports = {
 
       return res.json(user);
     } catch (error) {
-      return res.status(400).json({message: 'Error setting role to owner'});
+      return res.status(400).json({message: 'Error setting removing user'});
     }
   },
 
@@ -114,7 +115,7 @@ module.exports = {
 
       return res.json(user);
     } catch (error) {
-      return res.status(400).json({message: 'Error setting role to owner'});
+      return res.status(400).json({message: 'Error setting business id'});
     }
   }
 };
