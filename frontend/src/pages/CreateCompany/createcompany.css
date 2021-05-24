@@ -11,3 +11,7 @@
 .createCompanyName {
     font-size: 20px;
 }
+
+.createCompAlert {
+    margin-bottom: -1.5em !important;
+}

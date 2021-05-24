@@ -5,8 +5,6 @@ import React from 'react';
 
 import './css/style.css';
 import './css/simple-lightbox.min.css';
-import SimpleReactLightbox from 'simple-react-lightbox';
-import { SRLWrapper } from 'simple-react-lightbox';
 import logo from './img/logo.png';
 
 
@@ -24,55 +22,49 @@ function Landingpage() {
   //***************************************** */
 
   return (
-    <SimpleReactLightbox>
-      <SRLWrapper>
-        <div className="landingPage">
-          <meta charSet="UTF-8" />
-          {/* <meta name="viewport" content="width=device-width, initial-sclae=1.0" /> */}
-          <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
-          <link href="https://fonts.googleapis.com/css2?family=Catamaran&display=swap" rel="stylesheet" />
-          <title>CLup</title>
-          <nav className="navbar">
-            <div className="container">
-              <h1 className="logo">CLup</h1>
-              <ul className="nav">
-                <li><a href="http://localhost:3000/user/register">Register</a></li>
-                <li><a href="http://localhost:3000/login">Login</a></li>
-              </ul>
-            </div>
-          </nav>
-          {/* Showcase */}
-          <section className="section-a">
-            <div className="container">
-              <div>
-                <h1>The Customer Line Up</h1>
-                <p>Reducing risk and maintaining a safe environment for customers is our top priority</p>
-                <a href="http://localhost:3000/login" className="btn">Schedule</a>
-              </div>
-              <img src={logo} alt="Logo" /> 
-            </div>
-          </section>
-          {/* Overlay Text*/}
-          <section className="section-b">
-            <div className="overlay">
-              <div className="section-b-inner">
-                <h3>Shop Safe</h3>
-                <h2>A Virtual Queue Manager</h2>
-                <p>
-                To offer an easy to use virtual queue manager
-                for any retail or resturaunts  such as that people
-                can safely  enter the specified building while 
-                practicing social distancing</p>
-              </div>
-            </div>
-          </section>
-          {/* Footer */}
-          <footer className="section-footer">
-            <p>Copyright © 2021 Customer Line Up</p>
-          </footer>
+    <div className="landingPage">
+      <meta charSet="UTF-8" />
+      {/* <meta name="viewport" content="width=device-width, initial-sclae=1.0" /> */}
+      <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
+      <link href="https://fonts.googleapis.com/css2?family=Catamaran&display=swap" rel="stylesheet" />
+      <title>CLUP</title>
+      <nav className="navbar">
+        <div className="container">
+          <h1 className="logo">CLUP</h1>
+          <ul className="nav">
+            <li><a href="http://localhost:3000/user/register">Register</a></li>
+            <li><a href="http://localhost:3000/login">Login</a></li>
+          </ul>
         </div>
-      </SRLWrapper>
-    </SimpleReactLightbox>
+      </nav>
+      {/* Showcase */}
+      <section className="section-a">
+        <div className="container">
+          <div>
+            <h1>Customer Lineup</h1>
+            <p><strong>This is a student project and should not be used for an actual business.</strong></p>
+            <p>Reducing risk and maintaining a safe environment for customers is a top priority.</p>
+            <a href="http://localhost:3000/login" className="btn">Schedule</a>
+          </div>
+          <img src={logo} alt="Logo" /> 
+        </div>
+      </section>
+      {/* Overlay Text*/}
+      <section className="section-b">
+        <div className="overlay">
+          <div className="section-b-inner">
+            <h3>Shop Safe</h3>
+            <h2>A Virtual Queue Manager</h2>
+            <p> Offering an easy-to-use virtual queue manager
+                    for ensuring social distancing at retail businesses </p>
+          </div>
+        </div>
+      </section>
+      {/* Footer */}
+      <footer className="section-footer">
+        <p>2021 Customer Line Up</p>
+      </footer>
+    </div>
     
   );
 

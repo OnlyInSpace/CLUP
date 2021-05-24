@@ -8,53 +8,50 @@ module.exports = {
       // Get name from api call
       const { companyName, ownerId } = req.body;
       if (!companyName || !ownerId) {
-        return res.status(200).json({
-          message: 'ownerId is missing.'
-        });
+        return res.json({message: 'Please enter your company\'s name.'});
       }
+
       // Create a new company with await
       const company = await Company.create({
         companyName,
         ownerId
       });
 
-      return res.json(company);
+      return res.status(200).json(company);
     } catch (error) {
-      throw Error(`Error while registering a new company : ${error}`);
+      return res.status(500).json({ error: error.toString() });    
     }
   },
 
   // Get a company by ID!
   async getCompanyByUserId(req, res) {
-    // Get company ID
-    const { user_id } = req.params;
     try {
+      // Get company ID
+      const { user_id } = req.params;
       const company = await Company.findOne({ ownerId: user_id });
-      // If visit exists, send the visit
-      if (!company) {
-        return res.status(200).json({
-          message: 'User_id is missing in controller, company not found.'
-        });      
+
+      if (company) {
+        return res.status(200).json(company);
       }
-      return res.json(company);
+
     } catch (error) {
-      return res.status(400).json({message: 'Company Id does not exist!'});
+      return res.status(500).json({ error: error.toString() });    
     }
   },
 
-  // Get all of companies
+  // Get all of companies - for development purposes
   async getAllCompanies(req, res) {
-    // Get company id from URL
-    const { company_id } = req.params;
     try {
+      // Get company id from URL
+      const { company_id } = req.params;
       // Return all companies from company model
-      const company = await Company.find(company_id);
+      const companies = await Company.find(company_id);
       // If companies exist, return them! 
-      if (company) {
-        return res.json(company);
+      if (companies) {
+        return res.json(companies);
       }
     } catch (error) {
-      return res.status(400).json({message: 'No comapnies exist.'});
+      return res.status(500).json({ error: error.toString() });    
     }
   }
 };

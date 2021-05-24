@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Button, Form, Alert } from 'react-bootstrap';
+import { Container, Button, Form, Alert, Row, Col } from 'react-bootstrap';
 import './register.css';
 import { useHistory, withRouter } from 'react-router-dom';
 import auth from '../../services/auth';
@@ -8,40 +8,58 @@ import logo from '../Login/logo.png';
 
 function Register() {
   let history = useHistory();
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [registerAlert, setRegisterAlert] = useState('');
+  // Phone number text boxes
+  const [firstNums, setFirstNums] = useState('');
+  const [secondNums, setSecondNums] = useState('');
+  const [thirdNums, setThirdNums] = useState('');
   
-
+  console.log(firstNums + secondNums + thirdNums);
   // Function that will talk to server api
   const handleSubmit = async evt => {
     // Prevent default event when button is clicked
     evt.preventDefault();
     try {
+      var phoneNumber = firstNums + secondNums + thirdNums;
       // Missing information and validation checks
       if (!phoneNumber && email && password) {
         setErrorMessage('Phone number field is empty.');
+        await delay(4000);
+        setErrorMessage('');
         return;
       } else if (phoneNumber && !email && password) {
         setErrorMessage('Email field is empty.');
+        await delay(4000);
+        setErrorMessage('');
         return;
       } else if (phoneNumber && email && !password) {
         setErrorMessage('Password field is empty.');
+        await delay(4000);
+        setErrorMessage('');
         return;
       } else if (!phoneNumber || !email || !password || !confirmPassword) {
         setErrorMessage('Required information is missing.');
+        await delay(4000);
+        setErrorMessage('');
         return;
       } else if (phoneNumber.length !== 10 || isNaN(phoneNumber)) { // Ensure phone number is valid
-        setErrorMessage('Invalid phone number. Please enter a 10 digit number without any hyphens or parentheses.');
+        setErrorMessage('Invalid phone number. Please enter numbers.');
+        await delay(10000);
+        setErrorMessage('');
         return;
       } else if (password !== confirmPassword) { // Ensure passwords match
         setErrorMessage('Passwords don\'t match');
+        await delay(4000);
+        setErrorMessage('');
         return;
       } else if (!password.match(/^(?=.*?[A-Za-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/)) { // Ensure password restrictions
         setErrorMessage('Password must contain at least 8 characters, 1 letter, 1 number, and 1 symbol.');
+        await delay(8000);
+        setErrorMessage('');
         return;
       }
 
@@ -70,8 +88,39 @@ function Register() {
     }
   };
     
+
+  function handlePhoneChange(event) {
+    const { maxLength, value, name } = event.target;
+    const nameNumber = name.split('-');
+    const fieldIndex = nameNumber[1];
+
+    // If length of value is at maxLength 
+    if (value.length === maxLength) {
+      // Read as decimal 10, here we are ensureing that it is not the last input field
+      let nextSibling;
+      if (parseInt(fieldIndex, 10) < 3) {
+        // get next input field
+        nextSibling = document.querySelector(`input[name=phoneNum-${parseInt(fieldIndex, 10) + 1}]`);
+      }
+
+      if (name === 'phoneNum-1') {
+        setFirstNums(value);
+      } else if (name === 'phoneNum-2') {
+        setSecondNums(value);
+      } else if (name === 'phoneNum-3') {
+        setThirdNums(value);
+      }
+
+      // If input field found, the focus it
+      if (nextSibling) {
+        nextSibling.focus();
+      }
+    }
+  }
+
   // Sleep function
   const delay = ms => new Promise(res => setTimeout(res, ms));
+
 
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
@@ -89,7 +138,19 @@ function Register() {
           <h3>Signup below</h3>
           <Form.Group controlId="formPhoneNum">
             <Form.Label className="phoneDescription">Phone number (For visit alerts)</Form.Label>
-            <Form.Control type="text" placeholder="Your phonenumber (numbers only)" onChange = {evt => setPhoneNumber(evt.target.value)} />
+            <Row className='row-register'>
+              <Col className='col-register1 col-margins'>
+                <Form.Control name='phoneNum-1' type="text" maxLength='3' onChange={evt => handlePhoneChange(evt)} />
+              </Col>
+              <Col className='reg-symbols hyphen1'>-</Col>
+              <Col className='col-register1 col-margins'>
+                <Form.Control name='phoneNum-2' type="text" maxLength='3' onChange={evt => handlePhoneChange(evt)} />
+              </Col>
+              <Col className='reg-symbols hyphen1'>-</Col>
+              <Col className='col-register2 col-margins'>
+                <Form.Control name='phoneNum-3' type="text" maxLength='4' onChange={evt => handlePhoneChange(evt)} />
+              </Col>
+            </Row>
           </Form.Group>
           <Form.Group controlId="formEmail">
             <Form.Label>Email address</Form.Label>

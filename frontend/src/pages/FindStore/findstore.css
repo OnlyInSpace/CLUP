@@ -4,8 +4,16 @@
 }
 
 
-.css-2b097c-container {
-    width: 100%;
+/* .css-2b097c-container {
+    max-width: 100%;
+    margin: 0 auto;
+    margin-bottom: 1em;
+} */
+
+.content.findStore > .css-2b097c-container {
+    max-width: 21rem;
+    margin: 0 auto;
+    margin-bottom: 1em;
 }
 
 .secondary-btn.findstore {

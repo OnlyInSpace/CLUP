@@ -6,8 +6,14 @@ const UserSchema = new mongoose.Schema({
   email: String,
   password: String,
   refreshToken: String,
-  firstName: String,
-  lastName: String,
+  firstName: {
+    type: String,
+    default: ''
+  },
+  lastName: {
+    type: String,
+    default: ''
+  },
   clockedIn: {
     type: Boolean,
     default: false

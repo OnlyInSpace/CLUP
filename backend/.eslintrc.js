@@ -4,11 +4,6 @@ module.exports = {
     'es2021': true,
     'node': true
   },
-  'extends': [
-    'eslint:recommended',
-    'plugin:react/recommended',
-    'plugin:jest/recommended'
-  ],
   'parserOptions': {
     'ecmaFeatures': {
       'jsx': true
@@ -17,8 +12,11 @@ module.exports = {
     'sourceType': 'module'
   },
   'plugins': [
-    'react',
-    'jest'
+    'react'
+  ],
+  'extends': [
+    'eslint:recommended',
+    'plugin:react/recommended'
   ],
   'rules': {
     // we only want single quotes
@@ -28,12 +26,7 @@ module.exports = {
     // we use 2 spaces to indent our code
     'indent': ['error', 2],
     // we want to avoid useless spaces
-    'no-multi-spaces': ['error'],
-    'jest/no-done-callback': 'off'
-  },
-  'settings': {
-    'jest': {
-      'version': 26
-    }
+    'no-multi-spaces': ['error']
   }
 };
+  

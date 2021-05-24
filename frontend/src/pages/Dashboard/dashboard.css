@@ -134,7 +134,7 @@ button.refresh-btn {
 }
 
 .dash-queueLength {
-    margin-top: -1em;
+    margin-bottom: .5em;
 }
 
 
@@ -175,7 +175,8 @@ button.refresh-btn {
 }
 
 .content.smallDashContent {
-    max-width: 24em;
+    padding-right: clamp(2em, 10%, 5em);
+    padding-left: clamp(2em, 10%, 5em);
 }
 
 @media screen and (max-width: 767px) {
@@ -186,13 +187,13 @@ button.refresh-btn {
     }
 
     .dash-storeName {
-        width: 10em;
+        max-width: 10em;
         margin: 0 auto;
     }
 }
 
 .container.dashboard {
-    max-width: 40em;
+    max-width: 31em;
 }
 
 
@@ -244,4 +245,8 @@ button.refresh-btn {
 
 .cancelVisit {
     margin-right: 1em;
+}
+
+.p-clockIn {
+    margin-top: 2em;
 }

@@ -16,6 +16,8 @@ function CreateCompany() {
   const [errorMessage, setErrorMessage] = useState('');
   // For success alert 
   const [successAlert, setSuccessAlert] = useState('');
+  // prevent spam click
+  const [doubleClick, setDoubleClick] = useState(false);
 
   // Check user's role. If they are already an owner, then send them to the create store page
   const refreshToken = localStorage.getItem('refreshToken');
@@ -54,44 +56,48 @@ function CreateCompany() {
   
   // Function that will talk to server api
   const handleSubmit = async evt => {
+    setDoubleClick(true);
     // Prevent default event when button is clicked
     evt.preventDefault();
     try {
-      if (!companyName) {
-        setErrorMessage('Please enter your company\'s name.');
+      // Decode to get data stored in cookie
+      let user = await protectPage(accessToken, refreshToken);
+      // When we decode a cookie using jwt.decode, we get an object called userData with the user's data stored inside
+      let ownerId = user._id;
+     
+      // Make api call to create the new company 
+      accessToken = localStorage.getItem('accessToken');
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+      let response = await api.post('/company/create', { companyName, ownerId }, { headers });
+
+      if (response.data.message) {
+        setErrorMessage(response.data.message);
+        setDoubleClick(false);
+        await delay(6000);
+        setErrorMessage('');
+        return;
+      }
+
+      const comapnyId = response.data._id || false;
+      // Set user's role to owner so that they are able to now create stores.
+      await api.post('/role/owner', { user_id: ownerId }, { headers });
+
+      // Set user's business_id to the company's id
+      response = await api.post('/business_id', { user_id: ownerId, business_id: comapnyId }, { headers });
+
+      // Refresh our user's token so that their role and business id are updated in localstorage
+      await refresh(refreshToken);
+
+      if (comapnyId && response.data.role === 'owner') {
+        console.log('companyID:', comapnyId);
+        setSuccessAlert('Company created! Now let\'s create your first store. Redirecting. . .');
+        await delay(3000);
+        history.push('/store/create');
       } else {
-
-        // Decode to get data stored in cookie
-        let user = await protectPage(accessToken, refreshToken);
-        // When we decode a cookie using jwt.decode, we get an object called userData with the user's data stored inside
-        let ownerId = user._id;
-        
-        // Make api call to create the new company 
-        accessToken = localStorage.getItem('accessToken');
-        let headers = {
-          authorization: `Bearer ${accessToken}`
-        };
-        let response = await api.post('/company/create', { companyName, ownerId }, { headers });
-
-        const comapnyId = response.data._id || false;
-
-        // Set user's role to owner so that they are able to now create stores.
-        await api.post('/role/owner', { user_id: ownerId }, { headers });
-        
-        // Set user's business_id to the company's id
-        response = await api.post('/business_id', { user_id: ownerId, business_id: comapnyId }, { headers });
-
-        // Refresh our user's token so that their role and business id are updated in localstorage
-        await refresh(refreshToken);
-
-        if (comapnyId && response.data.role === 'owner') {
-          console.log('companyID:', comapnyId);
-          setSuccessAlert('Company created! Now let\'s create your first store.');
-          await delay(3000);
-          history.push('/store/create');
-        } else {
-          setErrorMessage(response.data.message);
-        }
+        setDoubleClick(false);
+        setErrorMessage(response.data.message);
       }
     } catch (error) {
       console.log(error);
@@ -115,12 +121,14 @@ function CreateCompany() {
             <Form.Label className="createCompanyName">Company name</Form.Label>
             <Form.Control type="text" placeholder="Your company's name" onChange = {evt => setCompanyName(evt.target.value)} />
           </Form.Group>
-          <Button className="secondary-btn" variant="secondary" type="submit">
-            Create company
-          </Button>
-          {errorMessage ? (
+          { !doubleClick &&           
+            <Button className="secondary-btn" variant="secondary" type="submit">
+              Create company
+            </Button>
+          }
+          { errorMessage ? (
           /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
-            <Alert className="alertBox" variant='warning'>
+            <Alert className="alertBox createCompAlert" variant='warning'>
               {errorMessage}
             </Alert>
           ): ''}

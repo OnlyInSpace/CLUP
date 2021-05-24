@@ -135,7 +135,7 @@ app.post('/login', async function (req, res) {
       await User.findOneAndUpdate({email: user.email}, {refreshToken: refreshToken});
 
       // Encrypt user object via JSON web token, then send the token and user_id back to frontend
-      return res.json({
+      return res.status(200).json({
         accessToken,
         refreshToken
       });

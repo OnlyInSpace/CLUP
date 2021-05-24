@@ -26,9 +26,9 @@
     "twilio": "^3.61.0"
   },
   "devDependencies": {
-    "eslint": "^7.23.0",
+    "eslint": "^7.26.0",
     "eslint-plugin-jest": "^24.3.4",
-    "eslint-plugin-react": "^7.21.5",
+    "eslint-plugin-react": "^7.23.2",
     "nodemon": "^2.0.6"
   }
 }
