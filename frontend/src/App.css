@@ -41,6 +41,7 @@ body, input, button {
 }
 
 .form-control {
+    max-width: 21em;
     border: 1px solid #9b9b9b;
 }
 
@@ -52,8 +53,8 @@ body, input, button {
 
 .container {
     margin: auto;
-    margin-top: 5em;
-    max-width: 420px;
+    margin-top: 4em;
+    max-width: 30rem;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -67,16 +68,8 @@ body, input, button {
     word-wrap: break-word;
 
     -ms-word-break: break-all;
-    /* This is the dangerous one in WebKit, as it breaks things wherever */
-    word-break: break-all;
     /* Instead use this non-standard one: */
     word-break: break-word;
-
-    /* Adds a hyphen where the word breaks, if supported (No Blink) */
-    -ms-hyphens: auto;
-    -moz-hyphens: auto;
-    -webkit-hyphens: auto;
-    hyphens: auto;
     
     white-space: initial;
     color: rgb(27, 27, 27);
@@ -87,20 +80,12 @@ body, input, button {
     /* These are technically the same, but use both */
     overflow-wrap: break-word;
     word-wrap: break-word;
-
     -ms-word-break: break-all;
-    /* This is the dangerous one in WebKit, as it breaks things wherever */
-    word-break: break-all;
+    
     /* Instead use this non-standard one: */
     word-break: break-word;
 
     /* Adds a hyphen where the word breaks, if supported (No Blink) */
-    -ms-hyphens: auto;
-    -moz-hyphens: auto;
-    -webkit-hyphens: auto;
-    hyphens: auto;
-    white-space: initial;
-
 
     font-size: 1.1em;
 }
@@ -109,12 +94,6 @@ body, input, button {
 .container strong {
     color: rgb(36, 36, 36);
 }
-
-
-.container .form-group {
-    min-width: 320px;
-}
-
 
 /* white square behind everything */
 .content {

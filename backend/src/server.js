@@ -100,6 +100,13 @@ async function updateVisits(visit) {
       await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'upcomingVisits': -1}});
       await Visit.findByIdAndUpdate({_id: visit._id}, {'late': true});
     }
+
+    // If visit is really late, then just remove it and decrement 
+    if (timeDifference <= -300 && visit.late) {
+      await Visit.findByIdAndDelete({_id: visit._id});
+      await Store.findOneAndUpdate({_id: visit.store}, {$inc: {'lateVisits': -1}});
+    }
+
   } catch (error) {
     console.log(error);
     console.log('error in updateVisits server.js');

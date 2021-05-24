@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { Container, Button, Form, Row, Col, Alert } from 'react-bootstrap';
+import { Container, Form, Row, Col, Alert } from 'react-bootstrap';
 import { Checkbox } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
 import './createstore.css';
@@ -11,7 +11,7 @@ import {
 
 
 //  CreateCompany allows users to create their own store
-//  TODO: Create a (?) icon next to each box to reveal more information about the option
+//  TODO: Create tool tips (?) icon next to each box to reveal more information about the option
 //    ex: For maximum amount of customer allowed to visit one group    (?)
 // (*once icon hovered reveal this message*): We know that customers can either come alone or in groups with one or more person.
 //                                            This option sets how large that group can be. For instance, if you only want customers 
@@ -60,14 +60,12 @@ function CreateStore() {
   const [successAlert, setSuccessAlert] = useState('');
   // User's role
   const [ userRole, setUserRole ] = useState(''); 
+  // prevent spam click
+  const [doubleClick, setDoubleClick] = useState(false);
 
   const refreshToken = localStorage.getItem('refreshToken');
   let accessToken = localStorage.getItem('accessToken');
 
-
-
-  console.log('Role:', userRole);
-  console.log('State:', state);
 
   // Set user's role
   useEffect(() => {
@@ -75,12 +73,6 @@ function CreateStore() {
       try {
         // Get user data and refresh token if needed.
         let user = await protectPage(accessToken, refreshToken);
-        
-        if (!user) {
-          console.log('Please log in again.');
-          history.push('/login');
-          return;
-        }
 
         if (user.role !== 'owner') {
           history.push('/company/create');
@@ -103,376 +95,228 @@ function CreateStore() {
   const handleSubmit = async (evt) => {
     // Prevent default event when button is clicked
     evt.preventDefault();
+    setDoubleClick(true);
     try {
-
-      const isMaxParty = /^\d+$/.test(maxPartyAllowed);
-      const isMaxOccupants = /^\d+$/.test(maxOccupants);
-      const isPostalCode = /^\d+$/.test(postalCode);
-      const isAvgVisitLength = /^\d+$/.test(avgVisitLength);
-
-      
-      if (!storeName || !maxOccupants || !maxPartyAllowed || !city || !state || !address1 || !postalCode || !avgVisitLength) {
-        setErrorMessage('Missing required information.');
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 7000);
-        return;
-      }
-      
-      if (!isMaxParty || !isMaxOccupants || !isPostalCode || !isAvgVisitLength) {
-        setErrorMessage('Please make sure to enter only digits in the number fields.');
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 7000);
-        return;
-      }
-
-      if (sunday && (!openSun || !closeSun )) {
-        setErrorMessage('Sunday open/close time missing.');
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 7000);
-        return;
-      } else if (monday && (!openMon || !closeMon )) {
-        setErrorMessage('Monday open/close time missing.');
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 7000);
-        return;
-      } else if (tuesday && (!openTues || !closeTues )) {
-        setErrorMessage('Tuesday open/close time missing.');
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 7000);
-        return;
-      } else if (wednesday && (!openWed || !closeWed )) {
-        setErrorMessage('Wednesday open/close time missing.');
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 7000);
-        return;
-      } else if (thursday && (!openThurs || !closeThurs )) {
-        setErrorMessage('Thursday open/close time missing.');
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 7000);
-        return;
-      } else if (friday && (!openFri || !closeFri )) {
-        setErrorMessage('Friday open/close time missing.');
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 7000);
-        return;
-      } else if (saturday && (!openSat || !closeSat )) {
-        setErrorMessage('Saturday open/close time missing.');
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 7000);
-        return;
-      } else if (!sunday && !monday && !tuesday && !wednesday && !thursday && !friday && !saturday && !open24hours) {
-        setErrorMessage('Please define business hours for your store.');
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 7000);
-        return;
-      }
-
-      const maxPartyNum = parseInt(maxPartyAllowed);
-      const maxOccupantsNum = parseInt(maxOccupants);
-      const postalCodeNum = parseInt(postalCode);
-      const avgVisitLengthNum = parseInt(avgVisitLength);
-
-      if (maxPartyNum > maxOccupantsNum) {
-        setErrorMessage('The max party allowed cannot exceed total occupancy.');
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 7000);
-        return;
-      } else {
+      let user = await protectPage(accessToken, refreshToken);
+      let user_id = user._id;
         
-        let user = await protectPage(accessToken, refreshToken);
-        let user_id = user._id;
-        
-        // Get company_id
-        accessToken = localStorage.getItem('accessToken');
-        let headers = {
-          authorization: `Bearer ${accessToken}`
-        };
-        let response = await api.get(`/company/${user_id}`, { headers });
+      // Get company_id
+      accessToken = localStorage.getItem('accessToken');
+      let headers = {
+        authorization: `Bearer ${accessToken}`
+      };
+      let response = await api.get(`/company/${user_id}`, { headers });
 
-        // Get ready to create our store
-        const company_id = response.data._id;
-        // Create businessHours object
-        const businessHours = {
-          sunday: {
-            day: 'Sun.',
-            open: sunday ? openSun : '',
-            close: sunday ? closeSun : ''
-          },
-          monday: {
-            day: 'Mon.', 
-            open: monday ? openMon : '',
-            close: monday ? closeMon : ''
-          },
-          tuesday: {
-            day: 'Tue.', 
-            open: tuesday ? openTues : '',
-            close: tuesday ? closeTues : ''
-          },
-          wednesday: {
-            day: 'Wed.', 
-            open: wednesday ? openWed : '',
-            close: wednesday ? closeWed : ''
-          },
-          thursday: {
-            day: 'Thu.', 
-            open: thursday ? openThurs : '',
-            close: thursday ? closeThurs : ''
-          },
-          friday: {
-            day: 'Fri.', 
-            open: friday ? openFri : '',
-            close: friday ? closeFri : ''
-          },
-          saturday: {
-            day: 'Sat.', 
-            open: saturday ? openSat : '',
-            close: saturday ? closeSat : ''
-          } 
-        };
+      // Company_id is needed to be passed to create store
+      const company_id = response.data._id;
+      // Create businessHours object
+      const businessHours = {
+        sunday: {
+          enabled: sunday,
+          day: 'Sun.',
+          open: openSun,
+          close: closeSun
+        },
+        monday: {
+          enabled: monday,
+          day: 'Mon.', 
+          open: openMon,
+          close: closeMon
+        },
+        tuesday: {
+          enabled: tuesday,
+          day: 'Tue.', 
+          open: openTues,
+          close: closeTues
+        },
+        wednesday: {
+          enabled: wednesday,
+          day: 'Wed.', 
+          open: openWed,
+          close: closeWed
+        },
+        thursday: {
+          enabled: thursday,
+          day: 'Thu.', 
+          open: openThurs,
+          close: closeThurs
+        },
+        friday: {
+          enabled: friday,
+          day: 'Fri.', 
+          open: openFri,
+          close: closeFri
+        },
+        saturday: {
+          enabled: saturday,
+          day: 'Sat.', 
+          open: openSat,
+          close: closeSat
+        } 
+      };
 
-        const location = {city, state, address1, address2, 'postalCode': postalCodeNum};
-        response = await api.post('/store/create', { company_id, storeName, location, 'maxOccupants': maxOccupantsNum, 'maxPartyAllowed': maxPartyNum, 'avgVisitLength': avgVisitLengthNum, open24hours, businessHours }, { headers });
+      const location = {city, state, address1, address2, postalCode};
+      response = await api.post('/store/create', { company_id, storeName, location, maxOccupants, maxPartyAllowed, avgVisitLength, open24hours, businessHours }, { headers });
 
-        // Ensure store was created by getting its id
-        const store_id = response.data._id || false;
-        // Set store_id in cookies
-        localStorage.setItem('store', store_id);
-
-        if (store_id) {
-          setSuccessAlert('Store created! You are being redirected.');
-          await delay(3000);
-          history.push('/dashboard');
-        } else {
-          setErrorMessage('This store already exists.');
-        }
+      // Display warning if validation checks fail
+      if (response.data.message) {
+        setErrorMessage(response.data.message);
+        setDoubleClick(false);
+        await delay(8000);
+        setErrorMessage('');
+        return;
       }
+      
+      const store_id = response.data._id;
+      // Set store_id in cookies
+      localStorage.setItem('store', store_id);
+      setSuccessAlert('Store created! You are being redirected.');
+      await delay(3000);
+      history.push('/dashboard');
     } catch (error) {
       console.log(error);
     }
   };
 
-  function goToDashboard() {
-    history.push('/dashboard');
-  }
 
   // everything inside the return is JSX (looks exactly like HTML) and is what gets rendered to screen
   return (
     <Container>
       <div className="content">
         <h3>Create a Store</h3>
+        {/* Main store content */}
         { userRole === 'owner' ? 
-          <CreateStoreContent
-            handleSubmit={handleSubmit}
-            setStoreName={setStoreName}
-            setMaxOccupants={setMaxOccupants}
-            setMaxPartyAllowed={setMaxPartyAllowed}
-            setAvgVisitLength={setAvgVisitLength}
-            setAddress1={setAddress1}
-            setAddress2={setAddress2}
-            setCity={setCity}
-            setState={setState}
-            setPostalCode={setPostalCode}
-            setOpen24Hours={setOpen24Hours}
-            setSunday={setSunday}
-            setOpenSun={setOpenSun}
-            setCloseSun={setCloseSun}
-            setMonday={setMonday}
-            setOpenMon={setOpenMon}
-            setCloseMon={setCloseMon}
-            setTuesday={setTuesday}
-            setOpenTues={setOpenTues}
-            setCloseTues={setCloseTues}
-            setWednesday={setWednesday}
-            setOpenWed={setOpenWed}
-            setCloseWed={setCloseWed}
-            setThursday={setThursday}
-            setOpenThurs={setOpenThurs}
-            setCloseThurs={setCloseThurs}
-            setFriday={setFriday}
-            setOpenFri={setOpenFri}
-            setCloseFri={setCloseFri}
-            setSaturday={setSaturday}
-            setOpenSat={setOpenSat}
-            setCloseSat={setCloseSat}
-            errorMessage={errorMessage}
-            successAlert={successAlert}
-          /> : <p>Before you can create a store, you have to first create a <a href='http://localhost:3000/company/create'><strong>company here</strong></a></p>
+          <React.Fragment>
+            <Form className="createStoreForm">
+              <Form.Group controlId="formStoreName">
+                <Form.Label className='labels'>Store name</Form.Label>
+                <Form.Control placeholder="Your store's name" onChange={evt => setStoreName(evt.target.value)}/>
+              </Form.Group>
+              <Form.Group controlId="formAddress1">
+                <Form.Label className='labels'>Address</Form.Label>
+                <Form.Control placeholder="1234 Main St" onChange = {evt => setAddress1(evt.target.value)}/>
+              </Form.Group>
+
+              <Form.Group controlId="formAdress2">
+                <Form.Label className='labels'>Address 2</Form.Label>
+                <Form.Control defaultValue="" placeholder="Apartment, studio, or floor" onChange = {evt => setAddress2(evt.target.value)} />
+              </Form.Group>
+
+              <Row className="row">
+                <Col>
+                  <Form.Label className='labels'>City</Form.Label>
+                  <Form.Control placeholder='City' onChange = {evt => setCity(evt.target.value)}/>
+                </Col>
+                <Col>
+                  <Selectstate setState={setState} />
+                </Col>
+              </Row>
+
+              <Form.Group>
+                <Form.Label className='labels'>Postal Code (Numbers only)</Form.Label>
+                <Form.Control maxLength='5' placeholder='Number' type='text' onChange = {evt => setPostalCode(evt.target.value)}/>
+              </Form.Group>
+              <Form.Group controlId="formMaxOccupants">
+                <Form.Label className='labels'>Maximum number of occupants allowed</Form.Label>
+                <Form.Control type='text' placeholder="Number" onChange={evt => setMaxOccupants(evt.target.value)}/>
+              </Form.Group>
+              <Form.Group controlId="formMaxPartyAllowed">
+                <Form.Label className='labels'>Maximum number of customers allowed to visit in one group </Form.Label>
+                <Form.Control type='text' placeholder="Number" onChange={evt => setMaxPartyAllowed(evt.target.value)}/>
+              </Form.Group>
+              <Form.Group controlId="formAvgLength">
+                <Form.Label className='labels'>Average length of a customer&apos;s visit <br/>(in minutes)</Form.Label>
+                <Form.Control type='text' placeholder="Number" onChange={evt => setAvgVisitLength(evt.target.value)}/>
+              </Form.Group>
+
+
+              <p className="createStoreHours"><strong>Business Hours</strong></p>
+              <p className="open_24"><strong>Open 24/7?</strong><br/> Just checkmark the box below and ignore filling out each day&apos;s hours</p>
+              <Checkmarkbox day="Open 24/7" setCheckState={setOpen24Hours} />
+              <Row>
+                <Col>
+                  <p className="notOpen_24"><strong>Not open 24/7?</strong><br/>Checkmark which days the store is open and set your open and close times.</p>
+                </Col>
+              </Row>
+
+              {/* CHECKBOXES */}
+              <Row>
+                <Checkmarkbox day="Sun." setCheckState={setSunday} />
+                <Selecthours openclose="open" setTimeState={setOpenSun} />
+                <Selecthours openclose="close" setTimeState={setCloseSun} />
+              </Row>
+
+              <Row>
+                <Checkmarkbox day="Mon." setCheckState={setMonday} />
+                <Selecthours openclose="open" setTimeState={setOpenMon} />
+                <Selecthours openclose="close" setTimeState={setCloseMon} />
+              </Row>
+
+              <Row>
+                <Checkmarkbox day="Tues." setCheckState={setTuesday} />
+                <Selecthours openclose="open" setTimeState={setOpenTues} />
+                <Selecthours openclose="close" setTimeState={setCloseTues} />
+              </Row>
+
+              <Row>
+                <Checkmarkbox day="Wed." setCheckState={setWednesday} />
+                <Selecthours openclose="open" setTimeState={setOpenWed} />
+                <Selecthours openclose="close" setTimeState={setCloseWed} />
+              </Row>
+
+              <Row>
+                <Checkmarkbox day="Thu." setCheckState={setThursday} />
+                <Selecthours openclose="open" setTimeState={setOpenThurs} />
+                <Selecthours openclose="close" setTimeState={setCloseThurs} />
+              </Row>
+
+              <Row>
+                <Checkmarkbox day="Fri." setCheckState={setFriday} />
+                <Selecthours openclose="open" setTimeState={setOpenFri} />
+                <Selecthours openclose="close" setTimeState={setCloseFri} />
+              </Row>
+
+              <Row>
+                <Checkmarkbox day="Sat." setCheckState={setSaturday} />
+                <Selecthours openclose="open" setTimeState={setOpenSat} />
+                <Selecthours openclose="close" setTimeState={setCloseSat} />
+              </Row>
+              {/* CHECKBOX_END */}
+
+
+              <p>Note: <br/> All of these settings will be <strong>changeable</strong> after clicking the submit button.</p>
+
+              { !doubleClick &&
+                <button onClick={handleSubmit} className="secondary-btn">
+                  Create store
+                </button>
+              }
+      
+              {errorMessage ? (
+              /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+                <Alert className="alertBox" variant='warning'>
+                  {errorMessage}
+                </Alert>
+              ): ''}
+              {successAlert ? (
+              /* ^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
+                <Alert className="loginAlertBox" variant='success'>
+                  {successAlert}
+                </Alert>
+              ): ''}
+            </Form>
+          </React.Fragment>
+          : 
+          <p>Before you can create a store, you have to first create a <a href='/company/create'><strong>company here</strong></a></p>
         }
-        <button className="submit-btn dashboard" onClick={goToDashboard}>
-          ← Back to Dashboard
+        <button className="submit-btn dashboard" onClick={() => history.push('/dashboard')}>
+          ← Dashboard
         </button>
       </div>
     </Container>
   );
 }
 export default CreateStore;
-
-function CreateStoreContent({
-  handleSubmit,
-  setStoreName,
-  setMaxOccupants,
-  setMaxPartyAllowed,
-  setAvgVisitLength,
-  setAddress1,
-  setAddress2,
-  setCity,
-  setState,
-  setPostalCode,
-  setOpen24Hours,
-  setSunday,
-  setOpenSun,
-  setCloseSun,
-  setMonday,
-  setOpenMon,
-  setCloseMon,
-  setTuesday,
-  setOpenTues,
-  setCloseTues,
-  setWednesday,
-  setOpenWed,
-  setCloseWed,
-  setThursday,
-  setOpenThurs,
-  setCloseThurs,
-  setFriday,
-  setOpenFri,
-  setCloseFri,
-  setSaturday,
-  setOpenSat,
-  setCloseSat,
-  errorMessage,
-  successAlert
-}) {
-  return (
-    <Form className="createStoreForm">
-      <Form.Group controlId="formStoreName">
-        <Form.Label className='labels'>Store name</Form.Label>
-        <Form.Control placeholder="Your store's name" onChange={evt => setStoreName(evt.target.value)}/>
-      </Form.Group>
-      <Form.Group controlId="formAddress1">
-        <Form.Label className='labels'>Address</Form.Label>
-        <Form.Control placeholder="1234 Main St" onChange = {evt => setAddress1(evt.target.value)}/>
-      </Form.Group>
-
-      <Form.Group controlId="formAdress2">
-        <Form.Label className='labels'>Address 2</Form.Label>
-        <Form.Control defaultValue="" placeholder="Apartment, studio, or floor" onChange = {evt => setAddress2(evt.target.value)} />
-      </Form.Group>
-
-      <Row className="row">
-        <Col>
-          <Form.Label className='labels'>City</Form.Label>
-          <Form.Control placeholder='City' onChange = {evt => setCity(evt.target.value)}/>
-        </Col>
-        {/* Call Selectstate function defined later in this file */}
-        <Selectstate setState={setState} />
-      </Row>
-
-      <Form.Group>
-        <Form.Label className='labels'>Postal Code (Numbers only)</Form.Label>
-        <Form.Control placeholder='Number' type='text' onChange = {evt => setPostalCode(evt.target.value)}/>
-      </Form.Group>
-      <Form.Group controlId="formMaxOccupants">
-        <Form.Label className='labels'>Maximum number of occupants allowed</Form.Label>
-        <Form.Control type='text' placeholder="Number" onChange={evt => setMaxOccupants(evt.target.value)}/>
-      </Form.Group>
-      <Form.Group controlId="formMaxPartyAllowed">
-        <Form.Label className='labels'>Maximum number of customers allowed to visit in one group </Form.Label>
-        <Form.Control type='text' placeholder="Number" onChange={evt => setMaxPartyAllowed(evt.target.value)}/>
-      </Form.Group>
-      <Form.Group controlId="formAvgLength">
-        <Form.Label className='labels'>Average length of a customer&apos;s visit <br/>(in minutes)</Form.Label>
-        <Form.Control type='text' placeholder="Number" onChange={evt => setAvgVisitLength(evt.target.value)}/>
-      </Form.Group>
-
-
-      <p className="createStoreHours"><strong>Business Hours</strong></p>
-      <p className="open_24"><strong>Open 24/7?</strong><br/> Just checkmark the box below and ignore filling out each day&apos;s hours</p>
-      <Checkmarkbox day="Open 24/7" setCheckState={setOpen24Hours} />
-      <Row>
-        <Col>
-          <p className="notOpen_24"><strong>Not open 24/7?</strong><br/>Checkmark which days the store is open and set your open and close times.</p>
-        </Col>
-      </Row>
-
-      {/* CHECKBOXES */}
-      <Row>
-        <Checkmarkbox day="Sunday" setCheckState={setSunday} />
-        <Selecthours openclose="open" setTimeState={setOpenSun} />
-        <Selecthours openclose="close" setTimeState={setCloseSun} />
-      </Row>
-
-      <Row>
-        <Checkmarkbox day="Monday" setCheckState={setMonday} />
-        <Selecthours openclose="open" setTimeState={setOpenMon} />
-        <Selecthours openclose="close" setTimeState={setCloseMon} />
-      </Row>
-
-      <Row>
-        <Checkmarkbox day="Tuesday" setCheckState={setTuesday} />
-        <Selecthours openclose="open" setTimeState={setOpenTues} />
-        <Selecthours openclose="close" setTimeState={setCloseTues} />
-      </Row>
-
-      <Row>
-        <Checkmarkbox day="Wednesday" setCheckState={setWednesday} />
-        <Selecthours openclose="open" setTimeState={setOpenWed} />
-        <Selecthours openclose="close" setTimeState={setCloseWed} />
-      </Row>
-
-      <Row>
-        <Checkmarkbox day="Thursday" setCheckState={setThursday} />
-        <Selecthours openclose="open" setTimeState={setOpenThurs} />
-        <Selecthours openclose="close" setTimeState={setCloseThurs} />
-      </Row>
-
-      <Row>
-        <Checkmarkbox day="Friday" setCheckState={setFriday} />
-        <Selecthours openclose="open" setTimeState={setOpenFri} />
-        <Selecthours openclose="close" setTimeState={setCloseFri} />
-      </Row>
-
-      <Row>
-        <Checkmarkbox day="Saturday" setCheckState={setSaturday} />
-        <Selecthours openclose="open" setTimeState={setOpenSat} />
-        <Selecthours openclose="close" setTimeState={setCloseSat} />
-      </Row>
-      {/* CHECKBOX_END */}
-
-
-      <p>Note: <br/> All of these settings will be <strong>changeable</strong> after clicking the submit button.</p>
-
-      <Button onClick={handleSubmit} className="secondary-btn">
-        Create store
-      </Button>
-      
-      {errorMessage ? (
-      /* ^^^^^^^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
-        <Alert className="alertBox" variant='warning'>
-          {errorMessage}
-        </Alert>
-      ): ''}
-      {successAlert ? (
-      /* ^^^^^^^^^^ is a ternary operator: Is party amount > 0? If no, then display the alert*/
-        <Alert className="loginAlertBox" variant='success'>
-          {successAlert}
-        </Alert>
-      ): ''}
-    </Form>
-  );
-}
-
 
 function Selecthours({setTimeState, openclose}) {
   // Here we can define state variables that will only be used by this component
@@ -589,57 +433,57 @@ function Selectstate({setState}) {
       <Form.Label className='labels'>State</Form.Label>
       <Form.Control as="select" onChange = {evt => setState(evt.target.value)}>
         <option value="">Choose...</option>
-        <option value="AL">Alabama (AL)</option>
-        <option value="AK">Alaska (AK)</option>
-        <option value="AZ">Arizona (AZ)</option>
-        <option value="AR">Arkansas (AR)</option>
-        <option value="CA">California (CA)</option>
-        <option value="CO">Colorado (CO)</option>
-        <option value="CT">Connecticut (CT)</option>
-        <option value="DE">Delaware (DE)</option>
-        <option value="DC">District Of Columbia (DC)</option>
-        <option value="FL">Florida (FL)</option>
-        <option value="GA">Georgia (GA)</option>
-        <option value="HI">Hawaii (HI)</option>
-        <option value="ID">Idaho (ID)</option>
-        <option value="IL">Illinois (IL)</option>
-        <option value="IN">Indiana (IN)</option>
-        <option value="IA">Iowa (IA)</option>
-        <option value="KS">Kansas (KS)</option>
-        <option value="KY">Kentucky (KY)</option>
-        <option value="LA">Louisiana (LA)</option>
-        <option value="ME">Maine (ME)</option>
-        <option value="MD">Maryland (MD)</option>
-        <option value="MA">Massachusetts (MA)</option>
-        <option value="MI">Michigan (MI)</option>
-        <option value="MN">Minnesota (MN)</option>
-        <option value="MS">Mississippi (MS)</option>
-        <option value="MO">Missouri (MO)</option>
-        <option value="MT">Montana (MT)</option>
-        <option value="NE">Nebraska (NE)</option>
-        <option value="NV">Nevada (NV)</option>
-        <option value="NH">New Hampshire (NH)</option>
-        <option value="NJ">New Jersey (NJ)</option>
-        <option value="NM">New Mexico (NM)</option>
-        <option value="NY">New York (NY)</option>
-        <option value="NC">North Carolina (NC)</option>
-        <option value="ND">North Dakota (ND)</option>
-        <option value="OH">Ohio (OH)</option>
-        <option value="OK">Oklahoma (OK)</option>
-        <option value="OR">Oregon (OR)</option>
-        <option value="PA">Pennsylvania (PA)</option>
-        <option value="RI">Rhode Island (RI)</option>
-        <option value="SC">South Carolina (SC)</option>
-        <option value="SD">South Dakota (SD)</option>
-        <option value="TN">Tennessee (TN)</option>
-        <option value="TX">Texas (TX)</option>
-        <option value="UT">Utah (UT)</option>
-        <option value="VT">Vermont</option>
-        <option value="VA">Virginia</option>
-        <option value="WA">Washington</option>
-        <option value="WV">West Virginia</option>
-        <option value="WI">Wisconsin</option>
-        <option value="WY">Wyoming</option>
+        <option value="AL">AL</option>
+        <option value="AK">AK</option>
+        <option value="AZ">AZ</option>
+        <option value="AR">AR</option>
+        <option value="CA">CA</option>
+        <option value="CO">CO</option>
+        <option value="CT">CT</option>
+        <option value="DE">DE</option>
+        <option value="DC">DC</option>
+        <option value="FL">FL</option>
+        <option value="GA">GA</option>
+        <option value="HI">HI</option>
+        <option value="ID">ID</option>
+        <option value="IL">IL</option>
+        <option value="IN">IN</option>
+        <option value="IA">IA</option>
+        <option value="KS">KS</option>
+        <option value="KY">KY</option>
+        <option value="LA">LA</option>
+        <option value="ME">ME</option>
+        <option value="MD">MD</option>
+        <option value="MA">MA</option>
+        <option value="MI">MI</option>
+        <option value="MN">MN</option>
+        <option value="MS">MS</option>
+        <option value="MO">MO</option>
+        <option value="MT">MT</option>
+        <option value="NE">NE</option>
+        <option value="NV">NV</option>
+        <option value="NH">NH</option>
+        <option value="NJ">NJ</option>
+        <option value="NM">NM</option>
+        <option value="NY">NY</option>
+        <option value="NC">NC</option>
+        <option value="ND">ND</option>
+        <option value="OH">OH</option>
+        <option value="OK">OK</option>
+        <option value="OR">OR</option>
+        <option value="PA">PA</option>
+        <option value="RI">RI</option>
+        <option value="SC">SC</option>
+        <option value="SD">SD</option>
+        <option value="TN">TN</option>
+        <option value="TX">TX</option>
+        <option value="UT">UT</option>
+        <option value="VT">VT</option>
+        <option value="VA">VA</option>
+        <option value="WA">WA</option>
+        <option value="WV">WV</option>
+        <option value="WI">WI</option>
+        <option value="WY">WY</option>
       </Form.Control>
     </Col>
   );
@@ -647,7 +491,7 @@ function Selectstate({setState}) {
 
 function Checkmarkbox({day, setCheckState}) {
   return (
-    <Col>
+    <Col md='auto'>
       <Form.Label>{day}</Form.Label> 
       <Checkbox
         onChange={evt => setCheckState(evt.target.checked)}
@@ -669,41 +513,4 @@ Checkmarkbox.propTypes = {
 Selecthours.propTypes = {
   setTimeState: PropTypes.func.isRequired,
   openclose: PropTypes.string.isRequired
-};
-
-CreateStoreContent.propTypes = {
-  handleSubmit: PropTypes.func.isRequired,
-  setStoreName: PropTypes.func.isRequired,
-  setMaxOccupants: PropTypes.func.isRequired,
-  setMaxPartyAllowed: PropTypes.func.isRequired,
-  setAvgVisitLength: PropTypes.func.isRequired,
-  setAddress1: PropTypes.func.isRequired,
-  setAddress2: PropTypes.func.isRequired,
-  setCity: PropTypes.func.isRequired,
-  setState: PropTypes.func.isRequired,
-  setPostalCode: PropTypes.func.isRequired,
-  setOpen24Hours: PropTypes.func.isRequired,
-  setSunday: PropTypes.func.isRequired,
-  setOpenSun: PropTypes.func.isRequired,
-  setCloseSun: PropTypes.func.isRequired,
-  setMonday: PropTypes.func.isRequired,
-  setOpenMon: PropTypes.func.isRequired,
-  setCloseMon: PropTypes.func.isRequired,
-  setTuesday: PropTypes.func.isRequired,
-  setOpenTues: PropTypes.func.isRequired,
-  setCloseTues: PropTypes.func.isRequired,
-  setWednesday: PropTypes.func.isRequired,
-  setOpenWed: PropTypes.func.isRequired,
-  setCloseWed: PropTypes.func.isRequired,
-  setThursday: PropTypes.func.isRequired,
-  setOpenThurs: PropTypes.func.isRequired,
-  setCloseThurs: PropTypes.func.isRequired,
-  setFriday: PropTypes.func.isRequired,
-  setOpenFri: PropTypes.func.isRequired,
-  setCloseFri: PropTypes.func.isRequired,
-  setSaturday: PropTypes.func.isRequired,
-  setOpenSat: PropTypes.func.isRequired,
-  setCloseSat: PropTypes.func.isRequired,
-  errorMessage: PropTypes.string.isRequired,
-  successAlert: PropTypes.string.isRequired
 };

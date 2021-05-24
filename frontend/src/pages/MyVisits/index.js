@@ -22,6 +22,8 @@ function MyVisits() {
   const [deleteAlert, setDeleteAlert] = useState('');
   const refreshToken = localStorage.getItem('refreshToken');
   let accessToken = localStorage.getItem('accessToken');
+  // prevent spam click
+  const [doubleClick, setDoubleClick] = useState(false);
 
   // Below can be used for error checking if database cards aren't working
   // const customCards = [{
@@ -92,7 +94,6 @@ function MyVisits() {
       // Here .map means for every object in userVisits
       const userVisits = response.data;
       const getCards = await Promise.all( userVisits.map( async function (visit) {
-  
         // Get the visit's id
         const visit_id = visit._id;
   
@@ -137,40 +138,31 @@ function MyVisits() {
 
   const deleteVisitHandler = async (visit_id) => {
     try {
+      setDoubleClick(true);
       await protectPage(accessToken, refreshToken);
       accessToken = localStorage.getItem('accessToken');
       // get visit to check if party amount is reserved
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      
       // delete the visit
       // if an error occurs, then catch block will be triggered
       await api.delete(`/myvisits/${visit_id}`, { headers });
+      handleClose();
       
       // Set our delete alert for 5 seconds
       setDeleteAlert('Visit canceled.');
       setTimeout(() => {
         setDeleteAlert('');
       }, 5000);
-      setShow(false);
       const response = await getVisits();
       setVisitCards(response);
+      setDoubleClick(false);
     } catch (error) {
       history.push('/login');
       console.log(error);
     }
   };
-
-
-  function goToDashboard() {
-    history.push('/dashboard');
-  }
-
-  function scheduleVisit() {
-    history.push('/visit/schedule');
-  }
-
 
 
   // Render card component
@@ -192,7 +184,6 @@ function MyVisits() {
             className="delete-btn" >
               Cancel
             </Button>
-            Cancel this visit?
           </small>
         </Card.Footer>
       </Card>
@@ -209,16 +200,18 @@ function MyVisits() {
         </Modal.Header>
         <Modal.Body>Are you sure you want to cancel this visit?</Modal.Body>
         <Modal.Footer>
-          <Button variant="primary" onClick={() => deleteVisitHandler(visit_id)}>
-            Yes
-          </Button>
+          { !doubleClick &&          
+            <Button variant="primary" onClick={() => deleteVisitHandler(visit_id)}>
+              Yes
+            </Button>
+          }
           <Button variant="secondary" onClick={handleClose}>
             No
           </Button>
         </Modal.Footer>
       </Modal>
-      <div className="content">
-        <h3>Your Visits</h3>
+      <div className="content myvisitscontent">
+        <h2 className='myVisits-white'>Your Visits</h2>
         { deleteAlert &&
           <Alert variant="success">
             Visit successfully canceled!
@@ -226,18 +219,20 @@ function MyVisits() {
         }
 
         { visitCards && visitCards.map(renderCards) }
+      </div>
 
-        {!visitCards.length &&
-          <h5 className="noVisits">Go to &apos;Schedule a visit&apos; in the navigation menu to schedule a visit.</h5>
+
+      <div className='content myVisitsContent2'>
+        { !visitCards.length &&
+          <p className="noVisits">No scheduled visits.</p>
         }
 
-
-        <button className="submit-btn myVisits" onClick={scheduleVisit}>
-        ← Schedule a Visit
+        <button className="submit-btn scheduleVisit" onClick={() => history.push('/visit/schedule')}>
+          ← Schedule a Visit
         </button>
-
-        <button className="submit-btn" onClick={goToDashboard}>
-        ← Dashboard
+        <br />
+        <button className="submit-btn myVisitsDash" onClick={() => history.push('/dashboard')}>
+          ← Dashboard
         </button>
       </div>
     </Container>

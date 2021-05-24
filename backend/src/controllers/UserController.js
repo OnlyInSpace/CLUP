@@ -4,18 +4,16 @@ require('dotenv').config();
 
 module.exports = {
   async getUserById(req, res) {
-    // Get user ID
-    const { user_id } = req.params;
-
-    console.log(user_id);
     try {
+      // Get user ID
+      const { user_id } = req.params;
       // Find user via mongoDB object ID using the model
       const user = await User.findById(user_id);
-      return res.json(user);
+
+      return res.status(200).json(user);
+
     } catch (error) {
-      return res.status(400).json({
-        message: 'User ID does not exist, register instead?'
-      });
+      return res.status(500).json({ error: error.toString() });    
     }
   },
 
@@ -27,11 +25,9 @@ module.exports = {
       const users = await User.find({});
       console.log('Getting all usrs...');
       // If visits exist, send the visits
-      if (users) {
-        return res.json(users);
-      }
+      return res.status(200).json(users);
     } catch (error) {
-      return res.status(400).json({message: 'No users found.'});
+      return res.status(500).json({ error: error.toString() });    
     }
   },
 
@@ -40,13 +36,11 @@ module.exports = {
   async setClockIn(req, res) {
     try {
       const { user_id } = req.body;
-      const user = await User.findByIdAndUpdate(user_id, {clockedIn: true});
+      await User.findByIdAndUpdate(user_id, {clockedIn: true});
 
-      if (user) {
-        return res.json(user);
-      }
+      return res.sendStatus(204);
     } catch (error) {
-      return res.status(400).json({message: 'User controller error, clockIn.'});
+      return res.status(500).json({ error: error.toString() });    
     }
   },
 
@@ -55,13 +49,11 @@ module.exports = {
   async setClockOut(req, res) {
     try {
       const { user_id } = req.body;
-      const user = await User.findByIdAndUpdate(user_id, {clockedIn: false}, { new: true });
+      await User.findByIdAndUpdate(user_id, {clockedIn: false});
   
-      if (user) {
-        return res.json(user);
-      }
+      return res.sendStatus(204);
     } catch (error) {
-      return res.status(400).json({message: 'User controller error, clockIn.'});
+      return res.status(500).json({ error: error.toString() });    
     }
   }
 };

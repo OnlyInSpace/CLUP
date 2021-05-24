@@ -27,7 +27,7 @@ function verifyToken(req, res, next) {
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
       if (user) {
         // If token is legit, set req.accessToken = user, so now we can call req.accessToken if we wanted to
-        req.accessToken = user;
+        // req.accessToken = user;
         // next() is required so the program can continue and now run the controller's api call
         next();  
       } else if (err.message === 'jwt expired') { // else if jwt is expired, notify our frontend so we can refresh it
@@ -74,7 +74,7 @@ routes.post('/store/create', verifyToken, StoreController.createStore);
 
 /* Customer count functions */
 // Increase Customer Count
-routes.post('/changeCount', verifyToken, ChangeCountController.changeCount);
+routes.put('/changeCount', verifyToken, ChangeCountController.changeCount);
 
 /* Visits */
 // Return all visits specific to currently logged in user
@@ -118,7 +118,7 @@ routes.get('/company/:user_id', verifyToken, CompanyController.getCompanyByUserI
 // Store
 // Return all stores
 routes.get('/store', verifyToken, StoreController.getAllStores);
-// Return all owned stores
+// Return all user owned stores
 routes.get('/stores/:company_id', verifyToken, StoreController.getOwnedStores);
 
 // Get store by id

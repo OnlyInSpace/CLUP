@@ -34,13 +34,8 @@ function FindStore() {
         let headers = {
           authorization: `Bearer ${accessToken}`
         };
-        if (store_id) {
-          let storeData = await api.get(`/store/${store_id}`, { headers });
-          setPreSelectedStore(storeData.data.storeName);
-        }
-
+        // Get search list data
         let storeList = await api.get('/store', { headers });
-        
         // populate our search list
         const formattedData = storeList.data.map(store => {
           const storeName = store.storeName;
@@ -53,6 +48,14 @@ function FindStore() {
           return {label, value: storeId};
         });
         setSearchData(formattedData);
+        
+        // If user has preselected store, display it
+        if (store_id) {
+          let storeData = await api.get(`/store/${store_id}`, { headers });
+          if (storeData.data)
+            setPreSelectedStore(storeData.data.storeName);
+        }
+
         
       } catch (error) {
         console.log(error);
@@ -89,10 +92,6 @@ function FindStore() {
   };
 
   
-  function goToDashboard() {
-    history.push('/dashboard');
-  }
-  
   // Custom stylin for our searchbar
   const customStyles = {
     option: (provided, state) => ({
@@ -118,7 +117,7 @@ function FindStore() {
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
     <Container>
-      <div className="content">
+      <div className="content findStore">
         <h4>Find your store</h4>
         <Select
           classname="searchBar"
@@ -164,13 +163,13 @@ function FindStore() {
         }
 
         { preSelectedStore ? 
-          <button className="submit-btn dashboard" onClick={goToDashboard}>
+          <button className="submit-btn dashboard" onClick={() => history.push('/dashboard')}>
           ← Dashboard
           </button>
           :
           <br/>
         }
-
+        <br />
         { preSelectedStore ? 
           <button className="submit-btn findStore-visit" onClick={() => history.push('/visit/schedule')}>
                   ← Schedule a Visit
@@ -181,12 +180,15 @@ function FindStore() {
 
 
 
-        <p className='findStore-p2'><br></br>You can search via the store&apos;s name or its address like so: <br/><strong>101 Zoey St</strong> 
+        <p className='findStore-p2'><br></br>You can search via the store&apos;s name like so: 
+          <br/><strong>Wonder World Co.</strong>
+          <br/>or its address:
+          <br/><strong>101 Redwood St</strong>
           <br></br><br></br>You can also view all supported stores in your city like so: <br/> <strong> MyCityName, TX</strong>
         </p>
         <br/>
 
-        <p>Want setup your <strong>own store?</strong> Click below to begin.</p>
+        <p>Want setup your <strong>own store?</strong></p>
         <button className="submit-btn find-createStore" onClick={() => history.push('/store/create')}>
           Create a store
         </button>

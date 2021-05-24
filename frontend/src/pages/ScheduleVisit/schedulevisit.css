@@ -37,7 +37,8 @@
 }
 
 .scheduleListBorder {
-    width: 20em;
+    margin: 0 auto;
+    max-width: 25rem;
     border: 1px solid var(--darkBlue);
     border-radius: 4px;
     list-style-position: outside;
@@ -66,4 +67,8 @@
 
 .alertBox.myVisits {
     margin-bottom: -2.5em;
+}
+
+.submit-btn.myVisitsDash {
+    margin-top: 1em;
 }

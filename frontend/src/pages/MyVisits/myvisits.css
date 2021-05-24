@@ -1,24 +1,45 @@
-.card {
-    min-width: 265px;
+.content.myvisitscontent {
     margin-bottom: 1.5em;
+    padding: 0;
+    background-color: var(--darkBlue);
 }
 
+.card {
+    margin-bottom: 0;
+    max-width: 18em;
+    box-shadow: -5px 5px 5px rgba(0, 0, 0, 0.342);
+}
+
+.myVisits-white {
+    color: white;
+    margin-bottom: .5em;
+    border-radius: .25rem 0 0 0;
+}
 
 .noVisits {
-    margin-top: 1.5em;
-    margin-bottom: -1em;
+    margin-bottom: 1.5em;
+    background-color: white;
+    border-radius: .25rem;
 }
 
-
-.card button.delete-btn {
-    margin-right: 1em;
+.noVisits > a {
+    color: var(--darkBlue);
+    font-weight: bold;
+    transition: .2s ease-in-out;
 }
 
+.noVisits > a:hover {
+    color: var(--lightBlue);
+    font-weight: bold;
+}
 
 .text-muted {
     font-size: .9em;
 }
 
-.submit-btn.myVisits {
-    margin-top: 1em;
+.myVisitsContent2 {
+    width: 100%;
+    max-width: 18em;
+    padding: 1.5em 1em 1.5em 1em; 
+    box-shadow: -5px 5px 5px rgba(0, 0, 0, 0.342);
 }
