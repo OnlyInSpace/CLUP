@@ -134,7 +134,7 @@ function ScheduleVisit() {
       return storeVisits.data;
     } catch (error) {
       history.push('/findStore');
-      console.log('error in getStoreVisits');
+      console.log(error);
     }
   }
 

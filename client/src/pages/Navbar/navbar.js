@@ -79,7 +79,6 @@ function NavigationBar() {
       let user = await protectPage(accessToken, refreshToken);
 
       if (!user) {
-        console.log('Please log in again. User not found after protectPage()');
         history.push('/login');
       } else {
         // Delete refresh token in Mongo so nobody can have access to it now 

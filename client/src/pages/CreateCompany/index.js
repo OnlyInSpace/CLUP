@@ -91,7 +91,6 @@ function CreateCompany() {
       await refresh(refreshToken);
 
       if (comapnyId && response.data.role === 'owner') {
-        console.log('companyID:', comapnyId);
         setSuccessAlert('Company created! Now let\'s create your first store. Redirecting. . .');
         await delay(3000);
         history.push('/store/create');

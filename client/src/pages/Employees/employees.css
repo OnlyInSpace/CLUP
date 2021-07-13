@@ -1,5 +1,4 @@
 .addEmployeeEmail {
-    max-width: 12em;
     margin-bottom: 1.5em;
 }
 
@@ -7,13 +6,15 @@
     max-width: 8em;
 }
 
+.employeesContainer {
+    max-width: min(95%, 44em);
+}
+
 .employeesContent .table {
-    max-width: 491px;
     border: 2px solid var(--darkBlue);
 }
 
 .employeesContent {
-    width: 35em;
     background-color: white;
     margin-bottom: 2em;
     border-radius: 10px;

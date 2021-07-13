@@ -35,11 +35,12 @@ function verifyToken(req, res, next) {
           message: 'Access token expired'
         });
       } else { // else token doesnt exist or could be unlegit, return 403 forbidden status back to frontend and have user login again
-        console.log('\nverify failed in routes.js\n');
+        console.log('\nverify failed in routes\n');
         return res.status(403).json({ err, message: 'User not authenticated' });
       }
     }); 
   } else {
+    console.log('Routes: no req.headers.authorization in verifyToken');
     return res.sendStatus(401);
   }
 }

@@ -62,7 +62,7 @@ function Landingpage() {
       </section>
       {/* Footer */}
       <footer className="section-footer">
-        <p>2021 Customer Line Up</p>
+        <p>A student project by Steven Salomon (2021)</p>
       </footer>
     </div>
     

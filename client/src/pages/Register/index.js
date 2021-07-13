@@ -19,7 +19,6 @@ function Register() {
   // Confirm notify message
   const [confirmMessage, setConfirmMessage] = useState(false);
   
-  console.log(firstNums + secondNums + thirdNums);
   // Function that will talk to server api
   const handleSubmit = async evt => {
     // Prevent default event when button is clicked
@@ -68,8 +67,6 @@ function Register() {
       const response = await axios.post('/user/register', {phoneNumber, email, password});
       const accessToken = response.data.accessToken;
       const refreshToken = response.data.refreshToken;
-
-      console.log(accessToken);
 
       // If the user was able to register then send them to dashboard and store their data in Cookies
       if (accessToken) {
@@ -132,47 +129,47 @@ function Register() {
         </a>
 
         { !confirmMessage &&
-        <React.Fragment>
-          <h4>Creating an account allows you to:</h4>
-          <Form onSubmit = {handleSubmit}>
-            <ul className='registerList'>
-              <li><strong>Schedule visits</strong>, <strong>view store occupancy</strong>, and join a <strong>customer queue</strong> all from your device.</li>
-              <li>Business owners can <strong>create, manage,</strong> and <strong>assign</strong> employees to their own stores.</li>
-            </ul>
-            <h3>Signup below</h3>
-            <Form.Group controlId="formPhoneNum">
-              <Form.Label className="phoneDescription">Phone number (For visit confirmations)</Form.Label>
-              <Row className='row-register'>
-                <Col className='col-register1 col-margins'>
-                  <Form.Control name='phoneNum-1' type="text" maxLength='3' onChange={evt => handlePhoneChange(evt)} />
-                </Col>
-                <Col className='reg-symbols hyphen1'>-</Col>
-                <Col className='col-register1 col-margins'>
-                  <Form.Control name='phoneNum-2' type="text" maxLength='3' onChange={evt => handlePhoneChange(evt)} />
-                </Col>
-                <Col className='reg-symbols hyphen1'>-</Col>
-                <Col className='col-register2 col-margins'>
-                  <Form.Control name='phoneNum-3' type="text" maxLength='4' onChange={evt => handlePhoneChange(evt)} />
-                </Col>
-              </Row>
-            </Form.Group>
-            <Form.Group controlId="formEmail">
-              <Form.Label>Email address</Form.Label>
-              <Form.Control type="email" placeholder="Your email" onChange = {evt => setEmail(evt.target.value)} />
-            </Form.Group>
-            <Form.Group controlId="formPassword">
-              <Form.Label>Password</Form.Label>
-              <Form.Control type="password" placeholder="Your password" onChange = {evt => setPassword(evt.target.value)}/>
-            </Form.Group>
-            <Form.Group controlId="formPassword">
-              <Form.Label>Confirm password</Form.Label>
-              <Form.Control type="password" placeholder="Confirm password" onChange = {evt => setConfirmPassword(evt.target.value)}/>
-            </Form.Group>
-            <Button className="btn-action2 signup" type="submit">
-              <span>Create your account</span>
-            </Button>
-          </Form>
-        </React.Fragment>
+          <React.Fragment>
+            <h4>Creating an account allows you to:</h4>
+            <Form onSubmit = {handleSubmit}>
+              <ul className='registerList'>
+                <li><strong>Schedule visits</strong>, <strong>view store occupancy</strong>, and join a <strong>customer queue</strong> all from your device.</li>
+                <li>Business owners can <strong>create, manage,</strong> and <strong>assign</strong> employees to their own stores.</li>
+              </ul>
+              <h3>Signup below</h3>
+              <Form.Group controlId="formPhoneNum">
+                <Form.Label className="phoneDescription">Phone number (For visit confirmations)</Form.Label>
+                <Row className='row-register'>
+                  <Col className='col-register1 col-margins'>
+                    <Form.Control name='phoneNum-1' type="text" maxLength='3' onChange={evt => handlePhoneChange(evt)} />
+                  </Col>
+                  <Col className='reg-symbols hyphen1'>-</Col>
+                  <Col className='col-register1 col-margins'>
+                    <Form.Control name='phoneNum-2' type="text" maxLength='3' onChange={evt => handlePhoneChange(evt)} />
+                  </Col>
+                  <Col className='reg-symbols hyphen1'>-</Col>
+                  <Col className='col-register2 col-margins'>
+                    <Form.Control name='phoneNum-3' type="text" maxLength='4' onChange={evt => handlePhoneChange(evt)} />
+                  </Col>
+                </Row>
+              </Form.Group>
+              <Form.Group controlId="formEmail">
+                <Form.Label>Email address</Form.Label>
+                <Form.Control type="email" placeholder="Your email" onChange = {evt => setEmail(evt.target.value)} />
+              </Form.Group>
+              <Form.Group controlId="formPassword">
+                <Form.Label>Password</Form.Label>
+                <Form.Control type="password" placeholder="Your password" onChange = {evt => setPassword(evt.target.value)}/>
+              </Form.Group>
+              <Form.Group controlId="formPassword">
+                <Form.Label>Confirm password</Form.Label>
+                <Form.Control type="password" placeholder="Confirm password" onChange = {evt => setConfirmPassword(evt.target.value)}/>
+              </Form.Group>
+              <Button className="btn-action2 signup" type="submit">
+                <span>Create your account</span>
+              </Button>
+            </Form>
+          </React.Fragment>
         }
 
         { confirmMessage && 

@@ -23,8 +23,6 @@ function FindStore() {
   let accessToken = localStorage.getItem('accessToken');
   const refreshToken = localStorage.getItem('refreshToken');
   
-  console.log(searchData);
-
   
   useEffect(() => {
     (async () => {
@@ -77,7 +75,6 @@ function FindStore() {
       // Get the store's id from our generated search list 
       const getStoreId = searchData.find( ({label}) => label === selectedStore);
       const storeId = getStoreId.value;
-      console.log(getStoreId);
       // set storeId to selected store in a cookie with secure option set. meaning this cookie is only readable on HTTPS
       localStorage.setItem('store', storeId, { secure: true });
 

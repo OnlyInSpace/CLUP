@@ -126,7 +126,7 @@ function Employees() {
       await populateTable();
 
     } catch (error) {
-      console.log('Error in removeEmployeeHandler');
+      console.log(error);
     }
   }
 
@@ -155,7 +155,7 @@ function Employees() {
       await populateTable();
       
     } catch (error) {
-      console.log('error in addEmployeeHandler');
+      console.log(error);
     }
 
   }
@@ -178,21 +178,19 @@ function Employees() {
         return;
       }
 
-      setRemoveAlert('Employee\'s role successfully changed. Refreshing table');
+      setRemoveAlert('Employee\'s role successfully changed. Refreshing table. . .');
       await delay(5000);
       setRemoveAlert('');
       await populateTable();
     } catch (error) {
-      console.log('Error in changeRoleHandler');
+      console.log(error);
     }
   }
 
   async function handleModal() {
     if (runFunc === 'changeRoleHandler') {
-      console.log('running changeRole');
       await changeRoleHandler(employeeEmail, changeRole);
     } else if (runFunc === 'removeEmployeeHandler') {
-      console.log('running removeEmployee');
       await removeEmployeeHandler(employeeEmail);
     }
   }
@@ -318,7 +316,7 @@ function Employees() {
     
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (
-    <Container>
+    <Container className='employeesContainer'>
       <Modal show={show} onHide={handleClose} centered>
         <Modal.Header closeButton>
           <Modal.Title>{modalTitle}</Modal.Title>
@@ -375,6 +373,7 @@ function Employees() {
         <React.Fragment>
           <div className="employeesContent">
             <h4>Add an Employee Below</h4>
+            <h5>You can add the employee <strong>steve@test.com</strong> as a test</h5>
             <Row>
               <ul className='addEmployee-ul'>
                 <li>Before you can add an employee, make sure they register an account <a href='/user/register'> here </a>first.</li>

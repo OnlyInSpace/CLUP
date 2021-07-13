@@ -40,8 +40,8 @@ function ConfirmEmail() {
         // Confirm user's account
         setLoading(true);
         await delay(2000);
-        let headers = { authorization: `Bearer ${accessToken}` };       
-        await axios.put(`/confirmEmail/${user._id}`, { headers });
+        let headers = { authorization: `Bearer ${accessToken}` };
+        await axios.put(`/confirmEmail/${user._id}`, { }, { headers });
         setLoading(false);
         setConfirmed(true);
         await delay(2000);

@@ -23,13 +23,13 @@ module.exports = {
       // Iterate through store's queue and ensure we are not appending an existing user
       for ( var i=0; i < queue.length; i++) {
         item = queue[i];
-        if (customer.phoneNumber === item.phoneNumber) {
+        if (customer.email === item.email) {
           cont = false;
           break;
         }
       }
       // Alert frontend that user is already in queue
-      if (!cont) return res.json({message: 'You are already in the queue. Look out for a text message from us once it\'s your turn. \nYour cell: ' + customer.phoneNumber});
+      if (!cont) return res.json({message: 'You are already in the queue. Look out for a text message from us once it\'s your turn. \nYour email: ' + customer.email});
       // If not in queue yet, go ahead and append user 
       Store.findByIdAndUpdate(store_id, { $push : {'queue': [customer] }}, {new: true},
         function(err, result) {

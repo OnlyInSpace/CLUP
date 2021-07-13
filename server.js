@@ -19,13 +19,6 @@ const bcrypt = require('bcrypt');
 // Nodemailer for sending emails
 const nodemailer = require('nodemailer');
 
-
-// Twilio setup
-const accountSid = 'AC0ea3fddea1f7c73c4c6e52f781faa95e'; 
-const authToken = '8bef6e0919178da4379fde875463e79a'; 
-const client = require('twilio')(accountSid, authToken); 
-
-
 // This line is needed for later deployment
 const PORT = process.env.PORT || 8000;
 
@@ -36,11 +29,9 @@ app.use(express.json());
 // Register a user and send a generated access and refresh token back to frontend
 app.post('/user/register', async function (req, res) {
   try {
-    let {phoneNumber, email, password} = req.body;
+    let { phoneNumber, email, password } = req.body;
     if (!phoneNumber || !email || !password) {
-      return res.status(200).json({
-        message: 'Required information is missing.'
-      });
+      return res.json({message: 'Required information is missing.'});
     }
     email = email.toLowerCase();
 
@@ -89,7 +80,7 @@ app.post('/user/register', async function (req, res) {
       // send mail with defined transport object
       await transporter.sendMail({
         from: '"CLUP" <CustomerLineup@CLUP.com>', // sender address
-        to: `CLUP User <${user.email}`, // list of receivers
+        to: `CLUP User <${user.email}>`, // list of receivers
         subject: 'Confirm Email', // Subject line
         text: '', // plain text body
         // html: '<b><a href=\'confirmEmail\'>Confirm Email</a></b><br/><img src="cid:customer_lineup_logo@logo.com />', // html body
@@ -116,12 +107,10 @@ app.post('/user/register', async function (req, res) {
         clockedIn: user.clockedIn
       };
       // Sign both access and refresh token with different secrets
-      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '10s' });
+      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '820s' });
       const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '365d' });
       // Update refreshToken in MongoDB for user
       await User.findOneAndUpdate({email: user.email}, {refreshToken: refreshToken});
-
-
 
       // Encrypt user object via JSON web token, then send the token and user_id back to frontend
       return res.status(200).json({
@@ -169,7 +158,7 @@ app.post('/login', async function (req, res) {
         clockedIn: user.clockedIn
       };
 
-      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '10s'});
+      const accessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '820s'});
       const refreshToken = jwt.sign(userData, process.env.JWT_REFRESH, { expiresIn: '365d'});
       // Update refreshToken in MongoDB for user
       await User.findOneAndUpdate({email: user.email}, {refreshToken: refreshToken});
@@ -262,7 +251,7 @@ app.get('/refresh', async function (req, res) {
         clockedIn: user.clockedIn
       };
       // Create new access token
-      const newAccessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '10s' });
+      const newAccessToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '820s' });
       return res.status(200).json({
         success: true, 
         newAccessToken
@@ -309,7 +298,7 @@ cron.schedule('*/1 * * * *', async () => {
 
     // Send SMS alerts
     const stores = await Store.find({});
-    stores.forEach(store => sendSMS(store));
+    stores.forEach(store => sendEmail(store));
 
     console.log('running a task every minute');
   } catch (error) {
@@ -372,7 +361,7 @@ async function updateVisits(visit) {
 
 // updating an array of documents
 // https://docs.mongodb.com/manual/reference/operator/update/positional/#mongodb-update-up.-
-async function sendSMS(store) {
+async function sendEmail(store) {
   try {
     
     // if store doesn't have a queue, then just exit
@@ -382,10 +371,6 @@ async function sendSMS(store) {
 
     // head of queue
     let head = store.queue[0];
-
-    if (head.phoneNumber === '1234567891') {
-      return;
-    }
 
     // If head of queue has been alerted, set their minsLate to (current time - their start time)
     if (head.alerted) {
@@ -399,7 +384,7 @@ async function sendSMS(store) {
       
       // set their minsLate to the time difference
       await Store.updateOne(
-        {_id: store._id, 'queue.phoneNumber': head.phoneNumber },
+        {_id: store._id, 'queue.email': head.email },
         { $set: { 'queue.$.minsLate': timeDifference} }
       );
 
@@ -409,27 +394,56 @@ async function sendSMS(store) {
     if (!head.alerted) {
       // Update their alerted property to true
       const setAlerted = await Store.updateOne(
-        {_id: store._id, 'queue.phoneNumber': head.phoneNumber },
+        {_id: store._id, 'queue.email': head.email },
         { $set: { 'queue.$.alerted': true} }
       );
 
       console.log('sending message');
       // Send text message to first person in queue
       if (setAlerted) {
-        client.messages 
-          .create({ 
-            body: '\nCLUP ALERT: \n\nYou are next in line at ' + store.storeName + 
-                  '\n\nPlease walk into the entrance of the store within 15 minutes of getting this message or you might lose your spot!' + 
-                  '\n\nHave a nice day,\nThank you',  
-            messagingServiceSid: 'MGb2a42db17b3508e4802e24b44a94bcd3',      
-            to: '+1' + head.phoneNumber 
-          }) 
-          .then(message => console.log(message.sid)) 
-          .done();
+
+        //************  Sending Email  **************/
+        // Make ethereal test account
+        // let testAccount = await nodemailer.createTestAccount();
+
+        // create reusable transporter object using the default SMTP transport
+        let transporter = nodemailer.createTransport({
+          service: 'gmail',
+          // service: 'smtp.ethereal.email',
+          // port: 587, // default: 587
+          // secure: false, // true for 465, false for other ports
+          auth: {
+            type: 'OAuth2',
+            user: process.env.MAIL_ACC,
+            pass: process.env.MAIL_PASS,
+            clientId: process.env.OAUTH_CLIENTID,
+            clientSecret: process.env.OAUTH_CLIENT_SECRET,
+            refreshToken: process.env.OAUTH_REFRESH_TOKEN
+          }
+        });
+
+        // send mail with defined transport object
+        await transporter.sendMail({
+          from: '"CLUP" <CustomerLineup@CLUP.com>', // sender address
+          to: `CLUP User <${head.email}>`, // list of receivers
+          subject: 'CLUP Queue Alert', // Subject line
+          text: '', // plain text body
+          // html: '<b><a href=\'confirmEmail\'>Confirm Email</a></b><br/><img src="cid:customer_lineup_logo@logo.com />', // html body
+          html: '<p style="margin-bottom: 7px; font-size: 16px;">CLUP ALERT: <br/><br/>You are next in line at ' + store.storeName + '<br/><br/>Please walk into the entrance of the store within 15 minutes of getting this message or you might lose your spot!' + 
+          '<br/><br/>Have a nice day,<br/>Thank you</p><b><h2 style="text-align: center;"></h2></b><br/><br/><img style="width: 300px; margin-left: auto; margin-right: auto; display: block;" src="cid:customer_lineup_logo_made"/>', // html body
+          attachments: [{
+          // Image file attachment
+            filename: 'logo.png',
+            path: __dirname + '/client/src/pages/LandingPage/img/logo.png',
+            cid: 'customer_lineup_logo_made'
+          }]
+        });
+        // console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+        //***********End of Email***********/
 
         // Once alerted, set their start time to the current time
         await Store.updateOne(
-          {_id: store._id, 'queue.phoneNumber': head.phoneNumber },
+          {_id: store._id, 'queue.email': head.email },
           { $set: { 'queue.$.startTime': Date.now()} }
         );
       }
@@ -438,7 +452,7 @@ async function sendSMS(store) {
   
   } catch (error) {
     console.log(error);
-    console.log('error in sendSMS server.js');
+    console.log('error in sendEmail server.js');
   }
 }
 

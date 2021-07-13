@@ -12,8 +12,6 @@ function ProtectedRoute({ component: Component, ...rest }) {
   const [isLoading, setIsLoading] = useState(true);  
   const accessToken = localStorage.getItem('accessToken');
   const refreshToken = localStorage.getItem('refreshToken');
-
-  console.log('isLoading:', isLoading);
   
   useEffect(() => {
     (async () => {

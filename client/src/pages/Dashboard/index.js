@@ -77,7 +77,7 @@ function Dashboard() {
         // return () => clearInterval(interval);
 
       } catch (error) {
-        console.log('response.data not found');
+        console.log(error);
       }
     })();
   }, []);
@@ -141,7 +141,7 @@ function Dashboard() {
       return visitSearchList;
       
     } catch (error) {
-      console.log('error in getStoreVisits');
+      console.log(error);
     }
   }
 
@@ -161,8 +161,6 @@ function Dashboard() {
       if (!response.data) {
         return history.push('/findStore');
       }
-
-      console.log(response.data.avgVisitLength);
 
       if (response.data.queue.length > 0 && user.clockedIn) {
         setContentClass('content dashboardContent');
@@ -283,7 +281,7 @@ function Dashboard() {
       
     } catch (error) {
       history.push('/findStore');
-      console.log('error in refreshPageData');
+      console.log(error);
     }
 
   }
@@ -315,7 +313,7 @@ function Dashboard() {
       window.location.reload(false);      
     } catch (error) {
       handleClose();
-      console.log('err in handle clock in and out');
+      console.log(error);
     }
   }
 
@@ -360,7 +358,7 @@ function Dashboard() {
 
     } catch (error) {
       handleClose();
-      console.log('error in confirmVisit handler');
+      console.log(error);
     }
   }
 
@@ -395,7 +393,7 @@ function Dashboard() {
       setOccupancySuccess('');
     } catch (error) {
       handleClose();
-      console.log('error in change occupancy');
+      console.log(error);
     }
   }
 
@@ -406,6 +404,7 @@ function Dashboard() {
 
       let customer = {
         user_id: user._id,
+        email: user.email,
         phoneNumber: user.phoneNumber,
         partyAmount: parseInt(partyAmount),
         minsLate: 0,
@@ -432,9 +431,9 @@ function Dashboard() {
         return;
       }
 
-      // Set our delete alert for 5 seconds
-      setJoinQueueAlert('You\'ve joined the queue! We will send you a text message once it\'s your turn.' +
-                        '\nYour cell: ' + customer.phoneNumber);
+      // Set our success alert for 5 seconds
+      setJoinQueueAlert('You\'ve joined the queue! We will send you an email once it\'s your turn.' +
+                        '\nYour email: ' + customer.email);
 
       await delay(500);
       setDoubleClick(false);
@@ -443,7 +442,7 @@ function Dashboard() {
       
     } catch (error) {
       handleClose();
-      console.log('error in joinQueue');
+      console.log(error);
     }
   }
 
@@ -486,7 +485,7 @@ function Dashboard() {
       
     } catch (error) {
       handleClose();
-      console.log('error in popQueue');
+      console.log(error);
     }
   }
 
@@ -519,7 +518,7 @@ function Dashboard() {
       await refreshPageData();
     } catch (error) {
       handleClose();
-      console.log('error in skipCustomer');
+      console.log(error);
     }
   }
 
@@ -562,7 +561,7 @@ function Dashboard() {
       
     } catch (error) {
       handleClose();
-      console.log('error in cancel visit');
+      console.log(error);
     }
   }
 
@@ -720,7 +719,7 @@ function Dashboard() {
                   Join Queue?
                 </button>
 
-                <p>After joining the queue, <br/>  you will receive a <strong>text message</strong> <br/> once it&apos;s your turn to enter the store.</p>
+                <p>After joining the queue, <br/>  you will receive an <strong>email</strong> <br/> once it&apos;s your turn to enter the store.</p>
 
               </React.Fragment>
             }

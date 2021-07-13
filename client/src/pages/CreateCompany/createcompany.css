@@ -15,3 +15,7 @@
 .createCompAlert {
     margin-bottom: -1.5em !important;
 }
+
+#formCompanyName {
+    margin: 0 auto;
+}

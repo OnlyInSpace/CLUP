@@ -40,7 +40,6 @@ function MyVisits() {
         setVisitCards(result);
       } catch (error) {
         console.log(error);
-        console.log('error in useEffect');
       }
     })();
   }, []);
@@ -126,8 +125,6 @@ function MyVisits() {
           partyAmount: visit.partyAmount
         };
       }));
-      console.log('getCards', getCards);
-
       return getCards;
       
     } catch (error) {

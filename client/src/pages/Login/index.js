@@ -23,6 +23,7 @@ function Login() {
         if (accessToken && refreshToken && accessToken !== 'undefined') {
           const user = await protectPage(accessToken, refreshToken);
           if (user.confirmed) history.push('/dashboard');
+          else history.push('/confirmEmail');
         }
       } catch (error) {
         console.log(error);
@@ -59,7 +60,6 @@ function Login() {
           history.push('/dashboard'); // go to dashboard
         } else {
           setErrorMessage(response.data.message);
-          console.log(response.data);
         }
       }
     } catch (error) {
