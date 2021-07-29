@@ -1,4 +1,4 @@
-# Customer Lineup (CLUP)
+# CLUP
 CLUP - Senior Design project for West Texas A&M University
 
 # What is CLUP? (Customer Lineup)
