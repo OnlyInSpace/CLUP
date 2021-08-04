@@ -84,7 +84,10 @@ app.post('/user/register', async function (req, res) {
         subject: 'Confirm Email', // Subject line
         text: '', // plain text body
         // html: '<b><a href=\'confirmEmail\'>Confirm Email</a></b><br/><img src="cid:customer_lineup_logo@logo.com />', // html body
-        html: '<h3 style="text-align: center; margin-bottom: 7px;">Click the link below to confirm your email</h3><b><h2 style="text-align: center;"><a href=\'http://localhost:3000/confirmEmail\'>Confirm Email</a></h2></b><br/><img style="width: 300px; margin-left: auto; margin-right: auto; display: block;" src="cid:customer_lineup_logo_made"/>', // html body
+        html: '<h3 style="text-align: center; margin-bottom: 7px;">Click the link below to confirm your email</h3>' +
+        '<b><h2 style="text-align: center;"><a href=\'http://localhost:3000/confirmEmail\'>Confirm Email</a></h2></b>' + 
+        '<h3 style="text-align: center; margin-bottom: 7px;">A project by <strong>Steven Salomon</strong></h3>' +
+        '<br/><img style="width: 50%; margin-left: auto; margin-right: auto; display: block;" src="cid:customer_lineup_logo_made"/>', // html body
         attachments: [{
           // Image file attachment
           filename: 'logo.png',
@@ -289,7 +292,7 @@ try {
 
 
 
-cron.schedule('*/1 * * * *', async () => {
+cron.schedule('*/3 * * * *', async () => {
   try {
     // Return all visits from database in an array
     const visits = await Visit.find({});

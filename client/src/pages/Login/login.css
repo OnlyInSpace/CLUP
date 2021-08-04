@@ -39,6 +39,11 @@
     color: white;
 }
 
+.testing_acc {
+    line-height: 30px;
+    font-size: 1.1rem !important;
+}
+
 
 .loginContent button.secondary-btn:hover {
     background: var(--lightBlue);

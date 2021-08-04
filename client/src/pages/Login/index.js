@@ -78,6 +78,11 @@ function Login() {
         </a>
         <h3>Login</h3>
         <p>Login to your <strong>account</strong> below</p>
+        <p className='testing_acc'>
+          Want to use a test account? <br />
+          Email: <strong>test@test.com</strong> <br />
+          Password: <strong>Testing123!</strong>
+        </p>
         <Form onSubmit = {handleSubmit}>
           <Form.Group controlId="formEmail">
             <Form.Label>Email address</Form.Label>
