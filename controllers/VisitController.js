@@ -151,9 +151,6 @@ module.exports = {
         return res.json({ message: 'Sorry, you can\'t schedule near closing time or after business hours.'}); 
       }
     
-      if (amount <= 0) {
-        return res.json({ message: 'Required information is missing.'});
-      }
       const userExists = await User.findById(user_id);
       // Display error if user does not exist
       if (!userExists) {

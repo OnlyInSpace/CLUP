@@ -823,19 +823,15 @@ function Dashboard() {
                   <Col className='employeeQueue' xs={8} md={6}>
                     <h5 className='dash-custmersInLine'>Customers in queue: {storeData.queue.length}</h5>   
                     <div className='dash-border'>
-                      { storeData.queue.length > 0 &&
-                        <React.Fragment>
-                          <p>Next in line:</p>
-                          <p className='queue-head'>{storeData.queue[0].phoneNumber} - Party of <strong>{storeData.queue[0].partyAmount}</strong></p>
-                          <p className='queue-head'><strong>{(-storeData.queue[0].minsLate).toString()}</strong> minutes late</p>
-                          <button className='submit-btn dash-skip' onClick={() => { setRunFunc('skipCustomer'); setModalTitle('Skip this person?'); setModalMessage('Would you like to skip the line forward?'); handleShow();}}>
-                            Skip
-                          </button>
-                          <button className='secondary-btn dash-moveForward' onClick={() => { setRunFunc('popQueue'); setModalTitle('Check this person in?'); setModalMessage('Would you like to move the line forward?'); handleShow();}}>
-                            Check In
-                          </button>
-                        </React.Fragment>
-                      }
+                      <p>Next in line:</p>
+                      <p className='queue-head'>{storeData.queue[0].phoneNumber} - Party of <strong>{storeData.queue[0].partyAmount}</strong></p>
+                      <p className='queue-head'><strong>{(-storeData.queue[0].minsLate).toString()}</strong> minutes late</p>
+                      <button className='submit-btn dash-skip' onClick={() => { setRunFunc('skipCustomer'); setModalTitle('Skip this person?'); setModalMessage('Would you like to skip the line forward?'); handleShow();}}>
+                        Skip
+                      </button>
+                      <button className='secondary-btn dash-moveForward' onClick={() => { setRunFunc('popQueue'); setModalTitle('Check this person in?'); setModalMessage('Would you like to move the line forward?'); handleShow();}}>
+                        Check In
+                      </button>
                     </div>
                   </Col>
                 </React.Fragment>

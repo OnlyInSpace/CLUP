@@ -235,6 +235,7 @@ function ScheduleVisit() {
       // Handle error
       if (!response.data) {
         history.push('/findStore');
+        return;
       }
       
       // Handle error warning
