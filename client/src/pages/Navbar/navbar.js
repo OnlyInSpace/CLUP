@@ -83,7 +83,7 @@ function NavigationBar() {
       } else {
         // Delete refresh token in Mongo so nobody can have access to it now 
         // Users are fully protected when logged out
-        await axios.post('/logout', { user });
+        await axios.post('/user/logout', { user });
       }
       // Remove localStorage
       localStorage.removeItem('accessToken');

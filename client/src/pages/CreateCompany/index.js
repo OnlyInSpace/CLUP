@@ -70,7 +70,7 @@ function CreateCompany() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      let response = await axios.post('/company/create', { companyName, ownerId }, { headers });
+      let response = await axios.post('/store/createCompany', { companyName, ownerId }, { headers });
 
       if (response.data.message) {
         setErrorMessage(response.data.message);
@@ -85,7 +85,7 @@ function CreateCompany() {
       await axios.post('/role/owner', { user_id: ownerId }, { headers });
 
       // Set user's business_id to the company's id
-      response = await axios.post('/business_id', { user_id: ownerId, business_id: comapnyId }, { headers });
+      response = await axios.post('/role/business_id', { user_id: ownerId, business_id: comapnyId }, { headers });
 
       // Refresh our user's token so that their role and business id are updated in localstorage
       await refresh(refreshToken);

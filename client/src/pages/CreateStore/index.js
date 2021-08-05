@@ -105,7 +105,7 @@ function CreateStore() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      let response = await axios.get(`/company/${user_id}`, { headers });
+      let response = await axios.get(`/store/company/${user_id}`, { headers });
 
       // Company_id is needed to be passed to create store
       const company_id = response.data._id;

@@ -17,6 +17,7 @@ function ConfirmEmail() {
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
+    let controller = new AbortController();
     (async () => {
       try {
         const refreshToken = localStorage.getItem('refreshToken');
@@ -41,7 +42,7 @@ function ConfirmEmail() {
         setLoading(true);
         await delay(2000);
         let headers = { authorization: `Bearer ${accessToken}` };
-        await axios.put(`/confirmEmail/${user._id}`, { }, { headers });
+        await axios.put(`/user/confirmEmail/${user._id}`, { }, { signal: controller.signal, headers });
         setLoading(false);
         setConfirmed(true);
         await delay(2000);
@@ -52,6 +53,7 @@ function ConfirmEmail() {
         console.log(error);
       }
     })();
+    return () => controller?.abort();
   }, []);
     
 

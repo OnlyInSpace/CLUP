@@ -52,6 +52,7 @@ function Employees() {
   let accessToken = localStorage.getItem('accessToken');
 
   useEffect(() => {
+    let controller = new AbortController();
     (async () => {
       try {
         const user = await protectPage(accessToken, refreshToken);
@@ -60,16 +61,16 @@ function Employees() {
         }
         
         const company_id = user.business_id;
-        let routeName = `/stores/${company_id}`;
+        let routeName = `/store/owned/${company_id}`;
         if (user.role === 'manager') {
-          routeName = `/store/${company_id}`;
+          routeName = `/store/get/${company_id}`;
         }
         
         accessToken = localStorage.getItem('accessToken');
         let headers = {
           authorization: `Bearer ${accessToken}`
         };
-        let storeList = await axios.get(routeName, { headers });
+        let storeList = await axios.get(routeName, { signal: controller.signal, headers });
         // format search data
         let formattedData;
         if (user.role === 'manager') {
@@ -101,6 +102,7 @@ function Employees() {
         console.log(error);
       }
     })();
+    return () => controller?.abort();
   }, []);
 
 
@@ -116,7 +118,7 @@ function Employees() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      await axios.post('/removeEmployee', { email }, { headers });
+      await axios.post('/role/removeEmployee', { email }, { headers });
       handleClose();
       
       setRemoveAlert('Employee successfully added to table below.');
@@ -140,7 +142,7 @@ function Employees() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      let addEmployee = await axios.post('/addEmployee', { 'email': employeeEmail, 'role': employeeRole, 'firstName': employeeFirstname, 'lastName': employeeLastname, 'store_id': selectedStore_id, company_id }, { headers });
+      let addEmployee = await axios.post('/role/addEmployee', { 'email': employeeEmail, 'role': employeeRole, 'firstName': employeeFirstname, 'lastName': employeeLastname, 'store_id': selectedStore_id, company_id }, { headers });
 
       if (addEmployee.data.message) {
         setAddInfoAlert(addEmployee.data.message);
@@ -167,7 +169,7 @@ function Employees() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      let changeRole = await axios.post('/changeRole', { email, role }, { headers });
+      let changeRole = await axios.post('/role/changeRole', { email, role }, { headers });
       handleClose();
  
       // handle warning
@@ -244,7 +246,7 @@ function Employees() {
     let headers = {
       authorization: `Bearer ${accessToken}`
     };
-    let storeData = await axios.get(`/store/${store_id}`, { headers });
+    let storeData = await axios.get(`/store/get/${store_id}`, { headers });
 
     // Handle warning
     if (storeData.data.message) {
@@ -269,7 +271,7 @@ function Employees() {
     let headers = {
       authorization: `Bearer ${accessToken}`
     };
-    let getEmployees = await axios.get(`/getEmployees/${store_id}`, { headers }); 
+    let getEmployees = await axios.get(`/store/getEmployees/${store_id}`, { headers }); 
     let employeesList = getEmployees.data;
 
     let id = 0;

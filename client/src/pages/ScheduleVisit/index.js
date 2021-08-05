@@ -40,6 +40,7 @@ function ScheduleVisit() {
   let accessToken = localStorage.getItem('accessToken');
 
   useEffect(() => {
+    let controller = new AbortController();
     (async () => {
       try {
         if (!store_id) {
@@ -52,7 +53,7 @@ function ScheduleVisit() {
         let headers = {
           authorization: `Bearer ${accessToken}`
         };
-        let response = await axios.get(`/store/${store_id}`, { headers });
+        let response = await axios.get(`/store/get/${store_id}`, { signal: controller.signal, headers });
         
         if (!response.data) {
           return history.push('/findStore');
@@ -114,6 +115,7 @@ function ScheduleVisit() {
         console.log(error);
       }
     })();
+    return () => controller?.abort();
   }, []);
 
 
@@ -126,7 +128,7 @@ function ScheduleVisit() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      let storeVisits = await axios.get(`/visits/${store_id}`, { headers });
+      let storeVisits = await axios.get(`/visits/store/${store_id}`, { headers });
       if (!storeVisits.data) {
         return history.push('/findStore');
       }
@@ -229,7 +231,7 @@ function ScheduleVisit() {
         authorization: `Bearer ${accessToken}`
       };
       // Create the visit
-      let response = await axios.post('/visit/create', { phoneNumber, user_id, scheduledDate, partyAmount, storeName,
+      let response = await axios.post('/visits/create', { phoneNumber, user_id, scheduledDate, partyAmount, storeName,
         store_id, scheduledTime, avgVisitLength, maxPartyAmount, open24hours, businessHours, storeVisits }, { headers });
 
       // Handle error

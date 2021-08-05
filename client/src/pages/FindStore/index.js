@@ -23,8 +23,8 @@ function FindStore() {
   let accessToken = localStorage.getItem('accessToken');
   const refreshToken = localStorage.getItem('refreshToken');
   
-  
   useEffect(() => {
+    let controller = new AbortController();
     (async () => {
       try {
         await protectPage(accessToken, refreshToken);
@@ -33,7 +33,7 @@ function FindStore() {
           authorization: `Bearer ${accessToken}`
         };
         // Get search list data
-        let storeList = await axios.get('/store', { headers });
+        let storeList = await axios.get('/store/getall', { signal: controller.signal, headers });
         // populate our search list
         const formattedData = storeList.data.map(store => {
           const storeName = store.storeName;
@@ -49,7 +49,7 @@ function FindStore() {
         
         // If user has preselected store, display it
         if (store_id) {
-          let storeData = await axios.get(`/store/${store_id}`, { headers });
+          let storeData = await axios.get(`/store/get/${store_id}`, { signal: controller.signal, headers });
           if (storeData.data)
             setPreSelectedStore(storeData.data.storeName);
         }
@@ -59,6 +59,7 @@ function FindStore() {
         console.log(error);
       }
     })();
+    return () => controller?.abort();
   }, []);
   
   

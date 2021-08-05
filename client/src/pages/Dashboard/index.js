@@ -59,6 +59,8 @@ function Dashboard() {
   const refreshToken = localStorage.getItem('refreshToken');
   let accessToken = localStorage.getItem('accessToken');
   const store_id = localStorage.getItem('store');
+  let controller = new AbortController();
+
 
   useEffect(() => {
     (async () => {
@@ -66,20 +68,14 @@ function Dashboard() {
         if (!store_id) {
           return history.push('/findStore');
         }
-
         await refreshPageData();
-
-        // Refresh every 10 seconds
-        // const interval = setInterval(async () => {
-        //   console.log('refreshing data', log);
-        //   await refreshPageData();
-        // }, 10000 );
-        // return () => clearInterval(interval);
+        return () => controller?.abort();
 
       } catch (error) {
         console.log(error);
       }
     })();
+    return () => controller?.abort();
   }, []);
 
 
@@ -92,7 +88,7 @@ function Dashboard() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      let storeVisits = await axios.get(`/visits/${store_id}`, { headers });
+      let storeVisits = await axios.get(`/visits/store/${store_id}`, { signal: controller.signal, headers });
   
       // Populating our search list with today's visits
       const currentDate = new Date();
@@ -156,7 +152,7 @@ function Dashboard() {
         authorization: `Bearer ${accessToken}`
       };
       // Get store object and verify the user's accessToken
-      let response = await axios.get(`/store/${store_id}`, { headers });
+      let response = await axios.get(`/store/get/${store_id}`, { signal: controller.signal, headers });
 
       if (!response.data) {
         return history.push('/findStore');
@@ -270,7 +266,7 @@ function Dashboard() {
         // clock user out
         setIsClockedIn(false);
         let user_id = user._id;
-        await axios.post('/clockOut', {user_id}, { headers });
+        await axios.post('/user/clockOut', {user_id}, { signal: controller.signal, headers });
       } else {
         return; 
       }
@@ -290,9 +286,9 @@ function Dashboard() {
   async function handleClockInOut() {
     let clockInOut = '';
     if (isClockedIn) {
-      clockInOut = '/clockOut';
+      clockInOut = '/user/clockOut';
     } else if (!isClockedIn) {
-      clockInOut = '/clockIn';
+      clockInOut = '/user/clockIn';
     }
     try {
       const user = await protectPage(accessToken, refreshToken);
@@ -332,7 +328,7 @@ function Dashboard() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      let response = await axios.delete(`/confirmVisit/${visit_id}`, { headers });
+      let response = await axios.delete(`/visits/confirm/${visit_id}`, { headers });
       handleClose();
 
       if (response.data.message) {
@@ -372,7 +368,7 @@ function Dashboard() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      const newStoreData = await axios.put('/changeCount', { store_id, occupancyChangeValue, storeData }, { headers });
+      const newStoreData = await axios.put('/store/changeCount', { store_id, occupancyChangeValue, storeData }, { headers });
       handleClose();
       // Warning if validation did not pass
       if (newStoreData.data.message) {
@@ -534,11 +530,10 @@ function Dashboard() {
       if (getVisitId)
         visit_id = getVisitId.value;
 
-      // Clock user in or out
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      const response = await axios.delete(`/myvisits/${visit_id}`, { headers });
+      const response = await axios.delete(`/visits/myvisits/${visit_id}`, { headers });
       handleClose();
 
       if (response.data.message) {

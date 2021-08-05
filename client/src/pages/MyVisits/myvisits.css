@@ -6,7 +6,7 @@
 
 .card {
     margin-bottom: 0;
-    max-width: 18em;
+    width: min(18em, 18em);
     box-shadow: -5px 5px 5px rgba(0, 0, 0, 0.342);
 }
 

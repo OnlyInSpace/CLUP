@@ -47,7 +47,7 @@ function Login() {
       } else {
         // Login our user via our backend login route sending with it the email & password for the req.body 
         // If the user successfully logged in, then our response will now have an access and refresh token data was returned to us
-        const response = await axios.post('/login', {email, password});
+        const response = await axios.post('/user/login', {email, password});
         const accessToken = response.data.accessToken;
         const refreshToken = response.data.refreshToken;
 

@@ -3,7 +3,7 @@ import axios from 'axios';
 // Function to refresh a user's access token if it is unexpired
 export const refresh = async (refreshToken) => {
   console.log('refreshing token. . .');
-  let response = await axios.get('/refresh', { headers: { refreshToken }});
+  let response = await axios.get('/user/refreshToken', { headers: { refreshToken }});
   if (response.data.message === 'Refresh token expired') {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
@@ -26,7 +26,7 @@ export const verifyAccess = async (accessToken, refreshToken) => {
   const headers = {
     authorization: `Bearer ${localStorage.getItem('accessToken')}`
   };
-  let response = await axios.get('/verifyAccessToken', { headers });
+  let response = await axios.get('/user/verifyToken', { headers });
   if (response.data.success === false) {
     // If the access token is expired, then go ahead and create a new access token with the refresh token
     if (response.data.message === 'Access token expired') { 

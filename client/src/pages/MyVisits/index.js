@@ -24,6 +24,8 @@ function MyVisits() {
   let accessToken = localStorage.getItem('accessToken');
   // prevent spam click
   const [doubleClick, setDoubleClick] = useState(false);
+  let controller = new AbortController();
+
 
   // Below can be used for error checking if database cards aren't working
   // const customCards = [{
@@ -42,6 +44,7 @@ function MyVisits() {
         console.log(error);
       }
     })();
+    return () => controller?.abort();
   }, []);
 
 
@@ -87,7 +90,7 @@ function MyVisits() {
       let headers = {
         authorization: `Bearer ${accessToken}`
       };
-      let response = await axios.get(`/myvisits/${user_id}`, { headers });
+      let response = await axios.get(`/visits/myvisits/${user_id}`, { signal: controller.signal, headers });
 
       // Create a userVisits array of objects
       // Here .map means for every object in userVisits
@@ -113,7 +116,7 @@ function MyVisits() {
         const time = formatTime(hour + ':' + minutes);
   
         // Get store name
-        response = await axios.get(`/store/${visit.store}`, { headers });
+        response = await axios.get(`/store/get/${visit.store}`, { signal: controller.signal, headers });
         const sName = response.data.storeName;
   
         // append object to the getCards array
@@ -144,7 +147,7 @@ function MyVisits() {
       };
       // delete the visit
       // if an error occurs, then catch block will be triggered
-      await axios.delete(`/myvisits/${visit_id}`, { headers });
+      await axios.delete(`/visits/myvisits/${visit_id}`, { headers });
       handleClose();
       
       // Set our delete alert for 5 seconds
