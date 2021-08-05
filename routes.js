@@ -5,9 +5,9 @@ const UserController = require('./controllers/UserController');
 const VisitController = require('./controllers/VisitController');
 const StoreController = require('./controllers/StoreController');
 const CompanyController = require('./controllers/CompanyController');
-const ChangeCountController = require('./controllers/ChangeCountController');
 const SetRoleController = require('./controllers/SetRoleController');
 const QueueController = require('./controllers/QueueController');
+const VerificationController = require('./controllers/VerificationController');
 
 // import jwt
 const jwt = require('jsonwebtoken');
@@ -17,7 +17,7 @@ require('dotenv').config();
 const routes = express.Router();
 
 
-// This is a middleware function which verifies every API database query made by users
+// This is a middleware function which verifies every API query made
 function verifyToken(req, res, next) {
   if (req.headers.authorization) {
     // Get token from headers.authorization
@@ -45,87 +45,77 @@ function verifyToken(req, res, next) {
   }
 }
 
+// Token verification and login/logout authentication
+routes.post('/user/register', VerificationController.registerUser);
+routes.post('/user/login', VerificationController.userLogin);
+routes.post('/user/logout', VerificationController.userLogout);
+routes.get('/user/verifyToken', VerificationController.verifyAccessToken);
+routes.get('/user/refreshToken', VerificationController.refreshAccessToken);
+// Get user by id
+routes.get('/user/:user_id', verifyToken, UserController.getUserById);
+// Confirm user email
+routes.put('/user/confirmEmail/:user_id', verifyToken, UserController.confirmUser);
+/* Setting clock in and out */
+// Clock user IN
+routes.post('/user/clockIn', verifyToken, UserController.setClockIn);
+// Clock user OUT
+routes.post('/user/clockOut', verifyToken, UserController.setClockOut);
+
+
 /* Setting roles and business id */
 // Add employee
-routes.post('/addEmployee', verifyToken, SetRoleController.addEmployee);
+routes.post('/role/addEmployee', verifyToken, SetRoleController.addEmployee);
 // Change employee's role
-routes.post('/changeRole', verifyToken, SetRoleController.changeRole);
+routes.post('/role/changeRole', verifyToken, SetRoleController.changeRole);
 // Set owner role
 routes.post('/role/owner', verifyToken, SetRoleController.setOwnerRole);
 // Remove employee
-routes.post('/removeEmployee', verifyToken, SetRoleController.removeEmployee);
+routes.post('/role/removeEmployee', verifyToken, SetRoleController.removeEmployee);
 // Set business_id
-routes.post('/business_id', verifyToken, SetRoleController.setBusiness_id);
-/* Setting clock in and out */
-// Clock user IN
-routes.post('/clockIn', verifyToken, UserController.setClockIn);
-// Clock user OUT
-routes.post('/clockOut', verifyToken, UserController.setClockOut);
+routes.post('/role/business_id', verifyToken, SetRoleController.setBusiness_id);
+
 
 /* Getting employees */
-routes.get('/getEmployees/:store_id', verifyToken, StoreController.getAllEmployees);
-
+routes.get('/store/getEmployees/:store_id', verifyToken, StoreController.getAllEmployees);
 // Create a company
 // Notice how verifyToken is placed before the api call, which means it will run before the api call.
-routes.post('/company/create', verifyToken, CompanyController.createCompany);
-
+routes.post('/store/createCompany', verifyToken, CompanyController.createCompany);
 // Create a store
 routes.post('/store/create', verifyToken, StoreController.createStore);
-
 /* Customer count functions */
 // Increase Customer Count
-routes.put('/changeCount', verifyToken, ChangeCountController.changeCount);
+routes.put('/store/changeCount', verifyToken, StoreController.changeCount);
+// Get company by user id
+routes.get('/store/company/:user_id', verifyToken, CompanyController.getCompanyByUserId);
+// Return all stores
+routes.get('/store/getall', verifyToken, StoreController.getAllStores);
+// Return all user owned stores
+routes.get('/store/owned/:company_id', verifyToken, StoreController.getOwnedStores);
+// Get store by id
+routes.get('/store/get/:store_id', verifyToken, StoreController.getStoreById);
+
+
 
 /* Visits */
 // Return all visits specific to currently logged in user
-routes.get('/myvisits/:user_id', verifyToken, VisitController.getUserVisits);
+routes.get('/visits/myvisits/:user_id', verifyToken, VisitController.getUserVisits);
 // Get all visits tied to specific store
-routes.get('/visits/:store_id', verifyToken, VisitController.getStoreVisits);
+routes.get('/visits/store/:store_id', verifyToken, VisitController.getStoreVisits);
 // Get all visits tied to user and specific store
-routes.get('/myvisits/:store_id/:user_id', verifyToken, VisitController.getUserStoreVisits);
+routes.get('/visits/myvisits/:store_id/:user_id', verifyToken, VisitController.getUserStoreVisits);
 // Create a visit
-routes.post('/visit/create', verifyToken, VisitController.createVisit);
+routes.post('/visits/create', verifyToken, VisitController.createVisit);
 // Delete visit
-routes.delete('/myvisits/:visitId', verifyToken, VisitController.delete);
+routes.delete('/visits/myvisits/:visitId', verifyToken, VisitController.delete);
+// Confirm a visit
+routes.delete('/visits/confirm/:visit_id', verifyToken, VisitController.confirmVisit);
+// Get visit by id
+routes.get('/visits/:visitId', verifyToken, VisitController.getVisitById);
 
-// FindStore -  returns all stores 
-routes.get('/findstore', verifyToken, StoreController.getAllStores);
 
 // Customer queue - append, pop, and skip
 routes.put('/queue/append', verifyToken, QueueController.appendUser);
 routes.post('/queue/pop', verifyToken, QueueController.popUser);
 routes.put('/queue/skip', verifyToken, QueueController.skipUser);
-
-
-// Confirm a visit
-routes.delete('/confirmVisit/:visit_id', verifyToken, VisitController.confirmVisit);
-
-
-//***********QUERIES FOR GETTING DATA****************** */
-
-// Visit
-// Get visit by id
-routes.get('/visit/:visitId', verifyToken, VisitController.getVisitById);
-
-// User
-// Get user by id
-routes.get('/user/:user_id', verifyToken, UserController.getUserById);
-// Confirm user email
-routes.put('/confirmEmail/:user_id', verifyToken, UserController.confirmUser);
-
-// Company
-// Get company by user id
-routes.get('/company/:user_id', verifyToken, CompanyController.getCompanyByUserId);
-
-// Store
-// Return all stores
-routes.get('/store', verifyToken, StoreController.getAllStores);
-// Return all user owned stores
-routes.get('/stores/:company_id', verifyToken, StoreController.getOwnedStores);
-
-// Get store by id
-// returns store data
-routes.get('/store/:store_id', verifyToken, StoreController.getStoreById);
-
 
 module.exports = routes;
