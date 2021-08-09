@@ -173,7 +173,7 @@ function Register() {
         }
 
         { confirmMessage && 
-        <Alert variant='success'>Please check your email inbox to confirm your account.</Alert>
+          <Alert variant='success'>Please check your email inbox to confirm your account.</Alert>
         }
         { errorMessage ? (
           /* ^^^^^^^^^^^^^^^^ is a ternary operator: is errorMessage undefined? If no, then display the alert*/

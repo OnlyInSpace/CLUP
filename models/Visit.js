@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // Setup a visit object via mongoose schema
 const VisitSchema = new mongoose.Schema({
-  phoneNumber: String,
+  email: String,
   date: Date,
   partyAmount: Number,
   // Store id tied to visit

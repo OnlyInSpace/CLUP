@@ -29,7 +29,7 @@ module.exports = {
         }
       }
       // Alert frontend that user is already in queue
-      if (!cont) return res.json({message: 'You are already in the queue. Look out for a text message from us once it\'s your turn. \nYour email: ' + customer.email});
+      if (!cont) return res.json({message: 'You are already in the queue. Look out for an email from us once it\'s your turn. \nYour email: ' + customer.email});
       // If not in queue yet, go ahead and append user 
       Store.findByIdAndUpdate(store_id, { $push : {'queue': [customer] }}, {new: true},
         function(err, result) {

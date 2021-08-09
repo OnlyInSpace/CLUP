@@ -29,7 +29,7 @@ function App() {
         <Route exact path='/' component={LandingPage} />
         <Route exact path='/user/register' component={Register} />
         <Route exact path='/login' component={Login} />
-        <Route exact path='/confirmEmail' component={ConfirmEmail} />
+        <Route exact path='/conEm5256' component={ConfirmEmail} />
         <ProtectedRoute exact path='/dashboard' component={Dashboard} />
         <ProtectedRoute exact path='/company/create' component={CreateCompany} />
         <ProtectedRoute exact path='/store/create' component={CreateStore} />

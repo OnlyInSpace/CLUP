@@ -60,7 +60,6 @@ module.exports = {
           }
         });
 
-        console.log(__dirname);
         // send mail with defined transport object
         await transporter.sendMail({
           from: '"CLUP" <CustomerLineup@CLUP.com>', // sender address
@@ -69,7 +68,7 @@ module.exports = {
           text: '', // plain text body
           // html: '<b><a href=\'confirmEmail\'>Confirm Email</a></b><br/><img src="cid:customer_lineup_logo@logo.com />', // html body
           html: '<h3 style="text-align: center; margin-bottom: 7px;">Click the link below to confirm your email</h3>' +
-            '<b><h2 style="text-align: center;"><a href=\'http://localhost:3000/confirmEmail\'>Confirm Email</a></h2></b>' + 
+            '<b><h2 style="text-align: center;"><a href=\'http://localhost:3000/conEm5256\'>Confirm Email</a></h2></b>' + 
             '<h3 style="text-align: center; margin-bottom: 7px;">A project by <strong>Steven Salomon</strong></h3>' +
             '<br/><img style="width: 50%; margin-left: auto; margin-right: auto; display: block;" src="cid:customer_lineup_logo_made"/>', // html body
           attachments: [{
@@ -206,8 +205,6 @@ module.exports = {
             });
           } else { // else token doesnt exist or could be unlegit, return 403 forbidden status back to frontend and have user login again
             console.log('\naccess token verify failed in authServer.\n');
-            console.log('\nuser:', user, typeof(user));
-            console.log('\nheaders:', req.headers.authorization);
             return res.status(403).json({ err, message: 'User not authenticated' });
           }
         }); 
@@ -259,8 +256,6 @@ module.exports = {
           });
         } else {
           console.log('\rrefresh token verify failed in authServer.\n');
-          console.log('\nuser:', user);
-          console.log('\nheaders:', req.headers.authorization);
           return res.status(403).json({ err, message: 'User not authenticated' });
         }
       });
