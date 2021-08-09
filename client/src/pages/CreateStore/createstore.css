@@ -1,0 +1,52 @@
+.MuiCheckbox-colorSecondary-6.MuiCheckbox-checked-2 {
+    color: #209129 !important;
+}
+
+.MuiCheckbox-colorSecondary-41.MuiCheckbox-checked-37 {
+    color: #209129 !important;
+}
+
+.MuiPrivateSwitchBase-root-7 {
+    display: block !important;
+}
+
+.createStoreForm .row {
+    margin-bottom: 1em;
+}
+
+.selecthours {
+    margin: 0 auto;
+    margin-top: 0.3em;
+    min-width: 6.5em;
+    max-width: 7em;
+}
+
+.open_24 {
+    margin-bottom: 0.5em;
+}
+
+.notOpen_24 {
+    margin-top: 2em;
+}
+
+.createStoreHours {
+    margin-top: 2em;
+    font-size: 1.5em;
+}
+
+.createStoreForm input {
+    margin : 0 auto;
+    max-width: 15em;
+}
+
+.createStoreForm .labels {
+    margin-top: .5em;
+}
+
+.secondary-btn.visit {
+    margin-bottom: 1.5em;
+} 
+
+.secondary-btn.visit:hover {
+    background-color: var(--green) !important;
+} 

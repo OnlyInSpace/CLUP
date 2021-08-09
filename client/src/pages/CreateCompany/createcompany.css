@@ -1,0 +1,21 @@
+.createComplist {
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+.createComplist li {
+    margin-bottom: 10px;
+}
+
+.createCompanyName {
+    font-size: 20px;
+}
+
+.createCompAlert {
+    margin-bottom: -1.5em !important;
+}
+
+#formCompanyName {
+    margin: 0 auto;
+}
