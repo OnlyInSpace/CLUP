@@ -84,7 +84,8 @@ function Login() {
         <p className='testing_acc'>
           Want to use a test account? <br />
           Email: <strong>test@test.com</strong> <br />
-          Password: <strong>Testing123!</strong>
+          Password: <strong>Testing123! <br /></strong>
+          <strong>Note:</strong> You won&apos;t be able to receieve email queue alerts with the test account. 
         </p>
         <Form onSubmit = {handleSubmit}>
           <Form.Group controlId="formEmail">
