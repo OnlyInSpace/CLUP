@@ -32,8 +32,8 @@ function Landingpage() {
         <div className="container">
           <h1 className="logo">CLUP</h1>
           <ul className="nav">
-            <li><a href="http://localhost:3000/user/register">Register</a></li>
-            <li><a href="http://localhost:3000/login">Login</a></li>
+            <li><a href="/user/register">Register</a></li>
+            <li><a href="/login">Login</a></li>
           </ul>
         </div>
       </nav>
@@ -51,7 +51,7 @@ function Landingpage() {
               limited customer occupancy within businesses
               during the COVID-19 pandemic.
             </p>
-            <a href="http://localhost:3000/login" className="btn">Schedule</a>
+            <a href="/login" className="btn">Schedule</a>
           </div>
           <img src={logo} alt="Company logo" /> 
         </div>
