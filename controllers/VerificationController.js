@@ -43,7 +43,7 @@ module.exports = {
         //************  Sending Email  **************/
         // Make ethereal test account
         // let testAccount = await nodemailer.createTestAccount();
-    
+  
         // create reusable transporter object using the default SMTP transport
         let transporter = nodemailer.createTransport({
           service: 'gmail',
@@ -78,6 +78,8 @@ module.exports = {
             cid: 'customer_lineup_logo_made'
           }]
         });
+
+        console.log('hello');
         // console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
         //***********End of Email***********/
           

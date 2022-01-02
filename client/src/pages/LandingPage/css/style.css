@@ -1,7 +1,7 @@
 :root {
     --primary-color: #445469;
     --secondary-color: #0a6096;
-    --overlay-color: rgba(0, 0, 0, 0.6);
+    --overlay-color: rgba(0, 0, 0, 0.705);
 }
 
 .landingPage * {
@@ -117,7 +117,6 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    text-align: center;
     margin: auto;
     max-width: 860px;
     padding: 5rem 0;
@@ -198,4 +197,19 @@
     .landingPage .section-footer {
         padding: 3rem 0;
     }
+}
+
+.section-footer a {
+    color: white;
+    text-decoration: underline;
+    transition: .35s ease-in-out;
+}
+
+.section-footer a:hover {
+    font-size: 1.25rem;
+}
+
+.section-b-inner ul {
+    list-style: circle;
+    /* text-align: left; */
 }

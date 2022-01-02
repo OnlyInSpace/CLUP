@@ -284,8 +284,6 @@ function CreateStore() {
               {/* CHECKBOX_END */}
 
 
-              <p>Note: <br/> All of these settings will be <strong>changeable</strong> after clicking the submit button.</p>
-
               { !doubleClick &&
                 <button onClick={handleSubmit} className="secondary-btn">
                   Create store
