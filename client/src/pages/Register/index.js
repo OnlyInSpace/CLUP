@@ -19,9 +19,7 @@ function Register() {
   // Confirm notify message
   const [confirmMessage, setConfirmMessage] = useState(false);
   
-  // Function that will talk to server api
   const handleSubmit = async evt => {
-    // Prevent default event when button is clicked
     evt.preventDefault();
     try {
       var phoneNumber = firstNums + secondNums + thirdNums;
@@ -63,7 +61,7 @@ function Register() {
         return;
       }
 
-      // If every input is valid, go ahead and register the user!
+      // If every input is valid, go ahead and register the user
       const response = await axios.post('/user/register', {phoneNumber, email, password});
       const accessToken = response.data.accessToken;
       const refreshToken = response.data.refreshToken;
@@ -81,7 +79,6 @@ function Register() {
         setErrorMessage('');
       }
     } catch (error) {
-      Promise.reject(error);
       console.log(error);
     }
   };
@@ -118,7 +115,6 @@ function Register() {
 
   // Sleep function
   const delay = ms => new Promise(res => setTimeout(res, ms));
-
 
   // everything inside the return is JSX (like HTML) and is what gets rendered to screen
   return (

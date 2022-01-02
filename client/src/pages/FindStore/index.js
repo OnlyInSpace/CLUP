@@ -151,7 +151,7 @@ function FindStore() {
         { preSelectedStore ? ''
           :
           <Alert className="alertBox clickDashBtn" variant='warning'>
-            <strong>Select a store to start scheduling visits and view a store&apos;s occupancy.</strong>
+            <strong>Select a store to start scheduling visits and to view a store&apos;s occupancy.</strong>
           </Alert>
         }
 

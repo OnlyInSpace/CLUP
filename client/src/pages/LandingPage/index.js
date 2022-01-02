@@ -43,7 +43,14 @@ function Landingpage() {
           <div>
             <h1>Customer Lineup</h1>
             <p><strong>This is a student project and should not be used for an actual business.</strong></p>
-            <p>Reducing risk and maintaining a safe environment for customers is a top priority.</p>
+            <p>
+              Customer Lineup is a web application built with
+              the MERN stack and its purpose is to serve as a virtual queue
+              manager for retail stores. The inspiration for this project was
+              to solve long customer lines due to
+              limited customer occupancy within businesses
+              during the COVID-19 pandemic.
+            </p>
             <a href="http://localhost:3000/login" className="btn">Schedule</a>
           </div>
           <img src={logo} alt="Company logo" /> 
@@ -53,16 +60,30 @@ function Landingpage() {
       <section className="section-b">
         <div className="overlay">
           <div className="section-b-inner">
-            <h3>Shop Safe</h3>
-            <h2>A Virtual Queue Manager</h2>
-            <p> Offering an easy-to-use virtual queue manager
-                    for ensuring social distancing at retail businesses </p>
+            <h2>Shopping Safely</h2>
+            {/* <h2>A Virtual Queue Manager</h2> */}
+
+            <p>Project Features</p>
+            <ul>
+              <li>Email verification and queue alerts using Nodemailer</li>
+              <li>Custom visit schedule handling with Javascript Dates</li>
+              <li>Enhanced security and authentication with JSON Web Tokens</li>
+              <li>Data cleanup scheduling and date tracking with node-cron</li>
+              <li>Control store occupancy and customer queues</li>
+              <li>Schedule and confirm visits</li>
+              <li>Remote check-ins via email</li>
+              <li>Manage employees for multiple stores</li>
+            </ul>
+            {/* <p>Reducing risk and maintaining a safe environment for customers is a top priority.</p> */}
+
+            {/* <p> Offering an easy-to-use virtual queue manager
+                    for ensuring social distancing at retail businesses </p> */}
           </div>
         </div>
       </section>
       {/* Footer */}
       <footer className="section-footer">
-        <p>A student project by Steven Salomon (2021)</p>
+        <p>A student project by <a href='https://www.stevensalomon.dev/'>Steven Salomon</a> (2021)</p>
       </footer>
     </div>
     

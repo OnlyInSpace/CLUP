@@ -60,6 +60,9 @@ function Login() {
           history.push('/dashboard'); // go to dashboard
         } else {
           setErrorMessage(response.data.message);
+          setTimeout(() => {
+            setErrorMessage('');
+          }, 7000);
         }
       }
     } catch (error) {
