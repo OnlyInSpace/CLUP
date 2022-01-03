@@ -5,7 +5,6 @@ import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import logo from '../Login/logo.png';
 
-
 function Register() {
   let history = useHistory();
   const [email, setEmail] = useState('');
