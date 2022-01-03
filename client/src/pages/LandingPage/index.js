@@ -2,7 +2,7 @@ import React from 'react';
 // import {Container, Button, Form} from 'react-bootstrap';
 // import './landing.css';
 // import { useHistory } from 'react-router-dom';
-
+import { useHistory } from 'react-router-dom';
 import './css/style.css';
 import './css/simple-lightbox.min.css';
 import logo from './img/logo.png';
@@ -10,7 +10,7 @@ import logo from './img/logo.png';
 
 function Landingpage() {
   //***************************************** */
-  // let history = useHistory();
+  let history = useHistory();
 
 
   // Function that will talk to server api
@@ -32,7 +32,7 @@ function Landingpage() {
         <div className="container">
           <h1 className="logo">CLUP</h1>
           <ul className="nav">
-            <li><a href="/user/register">Register</a></li>
+            <li><button onClick={() => history.push('/user/register')}>Register</button></li>
             <li><a href="/login">Login</a></li>
           </ul>
         </div>
