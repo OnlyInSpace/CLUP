@@ -32,7 +32,7 @@ function Landingpage() {
         <div className="container">
           <h1 className="logo">CLUP</h1>
           <ul className="nav">
-            <li><a onClick={() => history.push('/user/register')}>Register</a></li>
+            <li><a href="/user/register">Register</a></li>
             <li><a href="/login">Login</a></li>
           </ul>
         </div>
